@@ -170,6 +170,8 @@ static void StopPatch1(void) {
 
 
 static int StartPatch1(void) {
+    volatile int a = 102;
+    
     KVP_ClearObjects();
 
     sdcard_attemptMountIfUnmounted();

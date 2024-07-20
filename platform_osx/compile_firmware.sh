@@ -10,5 +10,5 @@ export axoloti_home=${axoloti_home:="$platformdir/.."}
 
 cd "${axoloti_firmware}"
 "${axoloti_firmware}/compile_firmware_osx.sh" $1
-cd ..
-"${axoloti_legacy_firmware}/compile_firmware_osx.sh" $1
+#cd ..
+#"${axoloti_legacy_firmware}/compile_firmware_osx.sh" $1

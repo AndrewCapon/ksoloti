@@ -7,6 +7,8 @@ cd "${axoloti_firmware}"
 make -f Makefile.patch clean
 
 echo "Compiling Ksoloti firmware... ${axoloti_firmware}"
+arm-none-eabi-gcc --version
+
 mkdir -p build/obj
 mkdir -p build/lst
 if ! make $1 ; then
