@@ -61,8 +61,16 @@ static const USBDescriptor vcom_device_descriptor = {
 #define ITF_NUM_AUDIO_STREAMING_SPEAKER    1
 #define ITF_NUM_AUDIO_STREAMING_MICROPHONE 2
 
+#define USBD_XFER_ISOCHRONOUS 1
+#define USBD_ISO_EP_ATT_ADAPTIVE 0x08
+#define USBD_ISO_EP_ATT_DATA 0
+#define USBD_ISO_EP_ATT_ASYNCHRONOUS 0x04
+
+#define AUDIO_ENDPPOINT_OUT 0x03
+#define AUDIO_ENDPPOINT_IN  0x83
+
 #if USE_AUDIO
-#define DESC_SIZE 140
+#define DESC_SIZE 140 + USBD_AUDIO_HEADSET_STEREO_DESC_LEN
 #define NUM_INTERFACE 0x04
 static const uint8_t vcom_configuration_descriptor_data[]=
 {
@@ -107,23 +115,80 @@ static const uint8_t vcom_configuration_descriptor_data[]=
     USBD_AUDIO_DESC_OUTPUT_TERM(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_TERM_TYPE_USB_STREAMING, 0x00, UAC2_ENTITY_MIC_INPUT_TERMINAL, UAC2_ENTITY_CLOCK, 0x0000, 0x00),
 
 
-  // interface 1 - Audio Speaker
+  // interface 1 - Audio Speaker (PC -> Ksoloti)
   // Standard AS Interface Descriptor(4.9.1)
   // Interface 1, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x00, 0x00, 0x00),
 
-  // Standard AS Interface Descriptor(4.9.1) 
-  // Interface 1, Alternate 1 - alternate interface for data streaming with 1 endpoint
+  // Interface 1, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x01, 0x01, 0x00),
 
-		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal
+		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
     USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_SPK_INPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
 
-		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - 
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 16 bit
     USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX),\
 
-  // interface 2 - midi - endpoint 1
-  0x09, 0x04, 0x02, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 2             INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1)  - Adaptive data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_OUT, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ADAPTIVE | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX), 0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint, delay of 1ms
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
+
+  // Interface 1, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x02, 0x01, 0x00),\
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_SPK_INPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 24 bits
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX),
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Adaptive data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_OUT, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ADAPTIVE | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX),  0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint, delay of 1ms
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
+
+
+  // interface 2 - Audio Microphone (Ksoloti -> PC)
+  // Standard AS Interface Descriptor(4.9.1) 
+  // Interface 2, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x00, 0x00, 0x0),
+
+  // Interface 2, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x01, 0x01, 0x00),
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 16 bit
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX),\
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Async data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_IN, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ASYNCHRONOUS | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX), 0x01),\
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint no delay
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
+
+
+  // Interface 2, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x02, 0x01, 0x00),
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+		
+    // Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 24 bit
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX),
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Async data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_IN, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ASYNCHRONOUS | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX), 0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint no delay
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
+
+  // interface 3 - midi - endpoint 1
+  0x09, 0x04, 0x03, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 3             INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
   0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
   0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
   0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
@@ -134,16 +199,16 @@ static const uint8_t vcom_configuration_descriptor_data[]=
   0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
   0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
 
-  // interface 3 - Bulk
+  // interface 4 - Bulk - Endpoint 2
   /* Interface Association Descriptor. group for bulk */
-  USB_DESC_INTERFACE_ASSOCIATION(0x03, /* bFirstInterface.                  */
+  USB_DESC_INTERFACE_ASSOCIATION(0x04, /* bFirstInterface.                  */
                               0x01, /* bInterfaceCount.                  */
                               0xFF, /* bFunctionClass (Vendor Specific).  */
                               0x00, /* bFunctionSubClass.                */
                               0x00, /* bFunctionProcotol                 */
                               4),   /* iInterface.                       */
   /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x03,          /* bInterfaceNumber.                */
+  USB_DESC_INTERFACE    (0x04,          /* bInterfaceNumber.                */
                          0x00,          /* bAlternateSetting.               */
                          0x02,          /* bNumEndpoints.                   */
                          0xFF,          /* bInterfaceClass (Vendor Specific). */
@@ -160,129 +225,6 @@ static const uint8_t vcom_configuration_descriptor_data[]=
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
                          0x00),         /* bInterval.                       */
-////////////////////////////////////////////////////////////////////////////////////////////
-  //TUD_AUDIO_HEADSET_STEREO_DESCRIPTOR(2, AUDIO_EP, AUDIO_EP | 0x80),
-
-  // USB_DESC_INTERFACE(USB_DESC_INTERFACE_CONTROL,                        // bInterfaceNumber.
-  //                     0x00u,                                            // bAlternateSetting.
-  //                     0x00u,                                            // bNumEndpoints.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO,                   // bInterfaceClass.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO_SUBCLASS_CONTROL,  // bInterfaceSubClass.
-  //                     0x00u,                                            // bInterfaceProtocol (none).
-  //                     0u),                                             // iInterface.
-  //     // Class-specific AC Interface Descriptor (UAC 4.3.2)
-  //     USB_DESC_BYTE(9u),                                      // bLength.
-  //     USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),  // bDescriptorType.
-  //     USB_DESC_BYTE(0x01u),                                   // bDescriptorSubtype (Header).
-  //     USB_DESC_BCD(USB_DESC_ADC_VERSION),                     // bcdADC.
-  //     USB_DESC_WORD(43u),                                     // wTotalLength.
-  //     USB_DESC_BYTE(0x01u),                                   // bInCollection (1 streaming interface).
-  //     USB_DESC_BYTE(USB_DESC_INTERFACE_STREAMING),            // baInterfaceNr.
-
-  //     // Input Terminal Descriptor (UAC 4.3.2.1)
-  //     USB_DESC_BYTE(12u),                                     // bLength.
-  //     USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),  // bDescriptorType.
-  //     USB_DESC_BYTE(USB_DESC_TERMINAL_TYPE_INPUT),            // bDescriptorSubtype.
-  //     USB_DESC_BYTE(USB_DESC_UNIT_INPUT),                     // bTerminalID.
-  //     USB_DESC_WORD(USB_DESC_TERMINAL_TYPE_STREAMING),        // wTerminalType.
-  //     USB_DESC_BYTE(0x00u),                                   // bAssocTerminal (none).
-  //     USB_DESC_BYTE(AUDIO_CHANNEL_COUNT),                     // bNrChannels.
-  //     USB_DESC_WORD(USB_DESC_CHANNEL_CONFIG_RIGHT_FRONT |
-  //                   USB_DESC_CHANNEL_CONFIG_LEFT_FRONT),  // wChannelConfig (left, right).
-  //     USB_DESC_BYTE(0x00u),                               // iChannelNames (none).
-  //     USB_DESC_BYTE(0x00u),                               // iTerminal (none).
-
-  //     // Feature Unit Descriptor (UAC 4.3.2.5)
-  //     USB_DESC_BYTE(13u),                                                      // bLength.
-  //     USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),                   // bDescriptorType.
-  //     USB_DESC_BYTE(0x06u),                                                    // bDescriptorSubtype (Feature Unit).
-  //     USB_DESC_BYTE(USB_DESC_UNIT_FUNCTION),                                   // bUnitID.
-  //     USB_DESC_BYTE(USB_DESC_UNIT_INPUT),                                      // bSourceID.
-  //     USB_DESC_BYTE(AUDIO_CHANNEL_COUNT),                                      // bControlSize.
-  //     USB_DESC_WORD(USB_DESC_FU_CONTROLS_NONE),                                // Master controls.
-  //     USB_DESC_WORD(USB_DESC_FU_CONTROLS_MUTE | USB_DESC_FU_CONTROLS_VOLUME),  // Channel 0 controls
-  //     USB_DESC_WORD(USB_DESC_FU_CONTROLS_MUTE | USB_DESC_FU_CONTROLS_VOLUME),  // Channel 1 controls
-  //     USB_DESC_BYTE(0x00u),                                                    // iFeature (none)
-
-  //     // Output Terminal Descriptor (UAC 4.3.2.2)
-  //     USB_DESC_BYTE(9u),                                      // bLength.
-  //     USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),  // bDescriptorType.
-  //     USB_DESC_BYTE(USB_DESC_TERMINAL_TYPE_OUTPUT),           // bDescriptorSubtype.
-  //     USB_DESC_BYTE(USB_DESC_UNIT_OUTPUT),                    // bTerminalID.
-  //     USB_DESC_WORD(USB_DESC_OUTPUT_TERMINAL_TYPE_SPEAKER),   // wTerminalType.
-  //     USB_DESC_BYTE(0x00u),                                   // bAssocTerminal (none).
-  //     USB_DESC_BYTE(USB_DESC_UNIT_FUNCTION),                  // bSourceID.
-  //     USB_DESC_BYTE(0x00u),                                   // iTerminal (none).
-
-  // // Standard AS Interface Descriptor (zero-bandwidth) (UAC 4.5.1)
-  // USB_DESC_INTERFACE(USB_DESC_INTERFACE_STREAMING,                       // bInterfaceNumber.
-  //                     USB_DESC_INTERFACE_ALT_SETTING_ZERO_BW,             // bAlternateSetting.
-  //                     USB_DESC_ENDPOINT_COUNT_ZERO_BANDWIDTH,             // bNumEndpoints.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO,                     // bInterfaceClass.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO_SUBCLASS_STREAMING,  // bInterfaceSubClass.
-  //                     USB_DESC_INTERFACE_PROTOCOL_UNDEFINED,              // bInterfaceProtocol.
-  //                     USB_DESC_INTERFACE_NONE),                           // iInterface.
-
-  // // Standard AS Interface Descriptor (operational) (UAC 4.5.1)
-  // USB_DESC_INTERFACE(USB_DESC_INTERFACE_STREAMING,                       // bInterfaceNumber.
-  //                     USB_DESC_INTERFACE_ALT_SETTING_OPERATIONAL,         // bAlternateSetting.
-  //                     USB_DESC_ENDPOINT_COUNT_OPERATIONAL,                // bNumEndpoints.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO,                     // bInterfaceClass.
-  //                     USB_DESC_INTERFACE_CLASS_AUDIO_SUBCLASS_STREAMING,  // bInterfaceSubClass.
-  //                     USB_DESC_INTERFACE_PROTOCOL_UNDEFINED,              // bInterfaceProtocol.
-  //                     USB_DESC_INTERFACE_NONE),                           // iInterface.
-
-  //   // Class-specific AS Interface Descriptor (UAC 4.5.2)
-  //   USB_DESC_BYTE(7u),                                      // bLength.
-  //   USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),  // bDescriptorType (CS_INTERFACE).
-  //   USB_DESC_BYTE(0x01u),                                   // bDescriptorSubtype (general).
-  //   USB_DESC_BYTE(USB_DESC_UNIT_INPUT),                     // bTerminalLink.
-  //   USB_DESC_BYTE(0x00u),                                   // bDelay (none).
-  //   USB_DESC_WORD(0x0001u),                                 // wFormatTag (PCM format).
-
-  //   // Class-Specific AS Format Type Descriptor (UAC 4.5.3)
-  //   USB_DESC_BYTE(14u),                                     // bLength.
-  //   USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_INTERFACE),  // bDescriptorType (CS_INTERFACE).
-  //   USB_DESC_BYTE(0x02u),                                   // bDescriptorSubtype (Format).
-  //   USB_DESC_BYTE(USB_DESC_AUDIO_FORMAT_TYPE_I),            // bFormatType (Type I).
-  //   USB_DESC_BYTE(AUDIO_CHANNEL_COUNT),                     // bNrChannels.
-  //   USB_DESC_BYTE(AUDIO_SAMPLE_SIZE),                       // bSubframeSize.
-  //   USB_DESC_BYTE(AUDIO_RESOLUTION_BIT),                    // bBitResolution.
-  //   USB_DESC_BYTE(0x02u),                                   // bSamFreqType (Type I).
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_48_KHZ, 0u)),  // Audio sampling frequency, byte 0.
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_48_KHZ, 1u)),  // Audio sampling frequency, byte 1.
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_48_KHZ, 2u)),  // Audio sampling frequency, byte 2.
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_96_KHZ, 0u)),  // Audio sampling frequency, byte 0.
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_96_KHZ, 1u)),  // Audio sampling frequency, byte 1.
-  //   USB_DESC_BYTE(GET_BYTE(AUDIO_SAMPLE_RATE_96_KHZ, 2u)),  // Audio sampling frequency, byte 2.
-
-  //   // Standard AS Isochronous Audio Data Endpoint Descriptor (UAC 4.6.1.1)
-  //   USB_DESC_BYTE(9u),                                  // bLength (9).
-  //   USB_DESC_BYTE(0x05u),                               // bDescriptorType (Endpoint).
-  //   USB_DESC_BYTE(USB_DESC_ENDPOINT_PLAYBACK),          // bEndpointAddress.
-  //   USB_DESC_BYTE(0x05u),                               // bmAttributes (asynchronous isochronous).
-  //   USB_DESC_WORD(AUDIO_MAX_PACKET_SIZE),               // wMaxPacketSize
-  //   USB_DESC_BYTE(USB_DESC_FS_BINTERVAL),               // bInterval.
-  //   USB_DESC_BYTE(0x00u),                               // bRefresh (0).
-  //   USB_DESC_BYTE(USB_DESC_ENDPOINT_FEEDBACK | 0x80u),  // bSynchAddress.
-
-  //   // C-S AS Isochronous Audio Data Endpoint Descriptor (UAC 4.6.1.2)
-  //   USB_DESC_BYTE(7u),                                     // bLength.
-  //   USB_DESC_BYTE(USB_DESC_CLASS_SPECIFIC_TYPE_ENDPOINT),  // bDescriptorType.
-  //   USB_DESC_BYTE(0x01u),                                  // bDescriptorSubtype (General).
-  //   USB_DESC_BYTE(0x01u),                                  // bmAttributes - support sampling frequency adjustment.
-  //   USB_DESC_BYTE(0x02u),                                  // bLockDelayUnits (PCM sample count).
-  //   USB_DESC_WORD(0x0000u),                                // bLockDelay (0).
-
-  //   // Standard Isochronous Audio Feedback Endpoint Descriptor
-  //   USB_DESC_BYTE(9u),                                  // bLength (9).
-  //   USB_DESC_BYTE(0x05u),                               // bDescriptorType (Endpoint).
-  //   USB_DESC_BYTE(USB_DESC_ENDPOINT_FEEDBACK | 0x80u),  // bEndpointAddress.
-  //   USB_DESC_BYTE(USB_EP_MODE_TYPE_ISOC),               // bmAttributes.
-  //   USB_DESC_WORD(USB_DESC_MAX_IN_SIZE),                // wMaxPacketSize
-  //   USB_DESC_BYTE(USB_DESC_FS_BINTERVAL),               // bInterval (1 ms).
-  //   USB_DESC_BYTE(AUDIO_FEEDBACK_PERIOD_EXPONENT),      // bRefresh.
-  //   USB_DESC_BYTE(0x00u),                               // bSynchAddress (none).
 };
 
 #else

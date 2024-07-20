@@ -615,15 +615,25 @@ typedef enum
 
 #define USBD_DESC_INTERFACE     0x04
 #define USBD_DESC_CS_INTERFACE  0x24
+#define USBD_DESC_ENDPOINT 0x05
+#define USBD_DESC_CS_ENDPOINT 0x25
 
 #define CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX  2
 #define CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX  2
+
+
+#define CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE 48000
 
 // 16bit in 16bit slots
 #define CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX          2
 #define CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX                  16
 #define CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX          2
 #define CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX                  16
+
+#define CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX          4
+#define CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX                  24
+#define CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX          4
+#define CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX                  24
 
 
 #define TU_U16(_high, _low)   ((uint16_t) (((_high) << 8) | (_low)))
@@ -647,6 +657,45 @@ typedef enum
 
 #define USBD_AUDIO_DESC_CS_AC_LEN_CONTENT_LEN (USBD_AUDIO_DESC_CLK_SRC_LEN+USBD_AUDIO_DESC_FEATURE_UNIT_TWO_CHANNEL_LEN+USBD_AUDIO_DESC_INPUT_TERM_LEN+USBD_AUDIO_DESC_OUTPUT_TERM_LEN+USBD_AUDIO_DESC_INPUT_TERM_LEN+USBD_AUDIO_DESC_OUTPUT_TERM_LEN)
 
+#define USBD_AUDIO_EP_SIZE(_maxFrequency, _nBytesPerSample, _nChannels) ((((_maxFrequency + 999) / 1000) + 1) * _nBytesPerSample * _nChannels)
+
+#define USBD_AUDIO_HEADSET_STEREO_DESC_LEN (USBD_AUDIO_DESC_IAD_LEN\
+    + USBD_AUDIO_DESC_STD_AC_LEN\
+    + USBD_AUDIO_DESC_CS_AC_LEN\
+    + USBD_AUDIO_DESC_CLK_SRC_LEN\
+    + USBD_AUDIO_DESC_INPUT_TERM_LEN\
+    + USBD_AUDIO_DESC_FEATURE_UNIT_TWO_CHANNEL_LEN\
+    + USBD_AUDIO_DESC_OUTPUT_TERM_LEN\
+    + USBD_AUDIO_DESC_INPUT_TERM_LEN\
+    + USBD_AUDIO_DESC_OUTPUT_TERM_LEN\
+    /* Interface 1, Alternate 0 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    /* Interface 1, Alternate 0 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    + USBD_AUDIO_DESC_CS_AS_INT_LEN\
+    + USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN\
+    + USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN\
+    + USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN\
+    /* Interface 1, Alternate 2 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    + USBD_AUDIO_DESC_CS_AS_INT_LEN\
+    + USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN\
+    + USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN\
+    + USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN\
+    /* Interface 2, Alternate 0 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    /* Interface 2, Alternate 1 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    + USBD_AUDIO_DESC_CS_AS_INT_LEN\
+    + USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN\
+    + USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN\
+    + USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN\
+    /* Interface 2, Alternate 2 */\
+    + USBD_AUDIO_DESC_STD_AS_INT_LEN\
+    + USBD_AUDIO_DESC_CS_AS_INT_LEN\
+    + USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN\
+    + USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN\
+    + USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN)
 // Unit numbers are arbitrary selected
 #define UAC2_ENTITY_CLOCK               0x04
 
@@ -713,5 +762,15 @@ typedef enum
 #define USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN 6
 #define USBD_AUDIO_DESC_TYPE_I_FORMAT(_subslotsize, _bitresolution) /* _subslotsize is number of bytes per sample (i.e. subslot) and can be 1,2,3, or 4 */\
   USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN, USBD_DESC_CS_INTERFACE, AUDIO_CS_AS_INTERFACE_FORMAT_TYPE, AUDIO_FORMAT_TYPE_I, _subslotsize, _bitresolution
+
+/* Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) */
+#define USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN 7
+#define USBD_AUDIO_DESC_STD_AS_ISO_EP(_ep, _attr, _maxEPsize, _interval) \
+  USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN, USBD_DESC_ENDPOINT, _ep, _attr, U16_TO_U8S_LE(_maxEPsize), _interval
+
+/* Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) */
+#define USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN 8
+#define USBD_AUDIO_DESC_CS_AS_ISO_EP(_attr, _ctrl, _lockdelayunit, _lockdelay) \
+  USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN, USBD_DESC_CS_ENDPOINT, AUDIO_CS_EP_SUBTYPE_GENERAL, _attr, _ctrl, _lockdelayunit, U16_TO_U8S_LE(_lockdelay)
 
 #endif // _AUDIO_USB_H_
