@@ -659,8 +659,7 @@ typedef enum
 
 #define USBD_AUDIO_EP_SIZE(_maxFrequency, _nBytesPerSample, _nChannels) ((((_maxFrequency + 999) / 1000) + 1) * _nBytesPerSample * _nChannels)
 
-#define USBD_AUDIO_HEADSET_STEREO_DESC_LEN (USBD_AUDIO_DESC_IAD_LEN\
-    + USBD_AUDIO_DESC_STD_AC_LEN\
+#define USBD_AUDIO_HEADSET_STEREO_DESC_LEN (USBD_AUDIO_DESC_STD_AC_LEN\
     + USBD_AUDIO_DESC_CS_AC_LEN\
     + USBD_AUDIO_DESC_CLK_SRC_LEN\
     + USBD_AUDIO_DESC_INPUT_TERM_LEN\
@@ -696,6 +695,8 @@ typedef enum
     + USBD_AUDIO_DESC_TYPE_I_FORMAT_LEN\
     + USBD_AUDIO_DESC_STD_AS_ISO_EP_LEN\
     + USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN)
+
+    
 // Unit numbers are arbitrary selected
 #define UAC2_ENTITY_CLOCK               0x04
 
