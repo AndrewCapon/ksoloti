@@ -57,16 +57,14 @@ static const USBDescriptor vcom_device_descriptor = {
 #define USB_DESC_CONFIGURATION_LEN  8
 
 #define ITF_NUM_AUDIO_STREAMING_CONTROL    0
-#define ITF_NUM_AUDIO_STREAMING_SPEAKER    3
-#define ITF_NUM_AUDIO_STREAMING_MICROPHONE 4
+#define ITF_NUM_AUDIO_STREAMING_SPEAKER    1
+#define ITF_NUM_AUDIO_STREAMING_MICROPHONE 2
 
 #define USBD_XFER_ISOCHRONOUS 1
 #define USBD_ISO_EP_ATT_ADAPTIVE 0x08
 #define USBD_ISO_EP_ATT_DATA 0
 #define USBD_ISO_EP_ATT_ASYNCHRONOUS 0x04
 
-#define AUDIO_ENDPPOINT_OUT 0x03
-#define AUDIO_ENDPPOINT_IN  0x83
 
 #define USE_AUDIO 1
 #if USE_AUDIO
@@ -85,7 +83,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
 
  /* Interface Association Descriptor. group has control, audio and midi    */
  USB_DESC_INTERFACE_ASSOCIATION(0x00, /* bFirstInterface.                  */
-                                0x03, /* bInterfaceCount.                  */
+                                0x04, /* bInterfaceCount.                  */
                                 0x01, /* bFunctionClass (Audio).           */
                                 0x00, /* bFunctionSubClass.                */
                                 0x20, /* bFunctionProcotol                 */
@@ -115,53 +113,12 @@ static const uint8_t vcom_configuration_descriptor_data[]=
     // Output Terminal Descriptor(4.7.2.5) - Output Terminal USB Streaming
     USBD_AUDIO_DESC_OUTPUT_TERM(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_TERM_TYPE_USB_STREAMING, 0x00, UAC2_ENTITY_MIC_INPUT_TERMINAL, UAC2_ENTITY_CLOCK, 0x0000, 0x00),
 
-  // interface 1 - midi
-  0x09, 0x04, 0x01, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 1              INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
-  0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
-  0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
-  0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
-  0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x06, //   OUT Jack 3 (emb)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
-  0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01, 0x02, //   OUT Jack 4 (ext)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
-  0x09, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint OUT             ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
-  0x05, 0x25, 0x01, 0x01, 0x01,                         //   CS EP IN  Jack         CLASS SPECIFIC MS BULK DATA EP DESC
-  0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
-  0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
-
-  // interface 2 - Bulk
-  /* Interface Association Descriptor.*/
-  USB_DESC_INTERFACE_ASSOCIATION(0x02, /* bFirstInterface.                  */
-                              0x01, /* bInterfaceCount.                  */
-                              0xFF, /* bFunctionClass (Vendor Specific).  */
-                              0x00, /* bFunctionSubClass.                */
-                              0x00, /* bFunctionProcotol                 */
-                              4),   /* iInterface.                       */
-  /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x02,          /* bInterfaceNumber.                */
-                         0x00,          /* bAlternateSetting.               */
-                         0x02,          /* bNumEndpoints.                   */
-                         0xFF,          /* bInterfaceClass (Vendor Specific). */
-                         0x00,
-                         0x00,
-                         4),         /* iInterface.                      */
-  /* Endpoint 2 Descriptor.*/
-  USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
-                         0x02,          /* bmAttributes (Bulk).             */
-                         0x0040,        /* wMaxPacketSize.                  */
-                         0x00),         /* bInterval.                       */
-  /* Endpoint 2 Descriptor.*/
-  USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
-                         0x02,          /* bmAttributes (Bulk).             */
-                         0x0040,        /* wMaxPacketSize.                  */
-                         0x00),          /* bInterval.                       */
-
-
-
-  // interface 3 - Audio Speaker (PC -> Ksoloti)
+  // interface 1 - Audio Speaker (PC -> Ksoloti)
   // Standard AS Interface Descriptor(4.9.1)
-  // Interface 3, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
+  // Interface 1, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x00, 0x00, 0x00),
 
-  // Interface 3, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
+  // Interface 1, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x01, 0x01, 0x00),
 
 		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
@@ -176,7 +133,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
 		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint, delay of 1ms
     USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
 
-  // Interface 3, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  // Interface 1, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x02, 0x01, 0x00),\
 
 		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
@@ -192,12 +149,12 @@ static const uint8_t vcom_configuration_descriptor_data[]=
     USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
 
 
-  // interface 4 - Audio Microphone (Ksoloti -> PC)
+  // interface 2 - Audio Microphone (Ksoloti -> PC)
   // Standard AS Interface Descriptor(4.9.1) 
-  // Interface 4, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
+  // Interface 2, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x00, 0x00, 0x0),
 
-  // Interface 4, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
+  // Interface 2, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x01, 0x01, 0x00),
 
 		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
@@ -213,7 +170,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
     USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
 
 
-  // Interface 4, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  // Interface 2, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
   USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x02, 0x01, 0x00),
 
 		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
@@ -228,44 +185,44 @@ static const uint8_t vcom_configuration_descriptor_data[]=
 		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint no delay
     USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
 
-  // // interface 3 - midi - endpoint 1
-  // 0x09, 0x04, 0x03, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 3             INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
-  // 0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
-  // 0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
-  // 0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
-  // 0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x06, //   OUT Jack 3 (emb)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
-  // 0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01, 0x02, //   OUT Jack 4 (ext)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
-  // 0x09, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint OUT             ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
-  // 0x05, 0x25, 0x01, 0x01, 0x01,                         //   CS EP IN  Jack         CLASS SPECIFIC MS BULK DATA EP DESC
-  // 0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
-  // 0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
+  // interface 3 - midi - endpoint 1
+  0x09, 0x04, 0x03, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 3             INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
+  0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
+  0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
+  0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
+  0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x06, //   OUT Jack 3 (emb)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
+  0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01, 0x02, //   OUT Jack 4 (ext)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
+  0x09, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint OUT             ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+  0x05, 0x25, 0x01, 0x01, 0x01,                         //   CS EP IN  Jack         CLASS SPECIFIC MS BULK DATA EP DESC
+  0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+  0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
 
-  // // interface 4 - Bulk - Endpoint 2
-  // /* Interface Association Descriptor. group for bulk */
-  // USB_DESC_INTERFACE_ASSOCIATION(0x04, /* bFirstInterface.                  */
-  //                             0x01, /* bInterfaceCount.                  */
-  //                             0xFF, /* bFunctionClass (Vendor Specific).  */
-  //                             0x00, /* bFunctionSubClass.                */
-  //                             0x00, /* bFunctionProcotol                 */
-  //                             4),   /* iInterface.                       */
-  // /* Interface Descriptor.*/
-  // USB_DESC_INTERFACE    (0x04,          /* bInterfaceNumber.                */
-  //                        0x00,          /* bAlternateSetting.               */
-  //                        0x02,          /* bNumEndpoints.                   */
-  //                        0xFF,          /* bInterfaceClass (Vendor Specific). */
-  //                        0x00,
-  //                        0x00,
-  //                        4),         /* iInterface.                      */
-  // /* Endpoint 2 Descriptor.*/
-  // USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
-  //                        0x02,          /* bmAttributes (Bulk).             */
-  //                        0x0040,        /* wMaxPacketSize.                  */
-  //                        0x00),         /* bInterval.                       */
-  // /* Endpoint 2 Descriptor.*/
-  // USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
-  //                        0x02,          /* bmAttributes (Bulk).             */
-  //                        0x0040,        /* wMaxPacketSize.                  */
-  //                        0x00),         /* bInterval.                       */
+  // interface 4 - Bulk - Endpoint 2
+  /* Interface Association Descriptor. group for bulk */
+  USB_DESC_INTERFACE_ASSOCIATION(0x04, /* bFirstInterface.                  */
+                              0x01, /* bInterfaceCount.                  */
+                              0xFF, /* bFunctionClass (Vendor Specific).  */
+                              0x00, /* bFunctionSubClass.                */
+                              0x00, /* bFunctionProcotol                 */
+                              4),   /* iInterface.                       */
+  /* Interface Descriptor.*/
+  USB_DESC_INTERFACE    (0x04,          /* bInterfaceNumber.                */
+                         0x00,          /* bAlternateSetting.               */
+                         0x02,          /* bNumEndpoints.                   */
+                         0xFF,          /* bInterfaceClass (Vendor Specific). */
+                         0x00,
+                         0x00,
+                         4),         /* iInterface.                      */
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
+                         0x02,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x00),         /* bInterval.                       */
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
+                         0x02,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x00),         /* bInterval.                       */
 };
 
 #else

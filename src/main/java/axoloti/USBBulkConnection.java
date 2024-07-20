@@ -73,7 +73,7 @@ public class USBBulkConnection extends Connection {
     private final short bulkVID = (short) 0x16C0;
     private final short bulkPIDAxoloti = (short) 0x0442;
     private final short bulkPIDKsoloti = (short) 0x0444;
-    private final int interfaceNumber = 2;
+    private final int interfaceNumber = 4; 
 
     protected USBBulkConnection() {
         this.sync = new Sync();

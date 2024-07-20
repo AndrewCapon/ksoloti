@@ -24,15 +24,14 @@
 /*
  * Endpoints to be used for USBD1.
  */
+#define AUDIO_ENDPPOINT_OUT 0x03
+#define AUDIO_ENDPPOINT_IN  0x83
+
 #define USBD1_DATA_REQUEST_EP           1
 #define USBD1_DATA_AVAILABLE_EP         1
 #define USBD2_DATA_REQUEST_EP           2
 #define USBD2_DATA_AVAILABLE_EP         2
 
-#define USBD3_DATA_REQUEST_EP           3
-#define USBD3_DATA_AVAILABLE_EP         3
-#define USBD4_DATA_REQUEST_EP           4
-#define USBD4_DATA_AVAILABLE_EP         4
 
 
 extern MidiUSBDriver MDU1;
