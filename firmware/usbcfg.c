@@ -53,17 +53,6 @@ static const USBDescriptor vcom_device_descriptor = {
 };
 
 
-#define USB_DESC_DEVICE_LEN         9
-#define USB_DESC_CONFIGURATION_LEN  8
-
-#define ITF_NUM_AUDIO_STREAMING_CONTROL    0
-#define ITF_NUM_AUDIO_STREAMING_SPEAKER    1
-#define ITF_NUM_AUDIO_STREAMING_MICROPHONE 2
-
-#define USBD_XFER_ISOCHRONOUS 1
-#define USBD_ISO_EP_ATT_ADAPTIVE 0x08
-#define USBD_ISO_EP_ATT_DATA 0
-#define USBD_ISO_EP_ATT_ASYNCHRONOUS 0x04
 
 
 #define USE_AUDIO 1
@@ -631,6 +620,44 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
     ) {
     usbSetupTransfer(usbp, (uint8_t *)&msdescriptor1, usbp->setup[6], NULL);
     return TRUE;
+  } else 
+  {
+    // Audio stuff
+    if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) == (USB_RTYPE_TYPE_STD | USB_RTYPE_RECIPIENT_INTERFACE)) 
+    {
+      // Interface stuff
+      if (usbp->setup[1] == USB_REQ_SET_INTERFACE) 
+        return aduSwitchInterface(usbp, usbp->setup[4], usbp->setup[5], usbp->setup[1], (usbp->setup[3] << 8) | (usbp->setup[2]), (usbp->setup[7] << 8) | (usbp->setup[6]));
+    }
+    else
+    {
+      if ((usbp->setup[0] & USB_RTYPE_TYPE_MASK) == USB_RTYPE_TYPE_CLASS) 
+      {
+        // class stuff
+        switch(usbp->setup[0] & USB_RTYPE_RECIPIENT_MASK) 
+        {
+            case USB_RTYPE_RECIPIENT_INTERFACE:
+            {
+              return aduControl(usbp);
+              // return aduControl(usbp, usbp->setup[4], usbp->setup[5], usbp->setup[1], (usbp->setup[3] << 8) | (usbp->setup[2]), (usbp->setup[7] << 8) | (usbp->setup[6]));
+              break;
+            }
+
+            case USB_RTYPE_RECIPIENT_ENDPOINT:
+            {
+              volatile int bp2 = 1;
+              break;
+            }
+
+            default:
+            {
+              volatile int bp3 = 1;
+              break;
+            }
+        }
+      }
+    }
+
   }
 
   return FALSE;

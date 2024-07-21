@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+
+
 /// A.2 - Audio Function Subclass Codes
 typedef enum
 {
@@ -609,6 +611,76 @@ typedef enum
 } audio_channel_config_t;
 
 
+
+// 5.2.2 Control Request Layout
+typedef struct __attribute__ ((packed))
+{
+    union
+    {
+        struct __attribute__ ((packed))
+        {
+            uint8_t recipient :  5; ///< Recipient type tusb_request_recipient_t.
+            uint8_t type      :  2; ///< Request type tusb_request_type_t.
+            uint8_t direction :  1; ///< Direction type. tusb_dir_t
+        } bmRequestType_bit;
+
+        uint8_t bmRequestType;
+    };
+
+    uint8_t bRequest;  ///< Request type audio_cs_req_t
+    uint8_t bChannelNumber;
+    uint8_t bControlSelector;
+    union
+    {
+        uint8_t bInterface;
+        uint8_t bEndpoint;
+    };
+    uint8_t bEntityID;
+    uint16_t wLength;
+} audio_control_request_t;
+
+// 5.2.3.1 1-byte Control CUR Parameter Block
+typedef struct __attribute__ ((packed))
+{
+  int8_t bCur               ;   ///< The setting for the CUR attribute of the addressed Control
+} audio_control_cur_1_t;
+
+// 5.2.3.3 4-byte Control CUR Parameter Block
+typedef struct __attribute__ ((packed))
+{
+  int32_t bCur              ;   ///< The setting for the CUR attribute of the addressed Control
+} audio_control_cur_4_t;
+
+// 5.2.3.3 4-byte Control RANGE Parameter Block
+#define audio_control_range_4_n_t(numSubRanges) \
+    struct __attribute__ ((packed)) {                     \
+  uint16_t wNumSubRanges;                       \
+  struct __attribute__ ((packed)) {                       \
+      int32_t bMin          ; /*The setting for the MIN attribute of the nth subrange of the addressed Control*/\
+    int32_t bMax            ; /*The setting for the MAX attribute of the nth subrange of the addressed Control*/\
+    uint32_t bRes           ; /*The setting for the RES attribute of the nth subrange of the addressed Control*/\
+    } subrange[numSubRanges];                   \
+}
+
+
+
+
+
+#define USB_DESC_DEVICE_LEN         9
+#define USB_DESC_CONFIGURATION_LEN  8
+
+#define ITF_NUM_AUDIO_STREAMING_CONTROL    0
+#define ITF_NUM_AUDIO_STREAMING_SPEAKER    1
+#define ITF_NUM_AUDIO_STREAMING_MICROPHONE 2
+#define AUDIO_FUNCTION_UNIT_ID      2
+
+
+
+#define USBD_XFER_ISOCHRONOUS 1
+#define USBD_ISO_EP_ATT_ADAPTIVE 0x08
+#define USBD_ISO_EP_ATT_DATA 0
+#define USBD_ISO_EP_ATT_ASYNCHRONOUS 0x04
+
 #define USB_CLASS_AUDIO 1
 #define AUDIO_FUNCTION_SUBCLASS_UNDEFINED 0
 #define AUDIO_FUNC_PROTOCOL_CODE_V2 0x20
@@ -773,5 +845,19 @@ typedef enum
 #define USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN 8
 #define USBD_AUDIO_DESC_CS_AS_ISO_EP(_attr, _ctrl, _lockdelayunit, _lockdelay) \
   USBD_AUDIO_DESC_CS_AS_ISO_EP_LEN, USBD_DESC_CS_ENDPOINT, AUDIO_CS_EP_SUBTYPE_GENERAL, _attr, _ctrl, _lockdelayunit, U16_TO_U8S_LE(_lockdelay)
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  bool aduControl(USBDriver *usbp);
+
+  // bool aduControl(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
+  bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // _AUDIO_USB_H_

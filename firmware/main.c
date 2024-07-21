@@ -55,8 +55,8 @@
 /* Initialization and main thread.                                           */
 /*===========================================================================*/
 
-// #define ENABLE_SERIAL_DEBUG 1
-
+#define ENABLE_SERIAL_DEBUG 1
+#define ANDY_GPIO_DEBUG 1
 extern void MY_USBH_Init(void);
 
 
@@ -91,6 +91,13 @@ int main(void) {
     chprintf((BaseSequentialStream * )&SD2,"Hello world!\r\n");
 #endif
 
+#if ANDY_GPIO_DEBUG
+    palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    palWritePad(GPIOG, 11, 0);
+    palWritePad(GPIOG, 10, 0);
+#endif
     exception_init();
 
     InitPatch0();

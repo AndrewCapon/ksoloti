@@ -210,6 +210,7 @@ CSRC = $(PORTSRC) \
        ${FIRMWARE}/serial_midi.c \
        ${FIRMWARE}/bulk_usb.c \
        ${FIRMWARE}/midi_usb.c \
+       ${FIRMWARE}/audio_usb.c \
        ${FIRMWARE}/spilink.c \
        ${FIRMWARE}/spidb.c \
        ${FIRMWARE}/crc32.c \
