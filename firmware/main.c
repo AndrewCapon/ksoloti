@@ -88,7 +88,7 @@ int main(void) {
     /* 115200 baud */
     static const SerialConfig sd2Cfg = {115200, 0, 0, 0};
     sdStart(&SD2, &sd2Cfg);
-    chprintf((BaseSequentialStream * )&SD2,"Hello world!\r\n");
+    chprintf((BaseSequentialStream * )&SD2,"Hello %u world!\r\n", 17);
 #endif
 
 #if ANDY_GPIO_DEBUG
