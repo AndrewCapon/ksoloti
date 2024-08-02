@@ -645,13 +645,11 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
 
             case USB_RTYPE_RECIPIENT_ENDPOINT:
             {
-              volatile int bp2 = 1;
               break;
             }
 
             default:
             {
-              volatile int bp3 = 1;
               break;
             }
         }

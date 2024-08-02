@@ -10,23 +10,34 @@ uint32_t aduCurrentSampleRate  = 44100;
 #define LOG_AMOUNT 128
 uint32_t uLogCount = 0;
 
-typedef struct request
-{
-  uint8_t bControlSelector;
-  uint8_t bRequest;
-} request;
-
 audio_control_request_t requests[LOG_AMOUNT];
 
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
 
+#define ADU_AUDIO_CHANNELS 2
+
+int8_t  aduMute[ADU_AUDIO_CHANNELS + 1]   = {0, 0, 0};    // +1 for master channel 0
+int16_t aduVolume[ADU_AUDIO_CHANNELS + 1] = {VOLUME_CTRL_0_DB, VOLUME_CTRL_0_DB, VOLUME_CTRL_0_DB};    // +1 for master channel 0
+
 // Set the sample rate
 static void aduSetSampleRate(USBDriver *usbp) 
 {
-  aduCurrentSampleRate = (uint32_t) ((audio_control_cur_4_t const *)aduControlData)->bCur;
+  audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[2];
+  aduCurrentSampleRate = (uint32_t) pData->bCur;
 }
 
+// Set mute
+static void aduSetMute(USBDriver *usbp) 
+{
+  aduMute[aduControlChannel] = ((audio_control_cur_1_t const *)aduControlData)->bCur;
+}
+
+// Set mute
+static void aduSetVolume(USBDriver *usbp) 
+{
+  aduVolume[aduControlChannel] = ((audio_control_cur_2_t const *)aduControlData)->bCur;
+}
 
 bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, audio_control_request_t *request)
 {
@@ -34,18 +45,76 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
   //   memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
   // else
   //   uLogCount = 0;
+  bool bResult = false;
 
-  return false;
+  palWritePad(GPIOG, 11, 1);
+
+  if (request->bControlSelector == AUDIO_FU_CTRL_MUTE && request->bRequest == AUDIO_CS_REQ_CUR)
+  {
+    // Get and Set mute
+    if(request->bmRequestType_bit.direction) // Get requests
+    {
+      audio_control_cur_1_t mute1 = { .bCur = aduMute[request->bChannelNumber] };
+      usbSetupTransfer(usbp, &mute1, sizeof(mute1), NULL);
+      bResult = true;
+    }
+    else // Set Requests
+    {
+      aduControlChannel = request->bChannelNumber;
+      usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetMute);
+      bResult = true;
+    }
+  }
+  else if (UAC2_ENTITY_SPK_FEATURE_UNIT && request->bControlSelector == AUDIO_FU_CTRL_VOLUME)
+  {
+    // Get and Set volume
+    if(request->bmRequestType_bit.direction) // Get requests
+    {
+      switch(request->bRequest)
+      {
+        case AUDIO_CS_REQ_RANGE:
+        {
+          audio_control_range_2_n_t(1) rangeVol = {
+            .wNumSubRanges = 1,
+            .subrange[0] = { .bMin = -VOLUME_CTRL_50_DB, VOLUME_CTRL_0_DB, 256 }
+          };
+          usbSetupTransfer(usbp, &rangeVol, sizeof(rangeVol), NULL);
+          bResult = true;
+          break;
+        }
+
+        case AUDIO_CS_REQ_CUR:
+        {
+          audio_control_cur_2_t curVol = { .bCur = aduVolume[request->bChannelNumber] };
+          usbSetupTransfer(usbp, &curVol, sizeof(curVol), NULL);
+          bResult = true;
+          break;
+        }
+
+        default: break;
+      }
+    }
+    else // Set Requests
+    {
+      aduControlChannel = request->bChannelNumber;
+      usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetVolume);
+      bResult = true;
+    }
+  } 
+
+  palWritePad(GPIOG, 11, 0);
+
+  return bResult;
 }
 
 bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audio_control_request_t *request)
 {
   bool bResult = false;
 
-  if(uLogCount < LOG_AMOUNT)
-    memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
-  else
-    uLogCount = 0;
+  // if(uLogCount < LOG_AMOUNT)
+  //   memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
+  // else
+  //   uLogCount = 0;
 
   palWritePad(GPIOG, 11, 1);
 
@@ -164,24 +233,28 @@ bool aduControl(USBDriver *usbp)
 bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
 {
   bool bResult = false;
-  if(entity == 0)
-  {
-    if(iface = ITF_NUM_AUDIO_STREAMING_SPEAKER)
-    {
-      if(wValue = 0x0001)
-      {
-        // start
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
-      else
-      {
-        // end
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
-    }
-  }
+
+  usbSetupTransfer(usbp, NULL, 0, NULL);
+  bResult = true;
+
+  // if(entity == 0)
+  // {
+  //   if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
+  //   {
+  //     if(wValue == 0x0001)
+  //     {
+  //       // start
+  //       usbSetupTransfer(usbp, NULL, 0, NULL);
+  //       bResult = true;
+  //     }
+  //     else
+  //     {
+  //       // end
+  //       usbSetupTransfer(usbp, NULL, 0, NULL);
+  //       bResult = true;
+  //     }
+  //   }
+  // }
 
   return bResult;
 }
