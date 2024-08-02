@@ -7,10 +7,12 @@ uint32_t aduCurrentSampleRate  = 44100;
 
 #define N_SAMPLE_RATES  3
 
-#define LOG_AMOUNT 128
+#define LOG_AMOUNT 64
 uint32_t uLogCount = 0;
+uint32_t uBadRequestsCount = 0;
 
 audio_control_request_t requests[LOG_AMOUNT];
+uint32_t badRequests[LOG_AMOUNT];
 
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
@@ -23,8 +25,16 @@ int16_t aduVolume[ADU_AUDIO_CHANNELS + 1] = {VOLUME_CTRL_0_DB, VOLUME_CTRL_0_DB,
 // Set the sample rate
 static void aduSetSampleRate(USBDriver *usbp) 
 {
-  audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[2];
-  aduCurrentSampleRate = (uint32_t) pData->bCur;
+  audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[0];
+  uint32_t uSampleRate = (uint32_t) pData->bCur;
+
+  if(uSampleRate == 44100 || uSampleRate == 48000 || uSampleRate == 96000)
+    aduCurrentSampleRate =  uSampleRate;
+  else
+  {
+    badRequests[uBadRequestsCount++] = uLogCount-1;
+    // this should really not be happening!
+  }
 }
 
 // Set mute
@@ -96,9 +106,18 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
     }
     else // Set Requests
     {
-      aduControlChannel = request->bChannelNumber;
-      usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetVolume);
-      bResult = true;
+      switch(request->bRequest)
+      {
+        case AUDIO_CS_REQ_CUR:
+        {
+          aduControlChannel = request->bChannelNumber;
+          usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetVolume);
+          bResult = true;
+          break;
+        }
+
+        default: break;
+      }
     }
   } 
 
@@ -111,12 +130,11 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
 {
   bool bResult = false;
 
-  // if(uLogCount < LOG_AMOUNT)
-  //   memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
-  // else
-  //   uLogCount = 0;
+  if(uLogCount < LOG_AMOUNT)
+    memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
+  else
+    uLogCount = 0;
 
-  palWritePad(GPIOG, 11, 1);
 
   if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
   {
@@ -158,6 +176,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
+          palWritePad(GPIOG, 11, 1);
           usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetSampleRate);
           bResult = true;
           break;
