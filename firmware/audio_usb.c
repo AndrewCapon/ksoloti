@@ -7,16 +7,38 @@ uint32_t aduCurrentSampleRate  = 44100;
 
 #define N_SAMPLE_RATES  3
 
-#define LOG_AMOUNT 1024
+static uint8_t aduControlData[8];
+static uint8_t aduControlChannel;
+
+#if CONTORL_MESSAGES_DEBUG
+#define LOG_AMOUNT 128
 uint32_t uLogCount = 0;
 uint32_t uBadRequestsCount = 0;
 
 
-audio_control_request_t requests[LOG_AMOUNT] __attribute__ ((section (".sram3")));;
+audio_control_request_t requests[LOG_AMOUNT] __attribute__ ((section (".sram3")));
 uint32_t badRequests[LOG_AMOUNT] __attribute__ ((section (".sram3")));;
 
-static uint8_t aduControlData[8];
-static uint8_t aduControlChannel;
+
+#define SAMPLE_RATE_COUNT 128
+typedef struct _SampleRateRequests
+{
+  bool     bGet;
+  uint32_t uFreq;
+} SampleRateRequests;
+uint32_t uNextSampleRateRequestIndex = 0;
+
+static SampleRateRequests aduSampleRateRequests[SAMPLE_RATE_COUNT]  __attribute__ ((section (".sram3")));
+
+static void aduAddSampleRateRequest(bool bGet, uint32_t uSampleRate)
+{
+  aduSampleRateRequests[uNextSampleRateRequestIndex].bGet = 0;
+  aduSampleRateRequests[uNextSampleRateRequestIndex].uFreq = uSampleRate;
+  uNextSampleRateRequestIndex++;
+  if(uNextSampleRateRequestIndex > SAMPLE_RATE_COUNT)
+    uNextSampleRateRequestIndex = 0;
+}
+#endif
 
 #define ADU_AUDIO_CHANNELS 2
 
@@ -29,13 +51,20 @@ static void aduSetSampleRate(USBDriver *usbp)
   audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[0];
   uint32_t uSampleRate = (uint32_t) pData->bCur;
 
+#if CONTORL_MESSAGES_DEBUG
+  aduAddSampleRateRequest(0, uSampleRate);
+#endif
+
   if(uSampleRate == 44100 || uSampleRate == 48000 || uSampleRate == 96000)
     aduCurrentSampleRate =  uSampleRate;
+
+#if CONTORL_MESSAGES_DEBUG
   else
   {
     badRequests[uBadRequestsCount++] = uLogCount-1;
     // this should really not be happening!
   }
+#endif
 }
 
 // Set mute
@@ -131,11 +160,12 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
 {
   bool bResult = false;
 
+#if CONTORL_MESSAGES_DEBUG
   if(uLogCount < LOG_AMOUNT)
     memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
   else
     uLogCount = 0;
-
+#endif
 
   if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
   {
@@ -145,10 +175,14 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
+#if CONTORL_MESSAGES_DEBUG
           // get current sample rate
+          aduAddSampleRateRequest(1, aduCurrentSampleRate);
+#endif
           audio_control_cur_4_t curf = { (int32_t) aduCurrentSampleRate };
           usbSetupTransfer(usbp, &curf, sizeof(curf), NULL);
           bResult = true;
+          break;
         }
       
         case AUDIO_CS_REQ_RANGE:
@@ -166,6 +200,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
           }
           usbSetupTransfer(usbp, &rangef, sizeof(rangef), NULL);
           bResult = true;
+          break;
         }
 
         default : break;

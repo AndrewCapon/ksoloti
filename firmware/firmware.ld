@@ -6,12 +6,15 @@ MEMORY
     ram : org = 0x20000200, len = 67k
     SRAM2 : org = 0x2001E000, len = 0x00002000
     SRAM3 : org = 0x20020000, len = 0x00010000
-    CCMRAMEND : org = 0x1000C000, len = 10k
+    CCMRAMEND : org = 0x1000C000, len = 16k
     sdram : org = 0xC0000000, len = 0x002000000
 }
 __ram_start__ = ORIGIN(ram);
 __ram_size__ = LENGTH(ram);
 __ram_end__ = __ram_start__ + __ram_size__;
+__ccram_start__ = ORIGIN(CCMRAMEND);
+__ccram_size__ = LENGTH(CCMRAMEND);
+__ccram_end__ = __ccram_start__ + __ccram_size__;
 __sdram_start__ = ORIGIN(sdram);
 __sdram_size__ = LENGTH(sdram);
 __sdram_end__ = __sdram_start__ + __sdram_size__;
@@ -144,4 +147,4 @@ SECTIONS
 PROVIDE(end = .);
 _end = .;
 __heap_base__ = _end;
-__heap_end__ = __ram_end__;
+__heap_end__ = __ccram_end__;
