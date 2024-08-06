@@ -102,8 +102,7 @@ CMSIS = ${axoloti_release}/CMSIS/
 
 
 # Define linker script file here
-LDSCRIPT= STM32F427xG.ld
-
+LDSCRIPT= firmware.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -440,5 +439,11 @@ ULIBS = -lm
 # End of user defines
 ##############################################################################
 
+
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
+
+
+firmware.ld: STM32F427xG.ld Makefile
+	$(CPP) -E -P -x c -DBOARD_KSOLOTI_CORE STM32F427xG.ld > firmware.ld
+

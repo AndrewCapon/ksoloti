@@ -16,7 +16,8 @@
             "runToEntryPoint": "main",
             "preLaunchTask": "Build all",
             "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
+            "swoConfig": {},
+            "serverArgs": ["-i 0030001B3532510F31333430", "--frequency 24000"]
         },
         {
             "name": "STlink attach",
@@ -29,7 +30,8 @@
             "interface": "swd",
             "runToEntryPoint": "main",
             "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
+            "swoConfig": {},
+            "serverArgs": ["-i 0030001B3532510F31333430", "--frequency 24000"]
         },
        ]
 }

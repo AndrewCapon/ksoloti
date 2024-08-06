@@ -59,6 +59,11 @@
 #define ANDY_GPIO_DEBUG 1
 extern void MY_USBH_Init(void);
 
+#if TEST_SRAM3
+#define SRAM3_BYTE_SIZE (1024*64)
+
+uint8_t sram3Buffer[SRAM3_BYTE_SIZE] __attribute__ ((section (".sram3")));
+#endif
 
 int main(void) {
     /* copy vector table to SRAM1! */
@@ -119,6 +124,14 @@ int main(void) {
     configSDRAM();
     // memTest();
 
+#if TEST_SRAM3
+    // set pattern in sram3
+    uint8_t uVal = 0;
+    uint32_t u;
+    for(u = 0; u < SRAM3_BYTE_SIZE; u++)
+        sram3Buffer[u] = uVal++;
+#endif
+
     bool_t is_master = palReadPad(SPILINK_JUMPER_PORT, SPILINK_JUMPER_PIN);
 
     codec_init(is_master);
@@ -159,9 +172,33 @@ int main(void) {
         }
     }
 
+#if TEST_SRAM3
+    // every 2 secs check sram3
+    uint32_t uCheckSec = 2;
+
     while (1) {
         chThdSleepMilliseconds(1000);
+        if(uCheckSec == 0)
+        {
+            uVal = 0;
+            bool bOk = true;
+            for(u = 0; bOk && (u < SRAM3_BYTE_SIZE); u++)
+                bOk == (sram3Buffer[u] != uVal++);
+
+            if(bOk)
+                chprintf((BaseSequentialStream * )&SD2,"SRAM3 is OK\r\n");
+            else
+                chprintf((BaseSequentialStream * )&SD2,"SRAM3 is BAD\r\n");
+
+            uCheckSec = 2;
+        }
+        else
+            uCheckSec--;
     }
+#else
+    while (1) 
+        chThdSleepMilliseconds(1000);
+#endif
 }
 
 

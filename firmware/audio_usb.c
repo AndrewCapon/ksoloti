@@ -7,12 +7,13 @@ uint32_t aduCurrentSampleRate  = 44100;
 
 #define N_SAMPLE_RATES  3
 
-#define LOG_AMOUNT 64
+#define LOG_AMOUNT 1024
 uint32_t uLogCount = 0;
 uint32_t uBadRequestsCount = 0;
 
-audio_control_request_t requests[LOG_AMOUNT];
-uint32_t badRequests[LOG_AMOUNT];
+
+audio_control_request_t requests[LOG_AMOUNT] __attribute__ ((section (".sram3")));;
+uint32_t badRequests[LOG_AMOUNT] __attribute__ ((section (".sram3")));;
 
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
