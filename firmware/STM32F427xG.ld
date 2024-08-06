@@ -34,7 +34,6 @@ MEMORY
 #ifdef BOARD_KSOLOTI_CORE
     sdram      : org = 0xC0000000, len = 0x002000000    /* 8 MB for Axoloti, 32 MB for Ksoloti */
 #else
-b
     sdram      : org = 0xC0000000, len = 0x000800000    /* 8 MB for Axoloti, 32 MB for Ksoloti */
 #endif
 }
