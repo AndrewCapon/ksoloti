@@ -96,7 +96,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
     if(request->bmRequestType_bit.direction) // Get requests
     {
       audio_control_cur_1_t mute1 = { .bCur = aduMute[request->bChannelNumber] };
-      usbSetupTransfer(usbp, &mute1, sizeof(mute1), NULL);
+      usbSetupTransfer(usbp, (uint8_t *)&mute1, sizeof(mute1), NULL);
       bResult = true;
     }
     else // Set Requests
@@ -119,7 +119,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
             .wNumSubRanges = 1,
             .subrange[0] = { .bMin = -VOLUME_CTRL_50_DB, VOLUME_CTRL_0_DB, 256 }
           };
-          usbSetupTransfer(usbp, &rangeVol, sizeof(rangeVol), NULL);
+          usbSetupTransfer(usbp, (uint8_t *)&rangeVol, sizeof(rangeVol), NULL);
           bResult = true;
           break;
         }
@@ -127,7 +127,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
         case AUDIO_CS_REQ_CUR:
         {
           audio_control_cur_2_t curVol = { .bCur = aduVolume[request->bChannelNumber] };
-          usbSetupTransfer(usbp, &curVol, sizeof(curVol), NULL);
+          usbSetupTransfer(usbp, (uint8_t *)&curVol, sizeof(curVol), NULL);
           bResult = true;
           break;
         }
@@ -181,7 +181,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
           aduAddSampleRateRequest(1, aduCurrentSampleRate);
 #endif
           audio_control_cur_4_t curf = { (int32_t) aduCurrentSampleRate };
-          usbSetupTransfer(usbp, &curf, sizeof(curf), NULL);
+          usbSetupTransfer(usbp, (uint8_t *)&curf, sizeof(curf), NULL);
           bResult = true;
           break;
         }
@@ -199,7 +199,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
             rangef.subrange[i].bMax = (int32_t) aduSampleRates[i];
             rangef.subrange[i].bRes = 0;
           }
-          usbSetupTransfer(usbp, &rangef, sizeof(rangef), NULL);
+          usbSetupTransfer(usbp, (uint8_t *)&rangef, sizeof(rangef), NULL);
           bResult = true;
           break;
         }
@@ -226,7 +226,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
   else if (request->bControlSelector == AUDIO_CS_CTRL_CLK_VALID && request->bRequest == AUDIO_CS_REQ_CUR)
   {
     audio_control_cur_1_t cur_valid = { .bCur = 1 };
-    usbSetupTransfer(usbp, &cur_valid, sizeof(cur_valid), NULL);
+    usbSetupTransfer(usbp, (uint8_t *)&cur_valid, sizeof(cur_valid), NULL);
     bResult = true;
   }
 
