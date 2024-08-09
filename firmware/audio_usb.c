@@ -314,3 +314,113 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
 
   return bResult;
 }
+
+
+/*===========================================================================*/
+/* Driver exported functions.                                                */
+/*===========================================================================*/
+
+/**
+ * @brief   Bulk USB Driver initialization.
+ * @note    This function is implicitly invoked by @p halInit(), there is
+ *          no need to explicitly initialize the driver.
+ *
+ * @init
+ */
+void aduInit(void) 
+{
+}
+
+/**
+ * @brief   Initializes a generic full duplex driver object.
+ * @details The HW dependent part of the initialization has to be performed
+ *          outside, usually in the hardware initialization code.
+ *
+ * @param[out] adup     pointer to a @p AudioUSBDriver structure
+ *
+ * @init
+ */
+void AduObjectInit(AudioUSBDriver *bdup) 
+{
+}
+
+/**
+ * @brief   Configures and starts the driver.
+ *
+ * @param[in] bdup      pointer to a @p AudioUSBDriver object
+ * @param[in] config    the Bulk USB driver configuration
+ *
+ * @api
+ */
+void aduStart(AudioUSBDriver *bdup, const AudioUSBConfig *config) 
+{
+}
+
+/**
+ * @brief   Stops the driver.
+ * @details Any thread waiting on the driver's queues will be awakened with
+ *          the message @p Q_RESET.
+ *
+ * @param[in] adup      pointer to a @p AudioUSBDriver object
+ *
+ * @api
+ */
+void aduStop(AudioUSBDriver *bdup) 
+{
+}
+
+/**
+ * @brief   USB device configured handler.
+ *
+ * @param[in] adup      pointer to a @p AudioUSBDriver object
+ *
+ * @iclass
+ */
+void aduConfigureHookI(AudioUSBDriver *bdup) 
+{
+}
+
+/**
+ * @brief   Default requests hook.
+ * @details Applications wanting to use the Bulk USB driver can use
+ *          this function as requests hook in the USB configuration.
+ *          The following requests are emulated:
+ *          - CDC_GET_LINE_CODING.
+ *          - CDC_SET_LINE_CODING.
+ *          - CDC_SET_CONTROL_LINE_STATE.
+ *          .
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @return              The hook status.
+ * @retval TRUE         Message handled internally.
+ * @retval FALSE        Message not handled.
+ */
+bool_t aduRequestsHook(USBDriver *usbp) {
+
+  (void)usbp;
+  return FALSE;
+}
+
+/**
+ * @brief   Default data transmitted callback.
+ * @details The application must use this function as callback for the IN
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void aduDataTransmitted(USBDriver *usbp, usbep_t ep) 
+{
+}
+
+/**
+ * @brief   Default data received callback.
+ * @details The application must use this function as callback for the OUT
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void aduDataReceived(USBDriver *usbp, usbep_t ep) 
+{
+}

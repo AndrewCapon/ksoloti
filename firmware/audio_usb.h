@@ -1,12 +1,15 @@
 #ifndef _AUDIO_USB_H_
 #define _AUDIO_USB_H_
 
-// Defines and macros taken from TinyUSB : https://github.com/hathach/tinyusb
-// Thanks to Ha Thach (Good programmer write good codes. Great programmer copy great codes)
-
 #include <stdint.h>
 
 
+
+/*============================================================================*/
+/* Defines and macros taken from TinyUSB : https://github.com/hathach/tinyusb */
+/* Thanks to Ha Thach :                                                       */
+/*   '(Good programmer write good codes. Great programmer copy great codes)'  */
+/*============================================================================*/
 
 /// A.2 - Audio Function Subclass Codes
 typedef enum
@@ -880,18 +883,6 @@ typedef struct __attribute__ ((packed))
 
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  bool aduControl(USBDriver *usbp);
-
-  // bool aduControl(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
-  bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
-#ifdef __cplusplus
-}
-#endif
-
-
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -1037,6 +1028,7 @@ extern "C" {
   bool_t aduRequestsHook(USBDriver *usbp);
   void   aduDataTransmitted(USBDriver *usbp, usbep_t ep);
   void   aduDataReceived(USBDriver *usbp, usbep_t ep);
+  
   bool   aduControl(USBDriver *usbp);
   bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
 #ifdef __cplusplus
