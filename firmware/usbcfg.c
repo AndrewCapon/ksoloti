@@ -504,6 +504,32 @@ static const USBEndpointConfig ep2config = {
   NULL
 };
 
+/**
+ * @brief   IN EP3 state.
+ */
+static USBInEndpointState ep3instate;
+
+/**
+ * @brief   OUT EP3 state.
+ */
+static USBOutEndpointState ep3outstate;
+
+/**
+ * @brief   EP3 initialization structure (both IN and OUT).
+ */
+static const USBEndpointConfig ep3config = {
+  USB_EP_MODE_TYPE_ISOC,
+  NULL,
+  aduDataTransmitted,
+  aduDataReceived,
+  0x0000,
+  AUDIO_MAX_PACKET_SIZE,
+  &ep3instate,
+  &ep3outstate,
+  1,
+  NULL
+};
+
 /*
  * Handles the USB driver global events.
  */

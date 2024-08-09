@@ -10,6 +10,7 @@ uint32_t aduCurrentSampleRate  = 44100;
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
 
+
 #if CONTORL_MESSAGES_DEBUG
 #define LOG_AMOUNT 128
 uint32_t uLogCount = 0;
@@ -212,7 +213,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
-          palWritePad(GPIOG, 11, 1);
+          //palWritePad(GPIOG, 11, 1);
           usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetSampleRate);
           bResult = true;
           break;
@@ -229,7 +230,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
     bResult = true;
   }
 
-  palWritePad(GPIOG, 11, 0);
+  //palWritePad(GPIOG, 11, 0);
 
   return bResult;
 }

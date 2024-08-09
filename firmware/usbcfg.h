@@ -29,6 +29,7 @@
 
 #define USBD1_DATA_REQUEST_EP           1
 #define USBD1_DATA_AVAILABLE_EP         1
+
 #define USBD2_DATA_REQUEST_EP           2
 #define USBD2_DATA_AVAILABLE_EP         2
 

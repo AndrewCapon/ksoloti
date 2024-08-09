@@ -892,4 +892,155 @@ extern "C" {
 #endif
 
 
+
+/*===========================================================================*/
+/* Driver constants.                                                         */
+/*===========================================================================*/
+
+#define MAX_AUDIO_SAMPLING_FREQUENCY    96000U
+#define MAX_AUDIO_RESOLUTION            32U
+#define MAX_AUDIO_CHANNELS              2U
+#define MAX_AUDIO_SAMPLES_PER_FRAME     (MAX_AUDIO_SAMPLING_FREQUENCY / 1000)
+#define MAX_AUDIO_PACKET_SIZE           (MAX_AUDIO_SAMPLES_PER_FRAME * MAX_AUDIO_CHANNELS \
+                                         * MAX_AUDIO_RESOLUTION / 8)
+#define AUDIO_MAX_PACKET_SIZE           (MAX_AUDIO_PACKET_SIZE)
+/*===========================================================================*/
+/* Driver pre-compile time settings.                                         */
+/*===========================================================================*/
+
+/**
+ * @name    AUDIO_USB configuration options
+ * @{
+ */
+/**
+ * @brief   Audio USB buffers size.
+ * @details Configuration parameter, the buffer size must be a multiple of
+ *          the USB data endpoint maximum packet size.
+ * @note    The default is 256 bytes for both the transmission and receive
+ *          buffers.
+ */
+#if !defined(AUDIO_USB_BUFFERS_SIZE) || defined(__DOXYGEN__)
+#define AUDIO_USB_BUFFERS_SIZE          (MAX_AUDIO_SAMPLES_PER_FRAME * MAX_AUDIO_CHANNELS * 4)
+#endif
+/** @} */
+
+/*===========================================================================*/
+/* Derived constants and error checks.                                       */
+/*===========================================================================*/
+
+#if !HAL_USE_USB || !CH_USE_QUEUES || !CH_USE_EVENTS
+#error "Audio USB Driver requires HAL_USE_USB, CH_USE_QUEUES, "
+       "CH_USE_EVENTS"
+#endif
+
+/*===========================================================================*/
+/* Driver data structures and types.                                         */
+/*===========================================================================*/
+
+/**
+ * @brief Driver state machine possible states.
+ */
+typedef enum {
+  ADU_UNINIT = 0,                   /**< Not initialized.                   */
+  ADU_STOP = 1,                     /**< Stopped.                           */
+  ADU_READY = 2                     /**< Ready.                             */
+} adustate_t;
+
+/**
+ * @brief   Structure representing an audio USB driver.
+ */
+typedef struct AudioUSBDriver AudioUSBDriver;
+
+/**
+ * @brief   Audio USB Driver configuration structure.
+ * @details An instance of this structure must be passed to @p aduStart()
+ *          in order to configure and start the driver operations.
+ */
+typedef struct {
+  /**
+   * @brief   USB driver to use.
+   */
+  USBDriver                 *usbp;
+  /**
+   * @brief   Bulk IN endpoint used for outgoing data transfer.
+   */
+  usbep_t                   iso_in;
+  /**
+   * @brief   Bulk OUT endpoint used for incoming data transfer.
+   */
+  usbep_t                   iso_out;
+} AudioUSBConfig;
+
+/**
+ * @brief   @p AudioUSBDriver specific data.
+ */
+#define _audio_usb_driver_data                                              \
+  _base_asynchronous_channel_data                                           \
+  /* Driver state.*/                                                        \
+  adustate_t                state;                                          \
+  /* Input queue.*/                                                         \
+  InputQueue                iqueue;                                         \
+  /* Output queue.*/                                                        \
+  OutputQueue               oqueue;                                         \
+  /* Input buffer.*/                                                        \
+  uint8_t                   ib[AUDIO_USB_BUFFERS_SIZE];                     \
+  /* Output buffer.*/                                                       \
+  uint8_t                   ob[AUDIO_USB_BUFFERS_SIZE];                     \
+  /* End of the mandatory fields.*/                                         \
+  /* Current configuration data.*/                                          \
+  const AudioUSBConfig     *config;
+
+/**
+ * @brief   @p AudioUSBDriver specific methods.
+ */
+#define _audio_usb_driver_methods                                           \
+  _base_asynchronous_channel_methods
+
+/**
+ * @extends BaseAsynchronousChannelVMT
+ *
+ * @brief   @p AudioUSBDriver virtual methods table.
+ */
+struct AudioUSBDriverVMT {
+  _audio_usb_driver_methods
+};
+
+/**
+ * @extends BaseAsynchronousChannel
+ *
+ * @brief   Audio driver class.
+ * @details This class extends @p BaseAsynchronousChannel by adding physical
+ *          I/O queues.
+ */
+struct AudioUSBDriver {
+  /** @brief Virtual Methods Table.*/
+  const struct AudioUSBDriverVMT *vmt;
+  _audio_usb_driver_data
+};
+
+/*===========================================================================*/
+/* Driver macros.                                                            */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* External declarations.                                                    */
+/*===========================================================================*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void   aduInit(void);
+  void   aduObjectInit(AudioUSBDriver *sdp);
+  void   aduStart(AudioUSBDriver *adup, const AudioUSBConfig *config);
+  void   aduStop(AudioUSBDriver *adup);
+  void   aduConfigureHookI(AudioUSBDriver *adup);
+  bool_t aduRequestsHook(USBDriver *usbp);
+  void   aduDataTransmitted(USBDriver *usbp, usbep_t ep);
+  void   aduDataReceived(USBDriver *usbp, usbep_t ep);
+  bool   aduControl(USBDriver *usbp);
+  bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _AUDIO_USB_H_

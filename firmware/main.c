@@ -55,6 +55,30 @@
 /* Initialization and main thread.                                           */
 /*===========================================================================*/
 
+#define TEST_RAM_SPEED 0
+#if TEST_RAM_SPEED
+    #define TEST_RAM_SPEED_ITTERATIONS 20000
+    #define TEST_RAM_SPEED_DATA_SIZE 1024
+    uint8_t ccData[TEST_RAM_SPEED_DATA_SIZE] __attribute__ ((section (".ccmramend")));
+    uint8_t s1Data[TEST_RAM_SPEED_DATA_SIZE] __attribute__ ((section (".sram1")));
+    uint8_t s3Data[TEST_RAM_SPEED_DATA_SIZE] __attribute__ ((section (".sram3")));
+    uint16_t __attribute__((optimize("O3"))) TestRamSpeed(uint8_t *pData)
+//    uint16_t TestRamSpeed(uint8_t *pData)
+    {
+        uint16_t i;
+        uint16_t m;
+        uint16_t t = 0;
+
+        for(i = 0; i < TEST_RAM_SPEED_ITTERATIONS; i++)
+        {
+            for(m = 0; m < TEST_RAM_SPEED_DATA_SIZE; m++)
+                t += pData[m];
+        }
+
+        return t;
+    }
+#endif
+
 #define ENABLE_SERIAL_DEBUG 1
 #define ANDY_GPIO_DEBUG 1
 extern void MY_USBH_Init(void);
@@ -64,6 +88,7 @@ extern void MY_USBH_Init(void);
 
 uint8_t sram3Buffer[SRAM3_BYTE_SIZE] __attribute__ ((section (".sram3")));
 #endif
+
 
 int main(void) {
     /* copy vector table to SRAM1! */
@@ -124,6 +149,7 @@ int main(void) {
     configSDRAM();
     // memTest();
 
+
 #if TEST_SRAM3
     // set pattern in sram3
     uint8_t uVal = 0;
@@ -171,6 +197,24 @@ int main(void) {
             }
         }
     }
+
+#if TEST_RAM_SPEED
+    chprintf((BaseSequentialStream * )&SD2,"Testing ccram read speed\r\n");
+    DWT->CYCCNT = 0;
+    volatile uint16_t u1 = TestRamSpeed(ccData);
+    chprintf((BaseSequentialStream * )&SD2," took %lu cycles\r\n", DWT->CYCCNT);
+
+    chprintf((BaseSequentialStream * )&SD2,"Testing sram1 read speed\r\n");
+    DWT->CYCCNT = 0;
+    volatile uint16_t u2 = TestRamSpeed(s1Data);
+    chprintf((BaseSequentialStream * )&SD2," took %lu cycles\r\n", DWT->CYCCNT);
+
+    chprintf((BaseSequentialStream * )&SD2,"Testing sram3 read speed\r\n");
+    DWT->CYCCNT = 0;
+    volatile uint16_t u3 = TestRamSpeed(s3Data);
+    chprintf((BaseSequentialStream * )&SD2," took %lu cycles\r\n", DWT->CYCCNT);
+
+#endif
 
 #if TEST_SRAM3
     // every 2 secs check sram3
