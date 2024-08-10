@@ -258,11 +258,11 @@ int main(void) {
         else if(evt & AUDIO_EVENT_VOLUME)
             chprintf((BaseSequentialStream * )&SD2,"Audio volume changed.\r\n");
         else if(evt & AUDIO_EVENT_INPUT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio input state changed.\r\n");
+            chprintf((BaseSequentialStream * )&SD2,"Audio input state changed = %u\r\n", aduState.isInputActive);
         else if(evt & AUDIO_EVENT_OUTPUT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio output state changed.\r\n");
+            chprintf((BaseSequentialStream * )&SD2,"Audio output state changed = %u\r\n", aduState.isOutputActive);
         else if(evt & AUDIO_EVENT_FORMAT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed.\r\n");
+            chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed = %u\r\n", aduState.currentSampleRate);
 
         //chThdSleepMilliseconds(1000);
     }
