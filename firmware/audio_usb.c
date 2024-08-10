@@ -13,8 +13,37 @@ const uint32_t aduSampleRates[] = {44100, 48000, 96000};
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
 
+#define SWITCH_INTERFACE_DEBUG 1
 
-#if CONTORL_MESSAGES_DEBUG
+#if SWITCH_INTERFACE_DEBUG
+typedef struct 
+{
+  uint8_t iface;
+  uint8_t entity;
+  uint8_t req;
+  uint16_t wValue;
+  uint16_t length
+} SwitchDebug;
+
+#define MAX_SWITCH_INTERFACE_DEBUG 1024
+SwitchDebug switchDebug[MAX_SWITCH_INTERFACE_DEBUG]  __attribute__ ((section (".sram3")));
+uint32_t nextSdIndex = 0;
+
+void AddSwitchDebug(uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length)
+{
+  switchDebug[nextSdIndex].iface = iface;
+  switchDebug[nextSdIndex].entity = entity;
+  switchDebug[nextSdIndex].req = req;
+  switchDebug[nextSdIndex].wValue = wValue;
+  switchDebug[nextSdIndex].length = length;
+  
+  nextSdIndex++;
+  if(nextSdIndex == MAX_SWITCH_INTERFACE_DEBUG)
+    nextSdIndex = 0;
+}
+#endif
+
+#if CONTROL_MESSAGES_DEBUG
 #define LOG_AMOUNT 128
 uint32_t uLogCount = 0;
 uint32_t uBadRequestsCount = 0;
@@ -70,14 +99,14 @@ static void aduSetSampleRate(USBDriver *usbp)
   audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[0];
   uint32_t uSampleRate = (uint32_t) pData->bCur;
 
-#if CONTORL_MESSAGES_DEBUG
+#if CONTROL_MESSAGES_DEBUG
   aduAddSampleRateRequest(0, uSampleRate);
 #endif
 
   if(uSampleRate == 44100 || uSampleRate == 48000 || uSampleRate == 96000)
     aduState.currentSampleRate =  uSampleRate;
 
-#if CONTORL_MESSAGES_DEBUG
+#if CONTROL_MESSAGES_DEBUG
   else
   {
     badRequests[uBadRequestsCount++] = uLogCount-1;
@@ -179,7 +208,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
 {
   bool bResult = false;
 
-#if CONTORL_MESSAGES_DEBUG
+#if CONTROL_MESSAGES_DEBUG
   if(uLogCount < LOG_AMOUNT)
     memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
   else
@@ -194,7 +223,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
-#if CONTORL_MESSAGES_DEBUG
+#if CONTROL_MESSAGES_DEBUG
           // get current sample rate
           aduAddSampleRateRequest(1, aduCurrentSampleRate);
 #endif
@@ -281,14 +310,34 @@ bool aduControl(USBDriver *usbp)
 //                                       4              5               1            (3 << 8) | 2     6
 bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
 {
+  // something dodgy here
+#if SWITCH_INTERFACE_DEBUG
+  AddSwitchDebug(iface, entity, req, wValue, length);
+#endif
+
   bool bResult = false;
 
-  usbSetupTransfer(usbp, NULL, 0, NULL);
-  return true;
+  // usbSetupTransfer(usbp, NULL, 0, NULL);
+  // return true;
   
   if(entity == 0)
   {
     if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
+    {
+      if(wValue == 0x0001)
+      {
+        // start
+        usbSetupTransfer(usbp, NULL, 0, NULL);
+        bResult = true;
+      }
+      else
+      {
+        // end
+        usbSetupTransfer(usbp, NULL, 0, NULL);
+        bResult = true;
+      }
+    }
+    else if(iface == ITF_NUM_AUDIO_STREAMING_MICROPHONE)
     {
       if(wValue == 0x0001)
       {
