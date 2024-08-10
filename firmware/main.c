@@ -132,7 +132,10 @@ int main(void) {
 
     InitPatch0();
 
+    InitUsbAudio();
+
     InitPConnection();
+
 
     chThdSleepMilliseconds(10);
 

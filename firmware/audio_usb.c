@@ -4,6 +4,8 @@
 #include "usb_lld.h"
 #include "chevents.h"
 
+extern AudioUSBDriver ADU1;
+
 const uint32_t aduSampleRates[] = {44100, 48000, 96000};
 
 #define N_SAMPLE_RATES  3
@@ -281,6 +283,9 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
 {
   bool bResult = false;
 
+  usbSetupTransfer(usbp, NULL, 0, NULL);
+  return true;
+  
   if(entity == 0)
   {
     if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
@@ -304,6 +309,66 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
 }
 
 
+/**
+ * @brief   Notification of data removed from the input queue.
+ */
+static void inotify(GenericQueue *qp) 
+{
+  // size_t n, maxsize;
+  // AudioUSBDriver *adup = chQGetLink(qp);
+
+  // /* If the USB driver is not in the appropriate state then transactions
+  //    must not be started.*/
+  // if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
+  //     (bdup->state != BDU_READY))
+  //   return;
+
+  // /* If there is in the queue enough space to hold at least one packet and
+  //    a transaction is not yet started then a new transaction is started for
+  //    the available space.*/
+  // maxsize = bdup->config->usbp->epc[bdup->config->bulk_out]->out_maxsize;
+  // if (!usbGetReceiveStatusI(bdup->config->usbp, bdup->config->bulk_out) &&
+  //     ((n = chIQGetEmptyI(&bdup->iqueue)) >= maxsize)) {
+  //   chSysUnlock();
+
+  //   n = (n / maxsize) * maxsize;
+  //   usbPrepareQueuedReceive(bdup->config->usbp,
+  //                           bdup->config->bulk_out,
+  //                           &bdup->iqueue, n);
+
+  //   chSysLock();
+  //   usbStartReceiveI(bdup->config->usbp, bdup->config->bulk_out);
+  //}
+}
+
+/**
+ * @brief   Notification of data inserted into the output queue.
+ */
+static void onotify(GenericQueue *qp) 
+{
+  // size_t n;
+  // AudioUSBDriver *bdup = chQGetLink(qp);
+
+  // /* If the USB driver is not in the appropriate state then transactions
+  //    must not be started.*/
+  // if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
+  //     (bdup->state != BDU_READY))
+  //   return;
+
+  // /* If there is not an ongoing transaction and the output queue contains
+  //    data then a new transaction is started.*/
+  // if (!usbGetTransmitStatusI(bdup->config->usbp, bdup->config->bulk_in) &&
+  //     ((n = chOQGetFullI(&bdup->oqueue)) > 0)) {
+  //   chSysUnlock();
+
+  //   usbPrepareQueuedTransmit(bdup->config->usbp,
+  //                            bdup->config->bulk_in,
+  //                            &bdup->oqueue, n);
+
+  //   chSysLock();
+  //   usbStartTransmitI(bdup->config->usbp, bdup->config->bulk_in);
+  // }
+}
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -317,7 +382,21 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
  * @init
  */
 
+// Note this is never called by halInit(), the above comment is incorrect
 void aduInit(void) 
+{
+}
+ 
+/**
+ * @brief   Initializes a audio driver
+ * @details The HW dependent part of the initialization has to be performed
+ *          outside, usually in the hardware initialization code.
+ *
+ * @param[out] adup     pointer to a @p AudioUSBDriver structure
+ *
+ * @init
+ */
+void aduObjectInit(AudioUSBDriver *adup)
 {
   aduState.eventSource.es_next = (void*)&(aduState.eventSource);
 
@@ -331,25 +410,13 @@ void aduInit(void)
   aduState.volume[0] = VOLUME_CTRL_0_DB;
   aduState.volume[1] = VOLUME_CTRL_0_DB;
   aduState.volume[2] = VOLUME_CTRL_0_DB;
-}
 
-/**
- * @brief   Initializes a generic full duplex driver object.
- * @details The HW dependent part of the initialization has to be performed
- *          outside, usually in the hardware initialization code.
- *
- * @param[out] adup     pointer to a @p AudioUSBDriver structure
- *
- * @init
- */
-void AduObjectInit(AudioUSBDriver *adup) 
-{
-  adup->vmt = NULL; // noe at the moment
+  adup->vmt = NULL; // none at the moment
   chEvtInit(&adup->event);
   adup->state = ADU_STOP;
-  // chIQInit(&adup->iqueue, adup->ib, AUDIO_USB_BUFFERS_SIZE, inotify, adup);
-  // chOQInit(&adup->oqueue, adup->ob, AUDIO_USB_BUFFERS_SIZE, onotify, adup);
-
+  
+  chIQInit(&adup->iqueue, adup->ib, AUDIO_USB_BUFFERS_SIZE, inotify, adup);
+  chOQInit(&adup->oqueue, adup->ob, AUDIO_USB_BUFFERS_SIZE, onotify, adup);
 }
 
 /**

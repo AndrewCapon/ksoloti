@@ -35,12 +35,16 @@
 
 
 
-extern MidiUSBDriver MDU1;
-extern BulkUSBDriver BDU1;
+extern MidiUSBDriver  MDU1;
+extern BulkUSBDriver  BDU1;
+extern AudioUSBDriver ADU1;
 
 extern const USBConfig usbcfg;
 extern const MidiUSBConfig midiusbcfg;
 extern const BulkUSBConfig bulkusbcfg;
+extern const AudioUSBConfig audiousbcfg;
+
+extern void InitUsbAudio(void);
 
 
 #endif  /* _USBCFG_H_ */

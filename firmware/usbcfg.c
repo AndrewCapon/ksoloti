@@ -690,6 +690,12 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
   return FALSE;
 }
 
+void InitUsbAudio(void)
+{
+  aduObjectInit(&ADU1);
+  aduStart(&ADU1, &audiousbcfg);
+}
+
 /*
  * USB driver configuration.
  */
@@ -716,4 +722,13 @@ const BulkUSBConfig bulkusbcfg = {
   &USBD1,
   USBD2_DATA_REQUEST_EP,
   USBD2_DATA_AVAILABLE_EP
+};
+
+/*
+ * Audio USB driver configuration.
+ */
+const AudioUSBConfig audiousbcfg = {
+  &USBD1,
+  AUDIO_ENDPPOINT_OUT,
+  AUDIO_ENDPPOINT_OUT
 };

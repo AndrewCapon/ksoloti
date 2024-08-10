@@ -1034,7 +1034,6 @@ typedef struct
 extern "C" {
 #endif
   void   aduInit(void);
-  void   aduObjectInit(AudioUSBDriver *sdp);
   void   aduStart(AudioUSBDriver *adup, const AudioUSBConfig *config);
   void   aduStop(AudioUSBDriver *adup);
   void   aduConfigureHookI(AudioUSBDriver *adup);
