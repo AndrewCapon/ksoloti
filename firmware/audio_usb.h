@@ -895,6 +895,8 @@ typedef struct __attribute__ ((packed))
 #define MAX_AUDIO_PACKET_SIZE           (MAX_AUDIO_SAMPLES_PER_FRAME * MAX_AUDIO_CHANNELS \
                                          * MAX_AUDIO_RESOLUTION / 8)
 #define AUDIO_MAX_PACKET_SIZE           (MAX_AUDIO_PACKET_SIZE)
+#define ADU_AUDIO_CHANNELS              2U
+
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -1008,6 +1010,17 @@ struct AudioUSBDriver {
   const struct AudioUSBDriverVMT *vmt;
   _audio_usb_driver_data
 };
+
+typedef struct 
+{
+  uint32_t currentSampleRate;
+  int8_t   mute[ADU_AUDIO_CHANNELS + 1];
+  int16_t  volume[ADU_AUDIO_CHANNELS + 1];
+  bool     isActive;
+
+
+  EventSource eventSource;
+} AduState;
 
 /*===========================================================================*/
 /* Driver macros.                                                            */

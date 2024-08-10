@@ -1,9 +1,10 @@
 
 #include "hal.h"
 #include "audio_usb.h"
+#include "usb_lld.h"
+#include "chevents.h"
 
 const uint32_t aduSampleRates[] = {44100, 48000, 96000};
-uint32_t aduCurrentSampleRate  = 44100;
 
 #define N_SAMPLE_RATES  3
 
@@ -41,10 +42,25 @@ static void aduAddSampleRateRequest(bool bGet, uint32_t uSampleRate)
 }
 #endif
 
-#define ADU_AUDIO_CHANNELS 2
 
-int8_t  aduMute[ADU_AUDIO_CHANNELS + 1]   = {0, 0, 0};    // +1 for master channel 0
-int16_t aduVolume[ADU_AUDIO_CHANNELS + 1] = {VOLUME_CTRL_0_DB, VOLUME_CTRL_0_DB, VOLUME_CTRL_0_DB};    // +1 for master channel 0
+
+/*===========================================================================*/
+/* Driver local definitions.                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver exported variables.                                                */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver local variables and types.                                         */
+/*===========================================================================*/
+
+AduState aduState;
+
+/*===========================================================================*/
+/* Driver local functions.                                                   */
+/*===========================================================================*/
 
 // Set the sample rate
 static void aduSetSampleRate(USBDriver *usbp) 
@@ -57,7 +73,7 @@ static void aduSetSampleRate(USBDriver *usbp)
 #endif
 
   if(uSampleRate == 44100 || uSampleRate == 48000 || uSampleRate == 96000)
-    aduCurrentSampleRate =  uSampleRate;
+    aduState.currentSampleRate =  uSampleRate;
 
 #if CONTORL_MESSAGES_DEBUG
   else
@@ -71,13 +87,13 @@ static void aduSetSampleRate(USBDriver *usbp)
 // Set mute
 static void aduSetMute(USBDriver *usbp) 
 {
-  aduMute[aduControlChannel] = ((audio_control_cur_1_t const *)aduControlData)->bCur;
+  aduState.mute[aduControlChannel] = ((audio_control_cur_1_t const *)aduControlData)->bCur;
 }
 
 // Set mute
 static void aduSetVolume(USBDriver *usbp) 
 {
-  aduVolume[aduControlChannel] = ((audio_control_cur_2_t const *)aduControlData)->bCur;
+  aduState.volume[aduControlChannel] = ((audio_control_cur_2_t const *)aduControlData)->bCur;
 }
 
 bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, audio_control_request_t *request)
@@ -95,7 +111,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
     // Get and Set mute
     if(request->bmRequestType_bit.direction) // Get requests
     {
-      audio_control_cur_1_t mute1 = { .bCur = aduMute[request->bChannelNumber] };
+      audio_control_cur_1_t mute1 = { .bCur = aduState.mute[request->bChannelNumber] };
       usbSetupTransfer(usbp, (uint8_t *)&mute1, sizeof(mute1), NULL);
       bResult = true;
     }
@@ -126,7 +142,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
 
         case AUDIO_CS_REQ_CUR:
         {
-          audio_control_cur_2_t curVol = { .bCur = aduVolume[request->bChannelNumber] };
+          audio_control_cur_2_t curVol = { .bCur = aduState.volume[request->bChannelNumber] };
           usbSetupTransfer(usbp, (uint8_t *)&curVol, sizeof(curVol), NULL);
           bResult = true;
           break;
@@ -180,7 +196,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
           // get current sample rate
           aduAddSampleRateRequest(1, aduCurrentSampleRate);
 #endif
-          audio_control_cur_4_t curf = { (int32_t) aduCurrentSampleRate };
+          audio_control_cur_4_t curf = { (int32_t) aduState.currentSampleRate };
           usbSetupTransfer(usbp, (uint8_t *)&curf, sizeof(curf), NULL);
           bResult = true;
           break;
@@ -260,60 +276,33 @@ bool aduControl(USBDriver *usbp)
   return false;
 }
 
-// bool aduControl(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
-// {
-//   /* Only requests to audio control iface are supported */
-//   if (iface == ITF_NUM_AUDIO_STREAMING_CONTROL) 
-//   {
-//     switch(entity)
-//     {
-//       case AUDIO_FUNCTION_UNIT_ID:
-//       {
-//         //return audio_volume_control(usbp, req, (wValue >> 8) & 0xFF, wValue & 0xFF, length);
-//         volatile int bp = 1;
-//         break;
-//       }
-
-//       case UAC2_ENTITY_CLOCK:
-//       {
-//         // ok we need to handle returning the clock
-//         volatile int bp = 1;
-//         break;
-//       }
-//       default: break;
-//     }
-//   }
-//   return false;
-// }
 //                                       4              5               1            (3 << 8) | 2     6
 bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
 {
   bool bResult = false;
 
-  usbSetupTransfer(usbp, NULL, 0, NULL);
-  bResult = true;
-
-  // if(entity == 0)
-  // {
-  //   if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
-  //   {
-  //     if(wValue == 0x0001)
-  //     {
-  //       // start
-  //       usbSetupTransfer(usbp, NULL, 0, NULL);
-  //       bResult = true;
-  //     }
-  //     else
-  //     {
-  //       // end
-  //       usbSetupTransfer(usbp, NULL, 0, NULL);
-  //       bResult = true;
-  //     }
-  //   }
-  // }
+  if(entity == 0)
+  {
+    if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
+    {
+      if(wValue == 0x0001)
+      {
+        // start
+        usbSetupTransfer(usbp, NULL, 0, NULL);
+        bResult = true;
+      }
+      else
+      {
+        // end
+        usbSetupTransfer(usbp, NULL, 0, NULL);
+        bResult = true;
+      }
+    }
+  }
 
   return bResult;
 }
+
 
 
 /*===========================================================================*/
@@ -321,14 +310,27 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
 /*===========================================================================*/
 
 /**
- * @brief   Bulk USB Driver initialization.
+ * @brief   Audio USB Driver initialization.
  * @note    This function is implicitly invoked by @p halInit(), there is
  *          no need to explicitly initialize the driver.
  *
  * @init
  */
+
 void aduInit(void) 
 {
+  aduState.eventSource.es_next = (void*)&(aduState.eventSource);
+
+  aduState.currentSampleRate = 44100;
+  aduState.isActive = false;
+  
+  aduState.mute[0] = 0;
+  aduState.mute[1] = 0;
+  aduState.mute[2] = 0;
+
+  aduState.volume[0] = VOLUME_CTRL_0_DB;
+  aduState.volume[1] = VOLUME_CTRL_0_DB;
+  aduState.volume[2] = VOLUME_CTRL_0_DB;
 }
 
 /**
@@ -340,20 +342,41 @@ void aduInit(void)
  *
  * @init
  */
-void AduObjectInit(AudioUSBDriver *bdup) 
+void AduObjectInit(AudioUSBDriver *adup) 
 {
+  adup->vmt = NULL; // noe at the moment
+  chEvtInit(&adup->event);
+  adup->state = ADU_STOP;
+  // chIQInit(&adup->iqueue, adup->ib, AUDIO_USB_BUFFERS_SIZE, inotify, adup);
+  // chOQInit(&adup->oqueue, adup->ob, AUDIO_USB_BUFFERS_SIZE, onotify, adup);
+
 }
 
 /**
  * @brief   Configures and starts the driver.
  *
  * @param[in] bdup      pointer to a @p AudioUSBDriver object
- * @param[in] config    the Bulk USB driver configuration
+ * @param[in] config    the Audio USB driver configuration
  *
  * @api
  */
-void aduStart(AudioUSBDriver *bdup, const AudioUSBConfig *config) 
+void aduStart(AudioUSBDriver *adup, const AudioUSBConfig *config) 
 {
+  USBDriver *usbp = config->usbp;
+
+  chDbgCheck(adup != NULL, "aduStart");
+
+  chSysLock()
+  ;
+  chDbgAssert((adup->state == ADU_STOP) || (adup->state == ADU_READY),
+              "aduStart(), #1", "invalid state");
+  usbp->in_params[config->iso_in - 1] = adup;
+  usbp->out_params[config->iso_out - 1] = adup;
+  adup->config = config;
+  adup->state = ADU_READY;
+  chSysUnlock()
+  ;
+
 }
 
 /**
@@ -365,8 +388,31 @@ void aduStart(AudioUSBDriver *bdup, const AudioUSBConfig *config)
  *
  * @api
  */
-void aduStop(AudioUSBDriver *bdup) 
+void aduStop(AudioUSBDriver *adup) 
 {
+  USBDriver *usbp = adup->config->usbp;
+
+  chDbgCheck(adup != NULL, "sdStop");
+
+  chSysLock()
+  ;
+
+  chDbgAssert((adup->state == ADU_STOP) || (adup->state == ADU_READY),
+              "aduStop(), #1", "invalid state");
+
+  /* Driver in stopped state.*/
+  usbp->in_params[adup->config->iso_in - 1] = NULL;
+  usbp->out_params[adup->config->iso_out - 1] = NULL;
+  adup->state = ADU_STOP;
+
+  /* Queues reset in order to signal the driver stop to the application.*/
+  chnAddFlagsI(adup, CHN_DISCONNECTED);
+  chIQResetI(&adup->iqueue);
+  chOQResetI(&adup->oqueue);
+  chSchRescheduleS();
+
+  chSysUnlock()
+  ;
 }
 
 /**
@@ -376,13 +422,18 @@ void aduStop(AudioUSBDriver *bdup)
  *
  * @iclass
  */
-void aduConfigureHookI(AudioUSBDriver *bdup) 
+void aduConfigureHookI(AudioUSBDriver *adup) 
 {
+  //USBDriver *usbp = adup->config->usbp;
+
+  chIQResetI(&adup->iqueue);
+  chOQResetI(&adup->oqueue);
+  chnAddFlagsI(adup, CHN_CONNECTED);
 }
 
 /**
  * @brief   Default requests hook.
- * @details Applications wanting to use the Bulk USB driver can use
+ * @details Applications wanting to use the Audio USB driver can use
  *          this function as requests hook in the USB configuration.
  *          The following requests are emulated:
  *          - CDC_GET_LINE_CODING.

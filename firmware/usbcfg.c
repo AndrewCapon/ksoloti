@@ -23,8 +23,9 @@
 /*
  * Serial over USB Driver structure.
  */
-MidiUSBDriver MDU1;
-BulkUSBDriver BDU1;
+MidiUSBDriver  MDU1;
+BulkUSBDriver  BDU1;
+AudioUSBDriver ADU1;
 
 /*
  * USB Device Descriptor.
@@ -548,10 +549,12 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
        must be used.*/
     usbInitEndpointI(usbp, USBD1_DATA_REQUEST_EP, &ep1config);
     usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep2config);
+    usbInitEndpointI(usbp, AUDIO_ENDPPOINT_OUT, &ep3config);
 
     /* Resetting the state of the Bulk driver subsystem.*/
     bduConfigureHookI(&BDU1);
     mduConfigureHookI(&MDU1);
+    aduConfigureHookI(&ADU1);
 
     chSysUnlockFromIsr();
     return;
