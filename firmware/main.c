@@ -243,8 +243,29 @@ int main(void) {
             uCheckSec--;
     }
 #else
+    EventListener audioEventListener;
+    chEvtRegisterMask(&ADU1.event, &audioEventListener, AUDIO_EVENT);
+
     while (1) 
-        chThdSleepMilliseconds(1000);
+    {
+        chEvtWaitOne(AUDIO_EVENT);
+        flagsmask_t evt = chEvtGetAndClearFlags(&audioEventListener);
+
+        if(evt & AUDIO_EVENT_USB_STATE)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB State changed.\r\n");
+        else if(evt & AUDIO_EVENT_MUTE)
+            chprintf((BaseSequentialStream * )&SD2,"Audio mute changed.\r\n");
+        else if(evt & AUDIO_EVENT_VOLUME)
+            chprintf((BaseSequentialStream * )&SD2,"Audio volume changed.\r\n");
+        else if(evt & AUDIO_EVENT_INPUT)
+            chprintf((BaseSequentialStream * )&SD2,"Audio input state changed.\r\n");
+        else if(evt & AUDIO_EVENT_OUTPUT)
+            chprintf((BaseSequentialStream * )&SD2,"Audio output state changed.\r\n");
+        else if(evt & AUDIO_EVENT_FORMAT)
+            chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed.\r\n");
+
+        //chThdSleepMilliseconds(1000);
+    }
 #endif
 }
 

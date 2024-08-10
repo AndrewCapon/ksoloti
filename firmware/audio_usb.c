@@ -22,7 +22,7 @@ typedef struct
   uint8_t entity;
   uint8_t req;
   uint16_t wValue;
-  uint16_t length
+  uint16_t length;
 } SwitchDebug;
 
 #define MAX_SWITCH_INTERFACE_DEBUG 1024
@@ -113,6 +113,12 @@ static void aduSetSampleRate(USBDriver *usbp)
     // this should really not be happening!
   }
 #endif
+
+  // notify
+  chSysLockFromIsr();
+  chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_FORMAT);
+  chSysUnlockFromIsr();
+
 }
 
 // Set mute
@@ -151,6 +157,11 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
       aduControlChannel = request->bChannelNumber;
       usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetMute);
       bResult = true;
+
+      // notify
+      chSysLockFromIsr();
+      chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_MUTE);
+      chSysUnlockFromIsr();
     }
   }
   else if (UAC2_ENTITY_SPK_FEATURE_UNIT && request->bControlSelector == AUDIO_FU_CTRL_VOLUME)
@@ -191,14 +202,22 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
           aduControlChannel = request->bChannelNumber;
           usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetVolume);
           bResult = true;
+
+          // notify
+          chSysLockFromIsr();
+          chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_VOLUME);
+          chSysUnlockFromIsr();
+
           break;
         }
 
         default: break;
       }
     }
+
   } 
 
+  if(bResult)
   palWritePad(GPIOG, 11, 0);
 
   return bResult;
@@ -307,6 +326,40 @@ bool aduControl(USBDriver *usbp)
   return false;
 }
 
+void aduEnableInput(bool bEnable)
+{
+  if(bEnable != aduState.isInputActive)
+  {
+    aduState.isInputActive = bEnable;
+    if(bEnable)
+    {
+      // kick things off
+
+      // notify
+      chSysLockFromIsr();
+      chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
+      chSysUnlockFromIsr();
+    }
+  }
+}
+
+void aduEnableOutput(bool bEnable)
+{
+  if(bEnable != aduState.isOutputActive)
+  {
+    aduState.isOutputActive = bEnable;
+    if(bEnable)
+    {
+      // kick things off
+
+      // notify
+      chSysLockFromIsr();
+      chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
+      chSysUnlockFromIsr();
+    }
+  }
+}
+
 //                                       4              5               1            (3 << 8) | 2     6
 bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
 {
@@ -317,42 +370,23 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
 
   bool bResult = false;
 
-  // usbSetupTransfer(usbp, NULL, 0, NULL);
-  // return true;
-  
+ 
   if(entity == 0)
   {
     if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
     {
-      if(wValue == 0x0001)
-      {
-        // start
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
-      else
-      {
-        // end
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
+      aduEnableOutput(wValue);
+      bResult = true;
     }
     else if(iface == ITF_NUM_AUDIO_STREAMING_MICROPHONE)
     {
-      if(wValue == 0x0001)
-      {
-        // start
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
-      else
-      {
-        // end
-        usbSetupTransfer(usbp, NULL, 0, NULL);
-        bResult = true;
-      }
+      aduEnableInput(wValue);
+      bResult = true;
     }
   }
+
+  if(bResult)
+    usbSetupTransfer(usbp, NULL, 0, NULL);
 
   return bResult;
 }
@@ -447,15 +481,19 @@ void aduInit(void)
  */
 void aduObjectInit(AudioUSBDriver *adup)
 {
-  aduState.eventSource.es_next = (void*)&(aduState.eventSource);
-
+  // default sample rate
   aduState.currentSampleRate = 44100;
-  aduState.isActive = false;
   
+  // default is disabled
+  aduState.isOutputActive = false;
+  aduState.isInputActive = false;
+  
+  // set not muted
   aduState.mute[0] = 0;
   aduState.mute[1] = 0;
   aduState.mute[2] = 0;
 
+  // set 0db volume
   aduState.volume[0] = VOLUME_CTRL_0_DB;
   aduState.volume[1] = VOLUME_CTRL_0_DB;
   aduState.volume[2] = VOLUME_CTRL_0_DB;

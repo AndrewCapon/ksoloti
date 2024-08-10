@@ -537,10 +537,6 @@ static const USBEndpointConfig ep3config = {
 static void usb_event(USBDriver *usbp, usbevent_t event) {
 
   switch (event) {
-  case USB_EVENT_RESET:
-    return;
-  case USB_EVENT_ADDRESS:
-    return;
   case USB_EVENT_CONFIGURED:
     chSysLockFromIsr();
 
@@ -556,15 +552,23 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
     mduConfigureHookI(&MDU1);
     aduConfigureHookI(&ADU1);
 
+    // Notify USB state changes for AUDIO
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+
     chSysUnlockFromIsr();
     return;
   case USB_EVENT_SUSPEND:
-    return;
   case USB_EVENT_WAKEUP:
-    return;
   case USB_EVENT_STALLED:
+  case USB_EVENT_RESET:
+  case USB_EVENT_ADDRESS:
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+    chSysUnlockFromIsr();
     return;
   }
+
   return;
 }
 

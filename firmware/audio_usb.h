@@ -897,6 +897,14 @@ typedef struct __attribute__ ((packed))
 #define AUDIO_MAX_PACKET_SIZE           (MAX_AUDIO_PACKET_SIZE)
 #define ADU_AUDIO_CHANNELS              2U
 
+#define AUDIO_EVENT                 EVENT_MASK(0)
+#define AUDIO_EVENT_OUTPUT          EVENT_MASK(1)
+#define AUDIO_EVENT_INPUT           EVENT_MASK(2)
+#define AUDIO_EVENT_MUTE            EVENT_MASK(3)
+#define AUDIO_EVENT_VOLUME          EVENT_MASK(4)
+#define AUDIO_EVENT_USB_STATE       EVENT_MASK(5)
+#define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
+
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -1016,10 +1024,8 @@ typedef struct
   uint32_t currentSampleRate;
   int8_t   mute[ADU_AUDIO_CHANNELS + 1];
   int16_t  volume[ADU_AUDIO_CHANNELS + 1];
-  bool     isActive;
-
-
-  EventSource eventSource;
+  bool     isOutputActive;
+  bool     isInputActive;
 } AduState;
 
 /*===========================================================================*/
