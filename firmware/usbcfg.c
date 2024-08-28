@@ -523,7 +523,7 @@ static const USBEndpointConfig ep3config = {
   NULL,
   aduDataTransmitted,
   aduDataReceived,
-  0x0000,
+  AUDIO_MAX_PACKET_SIZE,
   AUDIO_MAX_PACKET_SIZE,
   &ep3instate,
   &ep3outstate,

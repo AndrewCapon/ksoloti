@@ -904,6 +904,7 @@ typedef struct __attribute__ ((packed))
 #define AUDIO_EVENT_VOLUME          EVENT_MASK(4)
 #define AUDIO_EVENT_USB_STATE       EVENT_MASK(5)
 #define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
+#define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */

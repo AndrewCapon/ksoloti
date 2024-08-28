@@ -4,6 +4,8 @@
 #include "usb_lld.h"
 #include "chevents.h"
 
+#define USE_TRANSFER_SIZE 176
+
 extern AudioUSBDriver ADU1;
 
 const uint32_t aduSampleRates[] = {44100, 48000, 96000};
@@ -42,6 +44,10 @@ void AddSwitchDebug(uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue,
     nextSdIndex = 0;
 }
 #endif
+
+static uint16_t aduBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
+static uint16_t aduBuffer2[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
+
 
 #if CONTROL_MESSAGES_DEBUG
 #define LOG_AMOUNT 128
@@ -326,36 +332,44 @@ bool aduControl(USBDriver *usbp)
   return false;
 }
 
-void aduEnableInput(bool bEnable)
+void aduEnableInput(USBDriver *usbp, bool bEnable)
 {
+  // this is ksoloti->host
   if(bEnable != aduState.isInputActive)
   {
     aduState.isInputActive = bEnable;
     if(bEnable)
     {
-      // kick things off
-
-      // notify
+      palWritePad(GPIOG, 11, 1);
+      //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
+      //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
+      usbPrepareTransmit(usbp, 3, NULL, 0);
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
+      usbStartTransmitI(usbp, 3);
       chSysUnlockFromIsr();
+      palWritePad(GPIOG, 11, 0);
     }
   }
 }
 
-void aduEnableOutput(bool bEnable)
+void aduEnableOutput(USBDriver *usbp, bool bEnable)
 {
+  // this is host->ksoloti
   if(bEnable != aduState.isOutputActive)
   {
     aduState.isOutputActive = bEnable;
     if(bEnable)
     {
-      // kick things off
-
-      // notify
+      palWritePad(GPIOG, 11, 1);
+      //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
+      usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
+      //usbPrepareReceive(usbp, 3, NULL, 0);
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
+      usbStartReceiveI(usbp, 3);
       chSysUnlockFromIsr();
+      palWritePad(GPIOG, 11, 0);
     }
   }
 }
@@ -375,12 +389,12 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
   {
     if(iface == ITF_NUM_AUDIO_STREAMING_SPEAKER)
     {
-      aduEnableOutput(wValue);
+      aduEnableOutput(usbp, wValue);
       bResult = true;
     }
     else if(iface == ITF_NUM_AUDIO_STREAMING_MICROPHONE)
     {
-      aduEnableInput(wValue);
+      aduEnableInput(usbp, wValue);
       bResult = true;
     }
   }
@@ -616,6 +630,14 @@ bool_t aduRequestsHook(USBDriver *usbp) {
  */
 void aduDataTransmitted(USBDriver *usbp, usbep_t ep) 
 {
+  palWritePad(GPIOG, 11, 1);
+  //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
+  //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
+  usbPrepareTransmit(usbp, 3, NULL, 0);
+  chSysLockFromIsr();
+  usbStartTransmitI(usbp, 3);
+  chSysUnlockFromIsr();
+  palWritePad(GPIOG, 11, 0);
 }
 
 /**
@@ -628,4 +650,12 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
  */
 void aduDataReceived(USBDriver *usbp, usbep_t ep) 
 {
+  palWritePad(GPIOG, 11, 1);
+  //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
+  //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
+  usbPrepareReceive(usbp, 3, NULL, 0);
+  chSysLockFromIsr();
+  usbStartReceiveI(usbp, 3);
+  chSysUnlockFromIsr();
+  palWritePad(GPIOG, 11, 0);
 }
