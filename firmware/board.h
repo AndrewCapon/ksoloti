@@ -19,6 +19,9 @@
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
+#include "migration_v3.h"
+
+
 /*
  * Board oscillators-related settings.
  * NOTE: LSE not fitted.

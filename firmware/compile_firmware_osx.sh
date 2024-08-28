@@ -18,22 +18,22 @@ fi
 # rm -rf build/obj
 # rm -rf build/lst
 
-echo "Compiling Ksoloti firmware flasher..."
-cd flasher
-mkdir -p flasher_build/obj
-mkdir -p flasher_build/lst
-make -j16 $1
-# rm -rf .dep
-# rm -rf flasher_build/obj
-# rm -rf flasher_build/lst
-cd ..
+# echo "Compiling Ksoloti firmware flasher..."
+# cd flasher
+# mkdir -p flasher_build/obj
+# mkdir -p flasher_build/lst
+# make -j16 $1
+# # rm -rf .dep
+# # rm -rf flasher_build/obj
+# # rm -rf flasher_build/lst
+# cd ..
 
-echo "Compiling Ksoloti firmware mounter..."
-cd mounter
-mkdir -p mounter_build/obj
-mkdir -p mounter_build/lst
-make -j16 $1
-# rm -rf .dep
-# rm -rf mounter_build/obj
-# rm -rf mounter_build/lst
-cd ..
+# echo "Compiling Ksoloti firmware mounter..."
+# cd mounter
+# mkdir -p mounter_build/obj
+# mkdir -p mounter_build/lst
+# make -j16 $1
+# # rm -rf .dep
+# # rm -rf mounter_build/obj
+# # rm -rf mounter_build/lst
+# cd ..

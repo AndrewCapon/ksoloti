@@ -249,7 +249,7 @@ int main(void) {
     while (1) 
     {
         chEvtWaitOne(AUDIO_EVENT);
-        flagsmask_t evt = chEvtGetAndClearFlags(&audioEventListener);
+        uint32_t  evt = chEvtGetAndClearFlags(&audioEventListener);
 
         if(evt & AUDIO_EVENT_USB_STATE)
             chprintf((BaseSequentialStream * )&SD2,"Audio USB State changed.\r\n");

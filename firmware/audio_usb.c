@@ -532,12 +532,12 @@ void aduStart(AudioUSBDriver *adup, const AudioUSBConfig *config)
 {
   USBDriver *usbp = config->usbp;
 
-  chDbgCheck(adup != NULL, "aduStart");
+  chDbgCheck(adup != NULL);
 
   chSysLock()
   ;
   chDbgAssert((adup->state == ADU_STOP) || (adup->state == ADU_READY),
-              "aduStart(), #1", "invalid state");
+              "aduStart(), #1 invalid state");
   usbp->in_params[config->iso_in - 1] = adup;
   usbp->out_params[config->iso_out - 1] = adup;
   adup->config = config;
@@ -560,13 +560,13 @@ void aduStop(AudioUSBDriver *adup)
 {
   USBDriver *usbp = adup->config->usbp;
 
-  chDbgCheck(adup != NULL, "sdStop");
+  chDbgCheck(adup != NULL);
 
   chSysLock()
   ;
 
   chDbgAssert((adup->state == ADU_STOP) || (adup->state == ADU_READY),
-              "aduStop(), #1", "invalid state");
+              "aduStop(), #1 invalid state");
 
   /* Driver in stopped state.*/
   usbp->in_params[adup->config->iso_in - 1] = NULL;

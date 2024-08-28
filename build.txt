@@ -1,0 +1,852 @@
+/Volumes/X82/Development/ksoloti/platform_osx/../platform_osx/bin/arm-none-eabi-gcc
+Compiling Ksoloti firmware... /Volumes/X82/Development/ksoloti/platform_osx/../firmware
+Compiling arm_bitreversal2.s
+Compiling crt0.c
+Compiling vectors.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling nvic.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chlists.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chmtx.c
+Compiling chcond.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling hal.c
+Compiling adc.c
+Compiling can.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling mmcsd.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling tm.c
+Compiling uart.c
+Compiling usb.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c:699:1: warning: "/*" within comment [-Wcomment]
+ /**
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c: In function 'usb_lld_pump':
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c:846:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling board.c
+Compiling fatfs_diskio.c
+Compiling fatfs_syscall.c
+Compiling ff.c
+Compiling ccsbcs.c
+Compiling chprintf.c
+Compiling memstreams.c
+Compiling axoloti_control.c
+Compiling codec.c
+Compiling axoloti.c
+Compiling axoloti_filters.c
+Compiling axoloti_math.c
+Compiling axoloti_oscs.c
+Compiling axoloti_board.c
+Compiling midi.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from usbh_midi_core.h:29,
+                 from midi.c:24:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling ui.c
+ui.c: In function 'ui_init':
+ui.c:410:53: warning: passing argument 5 of 'SetKVP_APVP' from incompatible pointer type
+   SetKVP_APVP(&p[entries++], &KvpsHead, "Patch", 0, &ObjectKvps[0]);
+                                                     ^
+ui.c:52:6: note: expected 'struct KeyValuePair *' but argument is of type 'struct KeyValuePair **'
+ void SetKVP_APVP(KeyValuePair_s *kvp, KeyValuePair_s *parent,
+      ^
+ui.c:411:51: warning: passing argument 4 of 'SetKVP_IVP' from incompatible pointer type
+   SetKVP_IVP(&p[entries++], &KvpsHead, "Running", &patchStatus, 0, 15);
+                                                   ^
+ui.c:72:6: note: expected 'int *' but argument is of type 'volatile enum patchStatus_t *'
+ void SetKVP_IVP(KeyValuePair_s *kvp, KeyValuePair_s *parent,
+      ^
+Compiling glcdfont.c
+Compiling usbcfg.c
+usbcfg.c: In function 'InitUsbAudio':
+usbcfg.c:699:3: warning: implicit declaration of function 'aduObjectInit' [-Wimplicit-function-declaration]
+   aduObjectInit(&ADU1);
+   ^
+Compiling sdcard.c
+Compiling pconnection.c
+Compiling parameters.c
+parameters.c: In function 'ApplyPreset':
+parameters.c:65:34: warning: ordered comparison of pointer with integer zero [-Wextra]
+   if (patchMeta.fptr_applyPreset >= 0)
+                                  ^
+Compiling main.c
+Compiling patch.c
+patch.c: In function 'StartPatch1':
+patch.c:173:18: warning: unused variable 'a' [-Wunused-variable]
+     volatile int a = 102;
+                  ^
+patch.c: In function 'ThreadDSP':
+patch.c:384:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+Compiling flash.c
+Compiling virtual_control.c
+Compiling arm_bitreversal.c
+Compiling arm_cfft_f32.c
+Compiling arm_cfft_q15.c
+Compiling arm_cfft_q31.c
+Compiling arm_cfft_radix2_f32.c
+Compiling arm_cfft_radix2_init_f32.c
+Compiling arm_cfft_radix2_init_q15.c
+Compiling arm_cfft_radix2_init_q31.c
+Compiling arm_cfft_radix2_q15.c
+Compiling arm_cfft_radix2_q31.c
+Compiling arm_cfft_radix4_f32.c
+Compiling arm_cfft_radix4_init_f32.c
+Compiling arm_cfft_radix4_init_q15.c
+Compiling arm_cfft_radix4_init_q31.c
+Compiling arm_cfft_radix4_q15.c
+Compiling arm_cfft_radix4_q31.c
+Compiling arm_cfft_radix8_f32.c
+Compiling arm_rfft_f32.c
+Compiling arm_rfft_fast_f32.c
+Compiling arm_rfft_fast_init_f32.c
+Compiling arm_rfft_init_f32.c
+Compiling arm_rfft_init_q15.c
+Compiling arm_rfft_init_q31.c
+Compiling arm_rfft_q15.c
+Compiling arm_rfft_q31.c
+Compiling arm_mult_q31.c
+Compiling arm_mult_q15.c
+Compiling arm_mult_f32.c
+Compiling arm_shift_q31.c
+Compiling arm_shift_q15.c
+Compiling arm_scale_f32.c
+Compiling arm_cmplx_mult_cmplx_q31.c
+Compiling arm_cmplx_mult_cmplx_f32.c
+Compiling arm_cmplx_mag_q31.c
+Compiling arm_cmplx_mult_cmplx_q15.c
+Compiling arm_cmplx_mag_q15.c
+Compiling arm_cos_q31.c
+Compiling arm_sin_q31.c
+Compiling arm_sqrt_q31.c
+Compiling arm_sqrt_q15.c
+Compiling arm_fir_init_q31.c
+Compiling arm_fir_fast_q31.c
+Compiling arm_biquad_cascade_df1_32x64_init_q31.c
+Compiling arm_biquad_cascade_df1_32x64_q31.c
+Compiling arm_biquad_cascade_df1_fast_q31.c
+Compiling arm_biquad_cascade_df1_init_q31.c
+Compiling arm_biquad_cascade_df1_q31.c
+Compiling arm_fir_interpolate_init_q31.c
+Compiling arm_fir_interpolate_q31.c
+Compiling arm_fir_decimate_init_q31.c
+Compiling arm_fir_decimate_q31.c
+Compiling arm_fir_decimate_fast_q31.c
+Compiling arm_fir_lattice_init_q31.c
+Compiling arm_fir_lattice_q31.c
+Compiling arm_iir_lattice_init_q31.c
+Compiling arm_iir_lattice_q31.c
+Compiling arm_common_tables.c
+Compiling arm_const_structs.c
+Compiling usbh_core.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:30:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c: In function 'USBH_Init':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:127:19: warning: assignment from incompatible pointer type
+   phost->os_event = osMessageCreate (osMessageQ(USBH_Queue), NULL); 
+                   ^
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:30:
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:133:28: warning: passing argument 4 of 'chThdCreateStatic' from incompatible pointer type
+   osThreadDef(USBH_Thread, USBH_Process_OS, USBH_PROCESS_PRIO, 0, 8 * configMINIMAL_STACK_SIZE);
+                            ^
+./usbh_conf.h:85:74: note: in definition of macro 'osThreadDef'
+   Thread *name = chThdCreateStatic(wa##name, sizeof(wa##name), HIGHPRIO, fn, phost); \
+                                                                          ^
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/kernel/include/ch.h:127:0,
+                 from ./usbh_conf.h:39,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:30:
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/kernel/include/chthreads.h:368:11: note: expected 'tfunc_t' but argument is of type 'void (*)(const void *)'
+   Thread *chThdCreateStatic(void *wsp, size_t size,
+           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c: In function 'USBH_Process':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:620:7: warning: implicit declaration of function 'HAL_HCD_Stop' [-Wimplicit-function-declaration]
+       HAL_HCD_Stop(phost->pData);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:622:7: warning: implicit declaration of function 'HAL_HCD_Init' [-Wimplicit-function-declaration]
+       HAL_HCD_Init(phost->pData);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:624:7: warning: implicit declaration of function 'HAL_HCD_Start' [-Wimplicit-function-declaration]
+       HAL_HCD_Start(phost->pData);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c: In function 'USBH_Process_OS':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_core.c:932:11: warning: variable 'event' set but not used [-Wunused-but-set-variable]
+   osEvent event;
+           ^
+Compiling usbh_ctlreq.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_ctlreq.c:29:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_ioreq.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_ioreq.c:29:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_pipes.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Src/usbh_pipes.c:29:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_hid.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Src/usbh_hid.c:43:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_hid_keybd.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid_keybd.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Src/usbh_hid_keybd.c:32:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_hid_mouse.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid_mouse.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Src/usbh_hid_mouse.c:29:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_hid_parser.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Inc/usbh_hid_parser.h:37,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Class/HID/Src/usbh_hid_parser.c:28:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling stm32f4xx_ll_usb.c
+Compiling stm32f4xx_hal_gpio.c
+Compiling stm32f4xx_hal_cortex.c
+Compiling stm32f4xx_hal_hcd.c
+Compiling stm32f4xx_hal_i2c.c
+Compiling usbh_midi_core.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from usbh_midi_core.h:29,
+                 from usbh_midi_core.c:37:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/include/hal.h:43:0,
+                 from usbh_midi_core.c:43:
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h: At top level:
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:175:0: warning: "STM32_SYSCLK_MAX" redefined
+ #define STM32_SYSCLK_MAX        168000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:91:0: note: this is the location of the previous definition
+ #define STM32_SYSCLK_MAX        180000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:187:0: warning: "STM32_PLLOUT_MAX" redefined
+ #define STM32_PLLOUT_MAX        168000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:151:0: note: this is the location of the previous definition
+ #define STM32_PLLOUT_MAX        180000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:189:0: warning: "STM32_PCLK1_MAX" redefined
+ #define STM32_PCLK1_MAX         42000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:161:0: note: this is the location of the previous definition
+ #define STM32_PCLK1_MAX         (STM32_PLLOUT_MAX /4)
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:190:0: warning: "STM32_PCLK2_MAX" redefined
+ #define STM32_PCLK2_MAX         84000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:166:0: note: this is the location of the previous definition
+ #define STM32_PCLK2_MAX         (STM32_PLLOUT_MAX / 2)
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:191:0: warning: "STM32_SPII2S_MAX" redefined
+ #define STM32_SPII2S_MAX        42000000
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32F4xx/hal_lld.h:171:0: note: this is the location of the previous definition
+ #define STM32_SPII2S_MAX        45000000
+ ^
+Compiling usbh_vendor.c
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/STM32_USB_Host_Library/Core/Inc/usbh_core.h:37:0,
+                 from usbh_midi_core.h:29,
+                 from usbh_vendor.c:5:
+./usbh_conf.h: In function 'USBH_LL_GetURBState':
+./usbh_conf.h:208:3: warning: implicit declaration of function 'HAL_HCD_HC_GetURBState' [-Wimplicit-function-declaration]
+   return (USBH_URBStateTypeDef)HAL_HCD_HC_GetURBState(phost->pData, pipe);
+   ^
+./usbh_conf.h: In function 'USBH_LL_SubmitURB':
+./usbh_conf.h:245:6: warning: implicit declaration of function 'HAL_HCD_HC_SubmitRequest' [-Wimplicit-function-declaration]
+      HAL_HCD_HC_SubmitRequest(phost->pData, pipe, direction, ep_type, token, pbuff,
+      ^
+Compiling usbh_conf.c
+Compiling serial_midi.c
+Compiling bulk_usb.c
+Compiling midi_usb.c
+Compiling audio_usb.c
+audio_usb.c:49:17: warning: 'aduBuffer2' defined but not used [-Wunused-variable]
+ static uint16_t aduBuffer2[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
+                 ^
+Compiling spilink.c
+Compiling spidb.c
+Compiling crc32.c
+Compiling exceptions.c
+Compiling watchdog.c
+Compiling sysmon.c
+Compiling axoloti_memory.c
+Compiling units.cpp
+Compiling atan.cpp
+Compiling random.cpp
+Compiling mutable_resources.cpp
+Compiling braids_resources.cpp
+Compiling analog_oscillator.cpp
+Compiling digital_oscillator.cpp
+Compiling macro_oscillator.cpp
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/braids/macro_oscillator.h:39:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/braids/macro_oscillator.cpp:29:
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/braids/settings.h:326:54: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+   static const Setting setting_at_index(int16_t index) {
+                                                      ^
+Compiling warps_resources.cpp
+Compiling filter_bank.cpp
+Compiling modulator.cpp
+Compiling oscillator.cpp
+Compiling vocoder.cpp
+Compiling axoloti_mi.cpp
+Compiling elements_resources.cpp
+Compiling multistage_envelope.cpp
+Compiling ominous_voice.cpp
+Compiling resonator.cpp
+Compiling string.cpp
+Compiling tube.cpp
+Compiling exciter.cpp
+Compiling part.cpp
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/part.h:32:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/part.cpp:29:
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Write(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_168' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:168:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Read(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_196' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:196:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Interpolate(D&, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_225' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:225:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Interpolate(D&, float, elements::LFOIndex, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_239' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:239:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+Compiling voice.cpp
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/voice.h:32:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/voice.cpp:29:
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Write(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_168' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:168:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Read(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_196' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:196:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Interpolate(D&, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_225' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:225:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h: In member function 'void elements::FxEngine<size, format>::Context::Interpolate(D&, float, elements::LFOIndex, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_239' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/elements/dsp/fx/fx_engine.h:239:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+Compiling clouds_resources.cpp
+Compiling correlator.cpp
+Compiling mu_law.cpp
+Compiling granular_processor.cpp
+In file included from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/granular_processor.h:32:0,
+                 from /Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/granular_processor.cpp:29:
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h: In member function 'void clouds::FxEngine<size, format>::Context::Write(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_172' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h:172:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h: In member function 'void clouds::FxEngine<size, format>::Context::Read(D&, int32_t, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_200' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h:200:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h: In member function 'void clouds::FxEngine<size, format>::Context::Interpolate(D&, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_229' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h:229:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h: In member function 'void clouds::FxEngine<size, format>::Context::Interpolate(D&, float, clouds::LFOIndex, float, float)':
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:95: warning: typedef '__static_assertion_test_at_line_243' locally defined but not used [-Wunused-local-typedefs]
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                               ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:51:27: note: in definition of macro 'JOIN_2'
+ #define JOIN_2(lhs, rhs)  lhs##rhs
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:49:27: note: in expansion of macro 'JOIN_1'
+ #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
+                           ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/stmlib/stmlib.h:58:90: note: in expansion of macro 'JOIN'
+   typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+                                                                                          ^
+/Volumes/X82/Development/ksoloti/platform_osx/../firmware/mutable_instruments/clouds/dsp/fx/fx_engine.h:243:7: note: in expansion of macro 'STATIC_ASSERT'
+       STATIC_ASSERT(D::base + D::length <= size, delay_memory_full);
+       ^
+Compiling frame_transformation.cpp
+Compiling phase_vocoder.cpp
+Compiling stft.cpp
+Compiling rings_resources.cpp
+Compiling streams_resources.cpp
+Compiling compressor.cpp
+Compiling envelope.cpp
+Compiling follower.cpp
+Compiling lorenz_generator.cpp
+Compiling processor.cpp
+Compiling svf.cpp
+Compiling vactrol.cpp
+arm-none-eabi-gcc  -E -E -P -x c -DBOARD_KSOLOTI_CORE STM32F427xG.ld > firmware.ld
+Linking build/axoloti.elf
+Creating build/axoloti.hex
+Creating build/axoloti.bin
+Creating build/axoloti.dmp
+
+   text	   data	    bss	    dec	    hex	filename
+ 836068	    432	  60968	 897468	  db1bc	build/axoloti.elf
+
+Done
+Compiling Ksoloti firmware flasher...
+Compiling crt0.c
+Compiling vectors.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling nvic.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chlists.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chcond.c
+Compiling chmtx.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling hal.c
+Compiling adc.c
+Compiling can.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling mmcsd.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling tm.c
+Compiling uart.c
+Compiling usb.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling board.c
+Compiling shell.c
+Compiling chprintf.c
+Compiling memstreams.c
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c:699:1: warning: "/*" within comment [-Wcomment]
+ /**
+ ^
+Compiling stm32f4xx_hal.c
+Compiling glcdfont.c
+Compiling axoloti_control.c
+Compiling axoloti_board.c
+Compiling sdram.c
+Compiling crc32.c
+Compiling flash.c
+Compiling watchdog.c
+../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c: In function 'HAL_Init':
+../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c:171:4: warning: implicit declaration of function '__HAL_FLASH_INSTRUCTION_CACHE_ENABLE' [-Wimplicit-function-declaration]
+    __HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+    ^
+../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c:175:4: warning: implicit declaration of function '__HAL_FLASH_DATA_CACHE_ENABLE' [-Wimplicit-function-declaration]
+    __HAL_FLASH_DATA_CACHE_ENABLE();
+    ^
+../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c:179:3: warning: implicit declaration of function '__HAL_FLASH_PREFETCH_BUFFER_ENABLE' [-Wimplicit-function-declaration]
+   __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+   ^
+Compiling stm32f4xx_fmc.c
+Compiling main.c
+Linking flasher_build/flasher.elf
+Creating flasher_build/flasher.hex
+Creating flasher_build/flasher.bin
+Creating flasher_build/flasher.dmp
+
+   text	   data	    bss	    dec	    hex	filename
+   9564	    428	   2504	  12496	   30d0	flasher_build/flasher.elf
+
+Done
+Compiling Ksoloti firmware mounter...
+Compiling crt0.c
+Compiling vectors.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling nvic.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chlists.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chmtx.c
+Compiling chcond.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling hal.c
+Compiling adc.c
+Compiling can.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling mmcsd.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling tm.c
+Compiling uart.c
+Compiling usb.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling board.c
+Compiling shell.c
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c:699:1: warning: "/*" within comment [-Wcomment]
+ /**
+ ^
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c: In function 'usb_lld_pump':
+/Volumes/X82/Development/ksoloti/platform_osx/../chibios/os/hal/platforms/STM32/OTGv1/usb_lld.c:846:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+Compiling chprintf.c
+Compiling memstreams.c
+Compiling glcdfont.c
+Compiling axoloti_control.c
+Compiling axoloti_board.c
+Compiling watchdog.c
+Compiling usb_msd.c
+Compiling main.c
+mass_storage/usb_msd.c: In function 'msd_scsi_process_start_read_write_10':
+mass_storage/usb_msd.c:379:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+     uint32_t rw_block_address = swap_uint32(*(uint32_t *)&cbw->scsi_cmd_data[2]);
+     ^
+mass_storage/usb_msd.c:379:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+mass_storage/usb_msd.c:379:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+mass_storage/usb_msd.c:379:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+mass_storage/usb_msd.c:380:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+     uint16_t total = swap_uint16(*(uint16_t *)&cbw->scsi_cmd_data[7]);
+     ^
+mass_storage/usb_msd.c:380:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+Linking mounter_build/mounter.elf
+Creating mounter_build/mounter.hex
+Creating mounter_build/mounter.bin
+Creating mounter_build/mounter.dmp
+
+   text	   data	    bss	    dec	    hex	filename
+  19304	    432	   6772	  26508	   678c	mounter_build/mounter.elf
+
+Done
+andrewcapon@iMac ksoloti % 
+

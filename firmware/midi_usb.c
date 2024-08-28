@@ -203,12 +203,12 @@ void mduObjectInit(MidiUSBDriver *mdup) {
 void mduStart(MidiUSBDriver *mdup, const MidiUSBConfig *config) {
   USBDriver *usbp = config->usbp;
 
-  chDbgCheck(mdup != NULL, "mduStart");
+  chDbgCheck(mdup != NULL);
 
   chSysLock()
   ;
   chDbgAssert((mdup->state == MDU_STOP) || (mdup->state == MDU_READY),
-              "mduStart(), #1", "invalid state");
+              "mduStart(), #1 invalid state");
   usbp->in_params[config->bulk_in - 1] = mdup;
   usbp->out_params[config->bulk_out - 1] = mdup;
   mdup->config = config;
@@ -229,13 +229,13 @@ void mduStart(MidiUSBDriver *mdup, const MidiUSBConfig *config) {
 void mduStop(MidiUSBDriver *mdup) {
   USBDriver *usbp = mdup->config->usbp;
 
-  chDbgCheck(mdup != NULL, "sdStop");
+  chDbgCheck(mdup != NULL);
 
   chSysLock()
   ;
 
   chDbgAssert((mdup->state == MDU_STOP) || (mdup->state == MDU_READY),
-              "mduStop(), #1", "invalid state");
+              "mduStop(), #1 invalid state");
 
   /* Driver in stopped state.*/
   usbp->in_params[mdup->config->bulk_in - 1] = NULL;

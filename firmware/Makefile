@@ -87,12 +87,18 @@ MUTABLE_INSTRUMENTS = ${FIRMWARE}/mutable_instruments
 
 
 include board.mk
-include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
-include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
-include $(CHIBIOS)/os/kernel/kernel.mk
+#include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
+#include $(CHIBIOS)/os/hal/hal.mk
+#include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
+#include $(CHIBIOS)/os/kernel/kernel.mk
+#include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 
+include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+include $(CHIBIOS)/os/hal/hal.mk
+include $(CHIBIOS)/os/rt/rt.mk
+include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
+include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 
 # get the same binary as openOCD flashes from elf
 override BIN = $(CP) -O binary --gap-fill 0xff
@@ -112,7 +118,8 @@ CSRC = $(PORTSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        $(FATFSSRC) \
-       $(CHIBIOS)/os/various/chprintf.c \
+       $(OSALSRC) \
+       $(CHIBIOS)/os/hal/lib/streams/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
        ${FIRMWARE}/axoloti_control.c \
        ${FIRMWARE}/codec.c \
@@ -331,6 +338,7 @@ INCDIR = ${CMSIS}/Core/Include \
          $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(FATFSINC) \
+         $(OSALINC) \
          $(CHIBIOS)/os/various \
          ${FIRMWARE}/STM32_USB_Host_Library/Core/Inc \
          ${FIRMWARE}/STM32_USB_Host_Library/Class/HID/Inc \
@@ -340,7 +348,8 @@ INCDIR = ${CMSIS}/Core/Include \
          ${MUTABLE_INSTRUMENTS}/braids \
          ${MUTABLE_INSTRUMENTS}/rings \
          ${MUTABLE_INSTRUMENTS}/elements \
-         ${MUTABLE_INSTRUMENTS}/stmlib
+         ${MUTABLE_INSTRUMENTS}/stmlib \
+	  $(CHIBIOS)/os/hal/lib/streams
 
 #
 # Project, sources and paths
@@ -421,7 +430,8 @@ DLIBS =
 # List all user C define here, like -D_DEBUG=1
 UDEFS = \
     -DARM_MATH_CM4 \
-    -D__FPU_PRESENT
+    -D__FPU_PRESENT \
+    -DSTM32F429xx
 
 # Define ASM defines here
 UADEFS =
@@ -440,7 +450,7 @@ ULIBS = -lm
 ##############################################################################
 
 
-RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
+RULESPATH = $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC
 include $(RULESPATH)/rules.mk
 
 
