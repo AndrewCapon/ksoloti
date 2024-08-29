@@ -50,7 +50,7 @@ __sdram_start__ = ORIGIN(sdram);
 __sdram_size__  = LENGTH(sdram);
 __sdram_end__   = __sdram_start__ + __sdram_size__;
 
-ENTRY(ResetHandler)
+ENTRY(Reset_Handler)
 
 SECTIONS
 {

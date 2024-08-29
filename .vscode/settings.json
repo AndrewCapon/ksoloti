@@ -19,10 +19,20 @@
         "stdint.h": "c",
         "usb_lld.h": "c",
         "hal.h": "c",
-        "chevents.h": "c"
+        "chevents.h": "c",
+        "exceptions.h": "c",
+        "chtypes.h": "c",
+        "diskio.h": "c",
+        "axoloti_defines.h": "c",
+        "codec.h": "c",
+        "migration_v3.h": "c",
+        "stm32f4xx_fmc.h": "c",
+        "stm32f429xx.h": "c",
+        "chdebug.h": "c",
+        "nvic.h": "c"
     },
     "C_Cpp.default.compilerPath": "/Volumes/X82/Development/ksoloti/platform_osx/bin/arm-none-eabi-gcc",
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
     "cortex-debug.stm32cubeprogrammer": "/Volumes/X82/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macos64_2.1.201.202404072231/tools/bin/",
     "cortex-debug.stlinkPath": "/Volumes/X82/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.macos64_2.1.300.202403291623/tools/bin/ST-LINK_gdbserver",
     "makefile.makefilePath": "firmware/makefile"
