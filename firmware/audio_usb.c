@@ -632,8 +632,8 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
 {
   palWritePad(GPIOG, 11, 1);
   //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
-  //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
-  usbPrepareTransmit(usbp, 3, NULL, 0);
+  usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
+  //usbPrepareTransmit(usbp, 3, NULL, 0);
   chSysLockFromIsr();
   usbStartTransmitI(usbp, 3);
   chSysUnlockFromIsr();
@@ -652,8 +652,8 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 {
   palWritePad(GPIOG, 11, 1);
   //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
-  //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
-  usbPrepareReceive(usbp, 3, NULL, 0);
+  usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
+  //usbPrepareReceive(usbp, 3, NULL, 0);
   chSysLockFromIsr();
   usbStartReceiveI(usbp, 3);
   chSysUnlockFromIsr();

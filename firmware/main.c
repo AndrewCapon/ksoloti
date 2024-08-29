@@ -178,7 +178,7 @@ int main(void) {
     axoloti_control_init();
 #endif
 
-    MY_USBH_Init();
+    //MY_USBH_Init();
 
     if (!exception_check()) {
         /* Only try mounting SD and booting a patch when no exception is reported */
