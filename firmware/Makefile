@@ -87,18 +87,49 @@ MUTABLE_INSTRUMENTS = ${FIRMWARE}/mutable_instruments
 
 
 include board.mk
-#include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
-#include $(CHIBIOS)/os/hal/hal.mk
-#include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
-#include $(CHIBIOS)/os/kernel/kernel.mk
-#include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 
-include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+# Builds but no Rest_Handler
+# include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+# include $(CHIBIOS)/os/hal/hal.mk
+# include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+# include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
+# include $(CHIBIOS)/os/rt/rt.mk
+# include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
+
+# with Startup files, Builds but no Rest_Handler
+# include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
+# include $(CHIBIOS)/os/hal/hal.mk
+# include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+# include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+# include $(CHIBIOS)/os/rt/rt.mk
+# include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
+# include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
+
+
+# from example
+# Startup files.
+include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
+# HAL-OSAL files (optional).
 include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/rt/rt.mk
+include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+#include $(CHIBIOS)/os/hal/boards/ST_STM32F4_DISCOVERY/board.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
-include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
+# RTOS files (optional).
+include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
+# FAT stuff
+include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
+
+# # Startup files.
+# include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
+# # HAL-OSAL files (optional).
+# include $(CHIBIOS)/os/hal/hal.mk
+# include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+# include $(CHIBIOS)/os/hal/boards/ST_STM32F429I_DISCOVERY/board.mk
+# include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+# # RTOS files (optional).
+# include $(CHIBIOS)/os/rt/rt.mk
+# include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 
 # get the same binary as openOCD flashes from elf
 override BIN = $(CP) -O binary --gap-fill 0xff
@@ -112,7 +143,8 @@ LDSCRIPT= firmware.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CSRC = $(PORTSRC) \
+CSRC = $(STARTUPSRC) \
+       $(PORTSRC) \
        $(KERNSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
@@ -330,11 +362,13 @@ TCSRC =
 TCPPSRC =
 
 # List ASM source files here
-ASMSRC = $(PORTASM) \
+ASMSRC = $(STARTUPASM) \
+         $(PORTASM) \
          ${CMSIS}/DSP/Source/TransformFunctions/arm_bitreversal2.s
 
 INCDIR = ${CMSIS}/Core/Include \
          ${CMSIS}/DSP/Include \
+         $(STARTUPINC) \
          $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(FATFSINC) \
