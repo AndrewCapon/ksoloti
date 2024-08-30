@@ -29,7 +29,8 @@
         "stm32f4xx_fmc.h": "c",
         "stm32f429xx.h": "c",
         "chdebug.h": "c",
-        "nvic.h": "c"
+        "nvic.h": "c",
+        "cmparams.h": "c"
     },
     "C_Cpp.default.compilerPath": "/Volumes/X82/Development/ksoloti/platform_osx/bin/arm-none-eabi-gcc",
     "cortex-debug.variableUseNaturalFormat": false,

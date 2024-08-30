@@ -23,7 +23,12 @@
 #define RTT2US(ticks) ((ticks) / (168000000 / 1000000UL))
 
 
-// #define PAL_STM32_PUDR_PULLUP PAL_MODE_INPUT_PULLUP
+// V16 here down
+#define PAL_STM32_PUDR_PULLUP PAL_MODE_INPUT_PULLUP
+
+
+// V18 here down
+
 // #define chTimeNow 	chVTGetSystemTimeX
 // #define chTimeElapsedSince 	chVTTimeElapsedSinceX
 // #define chTimeIsWithin 	chVTIsTimeWithinX

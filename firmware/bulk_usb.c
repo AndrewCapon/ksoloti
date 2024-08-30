@@ -121,12 +121,14 @@ static void inotify(GenericQueue *qp) {
     chSysUnlock();
 
     n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(bdup->config->usbp,
-                            bdup->config->bulk_out,
-                            &bdup->iqueue, n);
-
+    //CH16 usbPrepareQueuedReceive(bdup->config->usbp,
+    //                        bdup->config->bulk_out,
+    //                        &bdup->iqueue, n);
+    //CH16 usbStartReceiveI(bdup->config->usbp,
+    //                        bdup->config->bulk_out,
+    //                        &bdup->iqueue, n);
     chSysLock();
-    usbStartReceiveI(bdup->config->usbp, bdup->config->bulk_out);
+    //CH16 usbStartReceiveI(bdup->config->usbp, bdup->config->bulk_out);
   }
 }
 
@@ -149,12 +151,12 @@ static void onotify(GenericQueue *qp) {
       ((n = chOQGetFullI(&bdup->oqueue)) > 0)) {
     chSysUnlock();
 
-    usbPrepareQueuedTransmit(bdup->config->usbp,
-                             bdup->config->bulk_in,
-                             &bdup->oqueue, n);
+    //CH16 usbPrepareQueuedTransmit(bdup->config->usbp,
+    //                         bdup->config->bulk_in,
+    //                         &bdup->oqueue, n);
 
     chSysLock();
-    usbStartTransmitI(bdup->config->usbp, bdup->config->bulk_in);
+    //CH16 usbStartTransmitI(bdup->config->usbp, bdup->config->bulk_in);
   }
 }
 
@@ -261,9 +263,9 @@ void bduConfigureHookI(BulkUSBDriver *bdup) {
   chnAddFlagsI(bdup, CHN_CONNECTED);
 
   /* Starts the first OUT transaction immediately.*/
-  usbPrepareQueuedReceive(usbp, bdup->config->bulk_out, &bdup->iqueue,
-                          usbp->epc[bdup->config->bulk_out]->out_maxsize);
-  usbStartReceiveI(usbp, bdup->config->bulk_out);
+  //CH16 usbPrepareQueuedReceive(usbp, bdup->config->bulk_out, &bdup->iqueue,
+  //                        usbp->epc[bdup->config->bulk_out]->out_maxsize);
+  //usbStartReceiveI(usbp, bdup->config->bulk_out);
 }
 
 /**
@@ -310,10 +312,10 @@ void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
        so it is safe to transmit without a check.*/
     chSysUnlockFromIsr();
 
-    usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
 
     chSysLockFromIsr();
-    usbStartTransmitI(usbp, ep);
+    //CH16 usbStartTransmitI(usbp, ep);
   }
   else if ((usbp->epc[ep]->in_state->txsize > 0) &&
            !(usbp->epc[ep]->in_state->txsize &
@@ -324,10 +326,10 @@ void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
        Packet Size Constraints of the USB Specification document.*/
     chSysUnlockFromIsr();
 
-    usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
 
     chSysLockFromIsr();
-    usbStartTransmitI(usbp, ep);
+    //CH16 usbStartTransmitI(usbp, ep);
   }
 
   chSysUnlockFromIsr();
@@ -360,10 +362,10 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
     chSysUnlockFromIsr();
 
     n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
+    //usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
 
     chSysLockFromIsr();
-    usbStartReceiveI(usbp, ep);
+    //usbStartReceiveI(usbp, ep);
   }
 
   chSysUnlockFromIsr();

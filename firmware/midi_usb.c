@@ -119,12 +119,12 @@ static void inotify(GenericQueue *qp) {
     ;
 
     n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(mdup->config->usbp, mdup->config->bulk_out,
-                            &mdup->iqueue, n);
+    //CH16 usbPrepareQueuedReceive(mdup->config->usbp, mdup->config->bulk_out,
+    //                        &mdup->iqueue, n);
 
     chSysLock()
     ;
-    usbStartReceiveI(mdup->config->usbp, mdup->config->bulk_out);
+    //CH16 usbStartReceiveI(mdup->config->usbp, mdup->config->bulk_out);
   }
 }
 
@@ -150,12 +150,12 @@ static void onotify(GenericQueue *qp) {
       chSysUnlock()
       ;
 
-      usbPrepareQueuedTransmit(mdup->config->usbp, mdup->config->bulk_in,
-                               &mdup->oqueue, n);
+      //CH16 usbPrepareQueuedTransmit(mdup->config->usbp, mdup->config->bulk_in,
+      //                         &mdup->oqueue, n);
 
       chSysLock()
       ;
-      usbStartTransmitI(mdup->config->usbp, mdup->config->bulk_in);
+      //CH16 usbStartTransmitI(mdup->config->usbp, mdup->config->bulk_in);
     }
   }
 }
@@ -267,9 +267,9 @@ void mduConfigureHookI(MidiUSBDriver *mdup) {
   chnAddFlagsI(mdup, CHN_CONNECTED);
 
   /* Starts the first OUT transaction immediately.*/
-  usbPrepareQueuedReceive(usbp, mdup->config->bulk_out, &mdup->iqueue,
-                          usbp->epc[mdup->config->bulk_out]->out_maxsize);
-  usbStartReceiveI(usbp, mdup->config->bulk_out);
+  //CH16 usbPrepareQueuedReceive(usbp, mdup->config->bulk_out, &mdup->iqueue,
+  //                        usbp->epc[mdup->config->bulk_out]->out_maxsize);
+  //CH16 usbStartReceiveI(usbp, mdup->config->bulk_out);
 }
 
 /**
@@ -318,11 +318,11 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
     chSysUnlockFromIsr()
     ;
 
-    usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
 
     chSysLockFromIsr()
     ;
-    usbStartTransmitI(usbp, ep);
+    //CH16 usbStartTransmitI(usbp, ep);
   }
   else if ((usbp->epc[ep]->in_state->txsize > 0)
       && !(usbp->epc[ep]->in_state->txsize & (usbp->epc[ep]->in_maxsize - 1))) {
@@ -333,11 +333,11 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
     chSysUnlockFromIsr()
     ;
 
-    usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
 
     chSysLockFromIsr()
     ;
-    usbStartTransmitI(usbp, ep);
+    //CH16 usbStartTransmitI(usbp, ep);
   }
 
   chSysUnlockFromIsr()
@@ -373,11 +373,11 @@ void mduDataReceived(USBDriver *usbp, usbep_t ep) {
     ;
 
     n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
+    //CH16 usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
 
     chSysLockFromIsr()
     ;
-    usbStartReceiveI(usbp, ep);
+    //CH16 usbStartReceiveI(usbp, ep);
   }
 
   chSysUnlockFromIsr()

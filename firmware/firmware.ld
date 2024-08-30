@@ -97,6 +97,8 @@ SECTIONS
     {
         . = ALIGN(4);
         PROVIDE(_data = .);
+        _textdata_start = LOADADDR(.data);
+        _data_start = .;
         *(.data)
         . = ALIGN(4);
         *(.data.*)
@@ -104,6 +106,7 @@ SECTIONS
         *(.ramtext)
         . = ALIGN(4);
         PROVIDE(_edata = .);
+        _data_end = .;
     } > ram AT > flash
     .flashend :
     {

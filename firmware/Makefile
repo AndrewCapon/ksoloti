@@ -120,6 +120,7 @@ include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 # FAT stuff
 include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 
+
 # # Startup files.
 # include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
 # # HAL-OSAL files (optional).
@@ -465,7 +466,8 @@ DLIBS =
 UDEFS = \
     -DARM_MATH_CM4 \
     -D__FPU_PRESENT \
-    -DSTM32F429xx
+    -DSTM32F429xx \
+    -DCRT1_AREAS_NUMBER=0
 
 # Define ASM defines here
 UADEFS =

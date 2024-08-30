@@ -343,10 +343,10 @@ void aduEnableInput(USBDriver *usbp, bool bEnable)
       palWritePad(GPIOG, 11, 1);
       //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
       //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
-      usbPrepareTransmit(usbp, 3, NULL, 0);
+      //CH16 usbPrepareTransmit(usbp, 3, NULL, 0);
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
-      usbStartTransmitI(usbp, 3);
+      //CH16 usbStartTransmitI(usbp, 3);
       chSysUnlockFromIsr();
       palWritePad(GPIOG, 11, 0);
     }
@@ -363,11 +363,11 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
     {
       palWritePad(GPIOG, 11, 1);
       //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
-      usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
+      //CH16 usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
       //usbPrepareReceive(usbp, 3, NULL, 0);
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
-      usbStartReceiveI(usbp, 3);
+      //CH16 usbStartReceiveI(usbp, 3);
       chSysUnlockFromIsr();
       palWritePad(GPIOG, 11, 0);
     }
@@ -632,10 +632,10 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
 {
   palWritePad(GPIOG, 11, 1);
   //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
-  usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
+  //CH16 usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
   //usbPrepareTransmit(usbp, 3, NULL, 0);
   chSysLockFromIsr();
-  usbStartTransmitI(usbp, 3);
+  //CH16 usbStartTransmitI(usbp, 3);
   chSysUnlockFromIsr();
   palWritePad(GPIOG, 11, 0);
 }
@@ -652,10 +652,10 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 {
   palWritePad(GPIOG, 11, 1);
   //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
-  usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
+  //CH16 usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
   //usbPrepareReceive(usbp, 3, NULL, 0);
   chSysLockFromIsr();
-  usbStartReceiveI(usbp, 3);
+  //CH16 usbStartReceiveI(usbp, 3);
   chSysUnlockFromIsr();
   palWritePad(GPIOG, 11, 0);
 }
