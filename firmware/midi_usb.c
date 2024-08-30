@@ -37,8 +37,8 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
-#define TEMP_BUFFER_SIZE 64
-uint8_t mduTempBuffer[TEMP_BUFFER_SIZE];
+uint8_t mduReceiveBuffer[MIDI_USB_BUFFERS_SIZE];
+uint8_t mduTransmitBuffer[MIDI_USB_BUFFERS_SIZE];
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -104,8 +104,26 @@ void mduInitiateReceiveI(MidiUSBDriver *mdup, size_t uCount)
 {
   USBDriver *usbp = mdup->config->usbp;
 
-  size_t uRequestCount = MIN(uCount, TEMP_BUFFER_SIZE);
-  usbStartReceiveI(usbp, mdup->config->bulk_out, mduTempBuffer, uRequestCount);
+  size_t uRequestCount = MIN(uCount, MIDI_USB_BUFFERS_SIZE);
+  usbStartReceiveI(usbp, mdup->config->bulk_out, mduReceiveBuffer, uRequestCount);
+}
+
+void mduInitiateTransmitI(MidiUSBDriver *mdup, size_t uCount)
+{
+  USBDriver *usbp = mdup->config->usbp;
+
+  // we need to copy from queue to buffer
+  size_t uQueueCount = chIQGetFullI(&mdup->iqueue);
+  size_t uTransmitCount = MIN(uCount, MIN(uQueueCount, MIDI_USB_BUFFERS_SIZE));
+
+  size_t u;
+  for(u = 0; u < uTransmitCount; u++)
+  {
+    mduTransmitBuffer[u] = chIQGet(&mdup->iqueue);
+  }
+
+  size_t uRequestCount = MIN(uCount, MIDI_USB_BUFFERS_SIZE);
+  usbStartTransmitI(usbp, mdup->config->bulk_in, mduTransmitBuffer, uRequestCount);
 }
 
 /**
@@ -164,6 +182,7 @@ static void onotify(GenericQueue *qp) {
 
       //CH16 usbPrepareQueuedTransmit(mdup->config->usbp, mdup->config->bulk_in,
       //                         &mdup->oqueue, n);
+      mduInitiateTransmitI(mdup, n);
 
       chSysLock()
       ;
@@ -333,6 +352,7 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
     ;
 
     //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
+    mduInitiateTransmitI(mdup, n);
 
     chSysLockFromIsr()
     ;
@@ -348,6 +368,7 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
     ;
 
     //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
+    mduInitiateTransmitI(mdup, 0);
 
     chSysLockFromIsr()
     ;
@@ -391,7 +412,7 @@ void mduDataReceived(USBDriver *usbp, usbep_t ep) {
   size_t u;
   for(u = 0; u < uSizeToCopy; u++)
   {
-    chIQPutI(&mdup->iqueue, mduTempBuffer[u]);
+    chIQPutI(&mdup->iqueue, mduReceiveBuffer[u]);
   }  
 
   uQueueRemainingSize-= uSizeToCopy;
