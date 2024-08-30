@@ -27,6 +27,9 @@ patch/xpatch.lst
 patch/xpatch.map
 .preferences.xml
 /chibios
+/chibios_old
+/chibios_v3
+/chibios_v16
 /target/
 /build/
 /nbproject/private/

@@ -100,11 +100,12 @@ static const struct MidiUSBDriverVMT vmt = {write, read, put, get, putt, gett,
                                             writet, readt};
 
 
-void mduInitiateReceiveI(MidiUSBDriver *mdup)
+void mduInitiateReceiveI(MidiUSBDriver *mdup, size_t uCount)
 {
   USBDriver *usbp = mdup->config->usbp;
 
-  usbStartReceiveI(usbp, mdup->config->bulk_out, mduTempBuffer, TEMP_BUFFER_SIZE);
+  size_t uRequestCount = MIN(uCount, TEMP_BUFFER_SIZE);
+  usbStartReceiveI(usbp, mdup->config->bulk_out, mduTempBuffer, uRequestCount);
 }
 
 /**
@@ -132,7 +133,7 @@ static void inotify(GenericQueue *qp) {
     n = (n / maxsize) * maxsize;
     //CH16 usbPrepareQueuedReceive(mdup->config->usbp, mdup->config->bulk_out,
     //                        &mdup->iqueue, n);
-    mduInitiateReceiveI(mdup);
+    mduInitiateReceiveI(mdup, n);
     chSysLock()
     ;
     //CH16 usbStartReceiveI(mdup->config->usbp, mdup->config->bulk_out);
@@ -272,7 +273,7 @@ void mduStop(MidiUSBDriver *mdup) {
  * @iclass
  */
 void mduConfigureHookI(MidiUSBDriver *mdup) {
-  //CH16 USBDriver *usbp = mdup->config->usbp;
+  USBDriver *usbp = mdup->config->usbp;
 
   chIQResetI(&mdup->iqueue);
   chOQResetI(&mdup->oqueue);
@@ -282,7 +283,7 @@ void mduConfigureHookI(MidiUSBDriver *mdup) {
   //CH16 usbPrepareQueuedReceive(usbp, mdup->config->bulk_out, &mdup->iqueue,
   //                        usbp->epc[mdup->config->bulk_out]->out_maxsize);
   //CH16 usbStartReceiveI(usbp, mdup->config->bulk_out);
-  mduInitiateReceiveI(mdup);
+  mduInitiateReceiveI(mdup, usbp->epc[mdup->config->bulk_out]->out_maxsize);
 }
 
 /**
@@ -366,34 +367,41 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
  * @param[in] ep        endpoint number
  */
 void mduDataReceived(USBDriver *usbp, usbep_t ep) {
-  size_t n, maxsize;
+  volatile size_t uQueueRemainingSize, maxsize;
   MidiUSBDriver *mdup = usbp->out_params[ep - 1];
 
   if (mdup == NULL)
     return;
 
+  // CH16 we need to transfer data from our buffer to the queue
+  // this all needs a rewrite to get rid of the queues and
+  // use buffers instead.
+  USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
+  volatile uint32_t uReceivedCount = pEpState->rxcnt;
+  
   chSysLockFromIsr()
   ;
+
   chnAddFlagsI(mdup, CHN_INPUT_AVAILABLE);
 
-  /* Writes to the input queue can only happen when there is enough space
-   to hold at least one packet.*/
   maxsize = usbp->epc[ep]->out_maxsize;
-  if ((n = chIQGetEmptyI(&mdup->iqueue)) >= maxsize) {
-    /* The endpoint cannot be busy, we are in the context of the callback,
-     so a packet is in the buffer for sure.*/
-    chSysUnlockFromIsr()
-    ;
+  uQueueRemainingSize = chIQGetEmptyI(&mdup->iqueue);
 
-    n = (n / maxsize) * maxsize;
-    //CH16 usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
-    mduInitiateReceiveI(mdup);
+  size_t uSizeToCopy = MIN(uQueueRemainingSize, uReceivedCount);
+  size_t u;
+  for(u = 0; u < uSizeToCopy; u++)
+  {
+    chIQPutI(&mdup->iqueue, mduTempBuffer[u]);
+  }  
 
-    chSysLockFromIsr()
-    ;
-    //CH16 usbStartReceiveI(usbp, ep);
-  }
+  uQueueRemainingSize-= uSizeToCopy;
 
+  // If we have enough space for an entire USB packet
+  // initiate another receive, overwise this is handled
+  // in the queue notify function.
+  if(uQueueRemainingSize >= maxsize)
+    mduInitiateReceiveI(mdup, uQueueRemainingSize);
+  
   chSysUnlockFromIsr()
   ;
 }
