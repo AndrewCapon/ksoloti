@@ -122,7 +122,7 @@ void mduInitiateTransmitI(MidiUSBDriver *mdup, size_t uCount)
     mduTransmitBuffer[u] = chIQGet(&mdup->iqueue);
   }
 
-  size_t uRequestCount = MIN(uCount, MIDI_USB_BUFFERS_SIZE);
+  size_t uRequestCount = MIN(uTransmitCount, MIDI_USB_BUFFERS_SIZE);
   usbStartTransmitI(usbp, mdup->config->bulk_in, mduTransmitBuffer, uRequestCount);
 }
 
