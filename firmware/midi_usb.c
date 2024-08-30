@@ -37,6 +37,9 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
+#define TEMP_BUFFER_SIZE 64
+uint8_t mduTempBuffer[TEMP_BUFFER_SIZE];
+
 /*===========================================================================*/
 /* Driver exported variables.                                                */
 /*===========================================================================*/
@@ -96,6 +99,14 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 static const struct MidiUSBDriverVMT vmt = {write, read, put, get, putt, gett,
                                             writet, readt};
 
+
+void mduInitiateReceiveI(MidiUSBDriver *mdup)
+{
+  USBDriver *usbp = mdup->config->usbp;
+
+  usbStartReceiveI(usbp, mdup->config->bulk_out, mduTempBuffer, TEMP_BUFFER_SIZE);
+}
+
 /**
  * @brief   Notification of data removed from the input queue.
  */
@@ -121,7 +132,7 @@ static void inotify(GenericQueue *qp) {
     n = (n / maxsize) * maxsize;
     //CH16 usbPrepareQueuedReceive(mdup->config->usbp, mdup->config->bulk_out,
     //                        &mdup->iqueue, n);
-
+    mduInitiateReceiveI(mdup);
     chSysLock()
     ;
     //CH16 usbStartReceiveI(mdup->config->usbp, mdup->config->bulk_out);
@@ -252,6 +263,7 @@ void mduStop(MidiUSBDriver *mdup) {
   ;
 }
 
+
 /**
  * @brief   USB device configured handler.
  *
@@ -260,7 +272,7 @@ void mduStop(MidiUSBDriver *mdup) {
  * @iclass
  */
 void mduConfigureHookI(MidiUSBDriver *mdup) {
-  USBDriver *usbp = mdup->config->usbp;
+  //CH16 USBDriver *usbp = mdup->config->usbp;
 
   chIQResetI(&mdup->iqueue);
   chOQResetI(&mdup->oqueue);
@@ -270,6 +282,7 @@ void mduConfigureHookI(MidiUSBDriver *mdup) {
   //CH16 usbPrepareQueuedReceive(usbp, mdup->config->bulk_out, &mdup->iqueue,
   //                        usbp->epc[mdup->config->bulk_out]->out_maxsize);
   //CH16 usbStartReceiveI(usbp, mdup->config->bulk_out);
+  mduInitiateReceiveI(mdup);
 }
 
 /**
@@ -303,16 +316,16 @@ bool_t mduRequestsHook(USBDriver *usbp) {
  */
 void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
   size_t n;
-  MidiUSBDriver *bdup = usbp->in_params[ep - 1];
+  MidiUSBDriver *mdup = usbp->in_params[ep - 1];
 
-  if (bdup == NULL)
+  if (mdup == NULL)
     return;
 
   chSysLockFromIsr()
   ;
-  chnAddFlagsI(bdup, CHN_OUTPUT_EMPTY);
+  chnAddFlagsI(mdup, CHN_OUTPUT_EMPTY);
 
-  if ((n = chOQGetFullI(&bdup->oqueue)) > 0) {
+  if ((n = chOQGetFullI(&mdup->oqueue)) > 0) {
     /* The endpoint cannot be busy, we are in the context of the callback,
      so it is safe to transmit without a check.*/
     chSysUnlockFromIsr()
@@ -354,19 +367,19 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
  */
 void mduDataReceived(USBDriver *usbp, usbep_t ep) {
   size_t n, maxsize;
-  MidiUSBDriver *bdup = usbp->out_params[ep - 1];
+  MidiUSBDriver *mdup = usbp->out_params[ep - 1];
 
-  if (bdup == NULL)
+  if (mdup == NULL)
     return;
 
   chSysLockFromIsr()
   ;
-  chnAddFlagsI(bdup, CHN_INPUT_AVAILABLE);
+  chnAddFlagsI(mdup, CHN_INPUT_AVAILABLE);
 
   /* Writes to the input queue can only happen when there is enough space
    to hold at least one packet.*/
   maxsize = usbp->epc[ep]->out_maxsize;
-  if ((n = chIQGetEmptyI(&bdup->iqueue)) >= maxsize) {
+  if ((n = chIQGetEmptyI(&mdup->iqueue)) >= maxsize) {
     /* The endpoint cannot be busy, we are in the context of the callback,
      so a packet is in the buffer for sure.*/
     chSysUnlockFromIsr()
@@ -374,6 +387,7 @@ void mduDataReceived(USBDriver *usbp, usbep_t ep) {
 
     n = (n / maxsize) * maxsize;
     //CH16 usbPrepareQueuedReceive(usbp, ep, &bdup->iqueue, n);
+    mduInitiateReceiveI(mdup);
 
     chSysLockFromIsr()
     ;
