@@ -500,6 +500,9 @@ void ReplySpilinkSynced(void) {
   chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )(&reply[0]), 5);
 }
 
+uint8_t dbg_received[1024]  __attribute__ ((section (".sram3")));;
+uint16_t uCount = 0;
+
 
 void PExReceiveByte(unsigned char c) {
   static char header = 0;
@@ -512,6 +515,10 @@ void PExReceiveByte(unsigned char c) {
   static int a;
   static int b;
   static uint32_t patchid;
+
+  dbg_received[uCount++] = c;
+  if(uCount == 1024)
+    uCount = 0;
 
   if (!header) {
     switch (state) {
