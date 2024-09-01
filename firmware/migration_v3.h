@@ -26,18 +26,17 @@
 // V16 here down
 #define PAL_STM32_PUDR_PULLUP PAL_MODE_INPUT_PULLUP
 
+#define chTimeNow 	chVTGetSystemTimeX
+#define chTimeElapsedSince 	chVTTimeElapsedSinceX
+#define chTimeIsWithin 	chVTIsTimeWithinX
+#define chThdSelf 	chThdGetSelfX
+#define chThdGetPriority 	chThdGetPriorityX
+#define chThdGetTicks 	chThdGetTicksX
+#define chThdTerminated 	chThdTerminatedX
+#define chThdShouldTerminate 	chThdShouldTerminateX
+#define chRegGetThreadName chRegGetThreadNameX
 
 // V18 here down
-
-// #define chTimeNow 	chVTGetSystemTimeX
-// #define chTimeElapsedSince 	chVTTimeElapsedSinceX
-// #define chTimeIsWithin 	chVTIsTimeWithinX
-// #define chThdSelf 	chThdGetSelfX
-// #define chThdGetPriority 	chThdGetPriorityX
-// #define chThdGetTicks 	chThdGetTicksX
-// #define chThdTerminated 	chThdTerminatedX
-// #define chThdShouldTerminate 	chThdShouldTerminateX
-// #define chRegGetThreadName chRegGetThreadNameX
 
 // #define CH_USE_REGISTRY CH_CFG_USE_REGISTRY
 // #define THD_STATE_NAMES CH_STATE_NAMES
