@@ -37,9 +37,9 @@
 // #define chThdGetTicks 	chThdGetTicksX
 // #define chThdTerminated 	chThdTerminatedX
 // #define chThdShouldTerminate 	chThdShouldTerminateX
+// #define chRegGetThreadName chRegGetThreadNameX
 
 // #define CH_USE_REGISTRY CH_CFG_USE_REGISTRY
-// #define chRegGetThreadName chRegGetThreadNameX
 // #define THD_STATE_NAMES CH_STATE_NAMES
 // #define MS2ST TIME_MS2I
 
