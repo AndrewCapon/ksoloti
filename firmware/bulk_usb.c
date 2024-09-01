@@ -50,6 +50,9 @@ uint16_t uBduLogCount = 0;
 
 void bduAddLog(BLType type, uint16_t uSize)
 {
+  if(uBduLogCount == 0)
+    memset(bduLog, 0, sizeof(bduLog));
+
   bduLog[uBduLogCount].type = type;
   bduLog[uBduLogCount].uSize = uSize;
   uBduLogCount++;
@@ -130,6 +133,9 @@ static const struct BulkUSBDriverVMT vmt = {
 
 void bduInitiateReceiveI(BulkUSBDriver *bdup, size_t uCount)
 {
+  if(uCount==244)
+    chprintf((BaseSequentialStream * )&SD2,"256\r\n");
+
   USBDriver *usbp = bdup->config->usbp;
 
   size_t uRequestCount = MIN(uCount, BULK_USB_BUFFERS_SIZE);
@@ -140,8 +146,6 @@ void bduInitiateReceiveI(BulkUSBDriver *bdup, size_t uCount)
 
 void bduInitiateTransmitI(BulkUSBDriver *bdup, size_t uCount)
 {
-  if(uCount == 256)
-   chprintf((BaseSequentialStream * )&SD2,"Hello %u world!\r\n", 17);
 
   USBDriver *usbp = bdup->config->usbp;
 
@@ -158,9 +162,6 @@ void bduInitiateTransmitI(BulkUSBDriver *bdup, size_t uCount)
   size_t uRequestCount = MIN(uTransmitCount, BULK_USB_BUFFERS_SIZE);
   usbStartTransmitI(usbp, bdup->config->bulk_in, bduTransmitBuffer, uRequestCount);
   bduAddLog(blStartTransmit, uRequestCount);
-
-  if(uRequestCount == 0)
-    chprintf((BaseSequentialStream * )&SD2,"Hello %u world!\r\n", 17);
 }
 
 /**
@@ -440,6 +441,9 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
   maxsize = usbp->epc[ep]->out_maxsize;
   uQueueRemainingSize = chIQGetEmptyI(&bdup->iqueue);
 
+  if(uReceivedCount > uQueueRemainingSize)
+   chprintf((BaseSequentialStream * )&SD2,"Very bad received = %u, space = %u\r\n", uReceivedCount, uQueueRemainingSize);
+
   size_t uSizeToCopy = MIN(uQueueRemainingSize, uReceivedCount);
   size_t u;
   for(u = 0; u < uSizeToCopy; u++)
@@ -448,11 +452,10 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
   }  
 
   uQueueRemainingSize-= uSizeToCopy;
-
-  // If we have enough space for an entire USB packet
-  // initiate another receive, overwise this is handled
-  // in the queue notify function.
-  if(uQueueRemainingSize >= maxsize)
+  volatile size_t temp = uQueueRemainingSize;
+  uQueueRemainingSize = (uQueueRemainingSize / maxsize) * maxsize;  // Make sure we get less packets
+  
+  if(uQueueRemainingSize!=0)
     bduInitiateReceiveI(bdup, uQueueRemainingSize);
 
   chSysUnlockFromIsr()
