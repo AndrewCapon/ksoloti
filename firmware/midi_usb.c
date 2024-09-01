@@ -26,12 +26,38 @@
  * @{
  */
 
+#pragma GCC optimize ("O0")
+
 #include "ch.h"
 #include "hal.h"
 #include "midi_usb.h"
 #include "usbcfg.h"
 
 #if 1 // HAL_USE_MIDI_USB || defined(__DOXYGEN__)
+
+
+typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
+
+typedef struct _DBGLOG
+{
+  BLType    type;
+  uint16_t  uSize;
+} DBGLOG;
+
+DBGLOG mduLog[1024] __attribute__ ((section (".sram3")));
+uint16_t umduLogCount = 0;
+
+void mduAddLog(BLType type, uint16_t uSize)
+{
+  if(umduLogCount == 0)
+    memset(mduLog, 0, sizeof(mduLog));
+
+  mduLog[umduLogCount].type = type;
+  mduLog[umduLogCount].uSize = uSize;
+  umduLogCount++;
+  if(umduLogCount == 1024)
+    umduLogCount = 0;
+}
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
@@ -106,6 +132,7 @@ void mduInitiateReceiveI(MidiUSBDriver *mdup, size_t uCount)
 
   size_t uRequestCount = MIN(uCount, MIDI_USB_BUFFERS_SIZE);
   usbStartReceiveI(usbp, mdup->config->bulk_out, mduReceiveBuffer, uRequestCount);
+  mduAddLog(blStartReceive, uRequestCount);
 }
 
 void mduInitiateTransmitI(MidiUSBDriver *mdup, size_t uCount)
@@ -113,17 +140,18 @@ void mduInitiateTransmitI(MidiUSBDriver *mdup, size_t uCount)
   USBDriver *usbp = mdup->config->usbp;
 
   // we need to copy from queue to buffer
-  size_t uQueueCount = chOQGetFullI(&mdup->iqueue);
+  size_t uQueueCount = chOQGetFullI(&mdup->oqueue);
   size_t uTransmitCount = MIN(uCount, MIN(uQueueCount, MIDI_USB_BUFFERS_SIZE));
 
   size_t u;
   for(u = 0; u < uTransmitCount; u++)
   {
-    mduTransmitBuffer[u] = chOQGetI(&mdup->iqueue);
+    mduTransmitBuffer[u] = chOQGetI(&mdup->oqueue);
   }
 
   size_t uRequestCount = MIN(uTransmitCount, MIDI_USB_BUFFERS_SIZE);
   usbStartTransmitI(usbp, mdup->config->bulk_in, mduTransmitBuffer, uRequestCount);
+  mduAddLog(blStartTransmit, uRequestCount);
 }
 
 /**
@@ -226,7 +254,7 @@ void mduObjectInit(MidiUSBDriver *mdup) {
 /**
  * @brief   Configures and starts the driver.
  *
- * @param[in] bdup      pointer to a @p MidiUSBDriver object
+ * @param[in] mdup      pointer to a @p MidiUSBDriver object
  * @param[in] config    the Bulk USB driver configuration
  *
  * @api
@@ -253,7 +281,7 @@ void mduStart(MidiUSBDriver *mdup, const MidiUSBConfig *config) {
  * @details Any thread waiting on the driver's queues will be awakened with
  *          the message @p Q_RESET.
  *
- * @param[in] bdup      pointer to a @p MidiUSBDriver object
+ * @param[in] mdup      pointer to a @p MidiUSBDriver object
  *
  * @api
  */
@@ -287,7 +315,7 @@ void mduStop(MidiUSBDriver *mdup) {
 /**
  * @brief   USB device configured handler.
  *
- * @param[in] bdup      pointer to a @p MidiUSBDriver object
+ * @param[in] mdup      pointer to a @p MidiUSBDriver object
  *
  * @iclass
  */
@@ -345,17 +373,22 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
   ;
   chnAddFlagsI(mdup, CHN_OUTPUT_EMPTY);
 
+  USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
+  volatile uint32_t uTransmittedCount = pEpState->txcnt;
+
+  mduAddLog(blEndTransmit, uTransmittedCount);
   if ((n = chOQGetFullI(&mdup->oqueue)) > 0) {
     /* The endpoint cannot be busy, we are in the context of the callback,
      so it is safe to transmit without a check.*/
-    chSysUnlockFromIsr()
-    ;
+    //chSysUnlockFromIsr()
+    //;
 
-    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, n);
-    mduInitiateTransmitI(mdup, n);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &mdup->oqueue, n);
+	if(n) // do we need blocks of 4
+	    mduInitiateTransmitI(mdup, n);
 
-    chSysLockFromIsr()
-    ;
+    //chSysLockFromIsr()
+    //;
     //CH16 usbStartTransmitI(usbp, ep);
   }
   else if ((usbp->epc[ep]->in_state->txsize > 0)
@@ -364,14 +397,14 @@ void mduDataTransmitted(USBDriver *usbp, usbep_t ep) {
      size. Otherwise the recipient may expect more data coming soon and
      not return buffered data to app. See section 5.8.3 Bulk Transfer
      Packet Size Constraints of the USB Specification document.*/
-    chSysUnlockFromIsr()
-    ;
+    //chSysUnlockFromIsr()
+    //;
 
-    //CH16 usbPrepareQueuedTransmit(usbp, ep, &bdup->oqueue, 0);
+    //CH16 usbPrepareQueuedTransmit(usbp, ep, &mdup->oqueue, 0);
     mduInitiateTransmitI(mdup, 0);
 
-    chSysLockFromIsr()
-    ;
+    //chSysLockFromIsr()
+    //;
     //CH16 usbStartTransmitI(usbp, ep);
   }
 
@@ -405,6 +438,8 @@ void mduDataReceived(USBDriver *usbp, usbep_t ep) {
 
   chnAddFlagsI(mdup, CHN_INPUT_AVAILABLE);
 
+  mduAddLog(blEndReceive, uReceivedCount);
+
   maxsize = usbp->epc[ep]->out_maxsize;
   uQueueRemainingSize = chIQGetEmptyI(&mdup->iqueue);
 
@@ -416,13 +451,13 @@ void mduDataReceived(USBDriver *usbp, usbep_t ep) {
   }  
 
   uQueueRemainingSize-= uSizeToCopy;
-
-  // If we have enough space for an entire USB packet
-  // initiate another receive, overwise this is handled
-  // in the queue notify function.
-  if(uQueueRemainingSize >= maxsize)
-    mduInitiateReceiveI(mdup, uQueueRemainingSize);
   
+  volatile size_t temp = uQueueRemainingSize;
+  uQueueRemainingSize = (uQueueRemainingSize / maxsize) * maxsize;  // Make sure we get less packets
+  
+  if(uQueueRemainingSize!=0)
+    mduInitiateReceiveI(mdup, uQueueRemainingSize);
+
   chSysUnlockFromIsr()
   ;
 }
