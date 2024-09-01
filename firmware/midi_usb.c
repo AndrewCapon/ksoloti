@@ -113,13 +113,13 @@ void mduInitiateTransmitI(MidiUSBDriver *mdup, size_t uCount)
   USBDriver *usbp = mdup->config->usbp;
 
   // we need to copy from queue to buffer
-  size_t uQueueCount = chIQGetFullI(&mdup->iqueue);
+  size_t uQueueCount = chOQGetFullI(&mdup->iqueue);
   size_t uTransmitCount = MIN(uCount, MIN(uQueueCount, MIDI_USB_BUFFERS_SIZE));
 
   size_t u;
   for(u = 0; u < uTransmitCount; u++)
   {
-    mduTransmitBuffer[u] = chIQGet(&mdup->iqueue);
+    mduTransmitBuffer[u] = chOQGetI(&mdup->iqueue);
   }
 
   size_t uRequestCount = MIN(uTransmitCount, MIDI_USB_BUFFERS_SIZE);
