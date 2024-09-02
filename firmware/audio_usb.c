@@ -4,13 +4,51 @@
 #include "usb_lld.h"
 #include "chevents.h"
 
-#define USE_TRANSFER_SIZE 176
+#pragma GCC optimize ("O0")
+#define ADU_LOGGING 0
+
+// this will be ping pong buffer
+// static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
+// static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
+static uint16_t aduTxBuffer[192];//  __attribute__ ((section (".sram3")));
+static uint16_t aduRxBuffer[192];//  __attribute__ ((section (".sram3")));
+
+uint8_t uRxWrite = 0;
+
+#if ADU_LOGGING
+typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
+
+typedef struct _DBGLOG
+{
+  BLType    type;
+  uint16_t  uSize;
+} DBGLOG;
+
+DBGLOG aduLog[1024] __attribute__ ((section (".sram3")));
+uint16_t aduLogCount = 0;
+
+void aduAddLog(BLType type, uint16_t uSize)
+{
+  if(aduLogCount == 0)
+    memset(aduLog, 0, sizeof(aduLog));
+
+  aduLog[aduLogCount].type = type;
+  aduLog[aduLogCount].uSize = uSize;
+  aduLogCount++;
+  if(aduLogCount == 1024)
+    aduLogCount = 0;
+}
+#endif
+
+//#define USE_TRANSFER_SIZE 176
+#define USE_TRANSFER_SIZE 192
 
 extern AudioUSBDriver ADU1;
 
-const uint32_t aduSampleRates[] = {44100, 48000, 96000};
-
-#define N_SAMPLE_RATES  3
+// const uint32_t aduSampleRates[] = {44100, 48000, 96000};
+// #define N_SAMPLE_RATES  3
+const uint32_t aduSampleRates[] = {48000};
+#define N_SAMPLE_RATES  1
 
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
@@ -26,6 +64,24 @@ typedef struct
   uint16_t wValue;
   uint16_t length;
 } SwitchDebug;
+
+void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
+{
+  palWritePad(GPIOG, 11, 1);
+//  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer[uRxWrite], USE_TRANSFER_SIZE);
+  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE);
+  aduAddLog(blStartReceive, uCount);
+  palWritePad(GPIOG, 11, 0);
+}
+
+void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
+{
+  palWritePad(GPIOG, 11, 1);
+  //memcpy(aduTxBuffer, aduRxBuffer[!uRxWrite], 192);
+  usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, USE_TRANSFER_SIZE);
+  aduAddLog(blStartTransmit, uCount);
+  palWritePad(GPIOG, 11, 0);
+}
 
 #define MAX_SWITCH_INTERFACE_DEBUG 1024
 SwitchDebug switchDebug[MAX_SWITCH_INTERFACE_DEBUG]  __attribute__ ((section (".sram3")));
@@ -45,8 +101,6 @@ void AddSwitchDebug(uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue,
 }
 #endif
 
-static uint16_t aduBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-static uint16_t aduBuffer2[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 
 
 #if CONTROL_MESSAGES_DEBUG
@@ -147,7 +201,6 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
   //   uLogCount = 0;
   bool bResult = false;
 
-  palWritePad(GPIOG, 11, 1);
 
   if (request->bControlSelector == AUDIO_FU_CTRL_MUTE && request->bRequest == AUDIO_CS_REQ_CUR)
   {
@@ -223,8 +276,6 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
 
   } 
 
-  if(bResult)
-  palWritePad(GPIOG, 11, 0);
 
   return bResult;
 }
@@ -340,15 +391,23 @@ void aduEnableInput(USBDriver *usbp, bool bEnable)
     aduState.isInputActive = bEnable;
     if(bEnable)
     {
-      palWritePad(GPIOG, 11, 1);
-      //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
-      //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
-      //CH16 usbPrepareTransmit(usbp, 3, NULL, 0);
+      // lets fill the buffer;
+      uint16_t *pBuf = aduTxBuffer;
+      uint16_t u;
+      uint16_t uInc = 0xffff / 48;
+      uint16_t uVal = 0;
+      
+      for(u = 0; u < 48; u++)
+      {
+        *pBuf++ = uVal;
+        *pBuf++ = uVal;
+        uVal += uInc;
+      }
+
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
-      //CH16 usbStartTransmitI(usbp, 3);
+      aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
       chSysUnlockFromIsr();
-      palWritePad(GPIOG, 11, 0);
     }
   }
 }
@@ -361,15 +420,11 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
     aduState.isOutputActive = bEnable;
     if(bEnable)
     {
-      palWritePad(GPIOG, 11, 1);
-      //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
-      //CH16 usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
-      //usbPrepareReceive(usbp, 3, NULL, 0);
+      //memset(aduBuffer, 0, sizeof(aduBuffer));
       chSysLockFromIsr();
       chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
-      //CH16 usbStartReceiveI(usbp, 3);
+      aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE);
       chSysUnlockFromIsr();
-      palWritePad(GPIOG, 11, 0);
     }
   }
 }
@@ -630,14 +685,13 @@ bool_t aduRequestsHook(USBDriver *usbp) {
  */
 void aduDataTransmitted(USBDriver *usbp, usbep_t ep) 
 {
-  palWritePad(GPIOG, 11, 1);
-  //usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, AUDIO_MAX_PACKET_SIZE);
-  //CH16 usbPrepareTransmit(usbp, 3, (uint8_t *)aduBuffer2, USE_TRANSFER_SIZE);
-  //usbPrepareTransmit(usbp, 3, NULL, 0);
+  USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
+  volatile uint32_t uTransmittedCount = pEpState->txcnt;
+  aduAddLog(blEndTransmit, uTransmittedCount);
+
   chSysLockFromIsr();
-  //CH16 usbStartTransmitI(usbp, 3);
+  aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
   chSysUnlockFromIsr();
-  palWritePad(GPIOG, 11, 0);
 }
 
 /**
@@ -650,12 +704,17 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
  */
 void aduDataReceived(USBDriver *usbp, usbep_t ep) 
 {
-  palWritePad(GPIOG, 11, 1);
-  //usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, AUDIO_MAX_PACKET_SIZE);
-  //CH16 usbPrepareReceive(usbp, 3, (uint8_t *)aduBuffer, USE_TRANSFER_SIZE);
-  //usbPrepareReceive(usbp, 3, NULL, 0);
+  USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
+  volatile uint32_t uReceivedCount = pEpState->rxcnt;
+
+  uRxWrite = !uRxWrite;
+
+  aduAddLog(blEndReceive, uReceivedCount);
+
+  if(uReceivedCount)
+    aduAddLog(blEndReceive, uReceivedCount);
+
   chSysLockFromIsr();
-  //CH16 usbStartReceiveI(usbp, 3);
+  aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE);
   chSysUnlockFromIsr();
-  palWritePad(GPIOG, 11, 0);
 }

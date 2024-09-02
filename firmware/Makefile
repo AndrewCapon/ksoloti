@@ -6,7 +6,7 @@
 # Compiler options here.
 ifeq ($(USE_OPT),)
   USE_OPT = \
-    -Og \
+    -O2 \
     -ggdb \
     -fomit-frame-pointer \
     -falign-functions=16 \

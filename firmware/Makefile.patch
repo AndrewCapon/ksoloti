@@ -21,7 +21,9 @@ CCFLAGS = \
     -fno-math-errno \
     -fno-threadsafe-statics \
     -fno-use-cxa-atexit \
-    -Wno-unused-parameter
+    -Wno-unused-parameter \
+    -fpermissive \
+    -Wno-return-type 
 
 LDFLAGS = \
     -nostartfiles \
