@@ -4,6 +4,7 @@
 #include "usb_lld.h"
 #include "chevents.h"
 
+// do not set higher than -O1
 #pragma GCC optimize ("O0")
 #define ADU_LOGGING 0
 
@@ -70,17 +71,21 @@ void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
   palWritePad(GPIOG, 11, 1);
 //  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer[uRxWrite], USE_TRANSFER_SIZE);
   usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE);
+#if ADU_LOGGING  
   aduAddLog(blStartReceive, uCount);
+#endif
   palWritePad(GPIOG, 11, 0);
 }
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
-  palWritePad(GPIOG, 11, 1);
+  palWritePad(GPIOD, 5, 1);
   //memcpy(aduTxBuffer, aduRxBuffer[!uRxWrite], 192);
   usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, USE_TRANSFER_SIZE);
+#if ADU_LOGGING
   aduAddLog(blStartTransmit, uCount);
-  palWritePad(GPIOG, 11, 0);
+#endif
+  palWritePad(GPIOD, 5, 0);
 }
 
 #define MAX_SWITCH_INTERFACE_DEBUG 1024
@@ -336,7 +341,6 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
-          //palWritePad(GPIOG, 11, 1);
           usbSetupTransfer(usbp, aduControlData, request->wLength, aduSetSampleRate);
           bResult = true;
           break;
@@ -353,8 +357,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
     bResult = true;
   }
 
-  //palWritePad(GPIOG, 11, 0);
-
+  
   return bResult;
 }
 
@@ -675,6 +678,13 @@ bool_t aduRequestsHook(USBDriver *usbp) {
   return FALSE;
 }
 
+
+void aduSofHookI(AudioUSBDriver *adup)
+{
+  palWritePad(GPIOD, 4, 1);
+  palWritePad(GPIOD, 4, 0);
+}
+
 /**
  * @brief   Default data transmitted callback.
  * @details The application must use this function as callback for the IN
@@ -687,7 +697,9 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
 {
   USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
   volatile uint32_t uTransmittedCount = pEpState->txcnt;
+#if ADU_LOGGING  
   aduAddLog(blEndTransmit, uTransmittedCount);
+#endif
 
   chSysLockFromIsr();
   aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
@@ -709,10 +721,9 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 
   uRxWrite = !uRxWrite;
 
+#if ADU_LOGGING
   aduAddLog(blEndReceive, uReceivedCount);
-
-  if(uReceivedCount)
-    aduAddLog(blEndReceive, uReceivedCount);
+#endif
 
   chSysLockFromIsr();
   aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE);

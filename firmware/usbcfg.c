@@ -694,6 +694,16 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
   return FALSE;
 }
 
+
+static void sofHook(USBDriver *usbp) 
+{
+  (void)usbp;
+
+  osalSysLockFromISR();
+  aduSofHookI(&ADU1);
+  osalSysUnlockFromISR();
+}
+
 void InitUsbAudio(void)
 {
   aduObjectInit(&ADU1);
@@ -707,7 +717,7 @@ const USBConfig usbcfg = {
   usb_event,
   get_descriptor,
   specialRequestsHook,
-  NULL
+  sofHook
 };
 
 /*

@@ -115,6 +115,7 @@ int main(void) {
     palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7) | PAL_MODE_INPUT); /* RX */
     palSetPadMode(GPIOA, 2, PAL_MODE_OUTPUT_PUSHPULL); /* TX */
     palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7)); /* TX */
+
     /* 115200 baud */
     static const SerialConfig sd2Cfg = {115200, 0, 0, 0};
     sdStart(&SD2, &sd2Cfg);
@@ -124,9 +125,17 @@ int main(void) {
 #if ANDY_GPIO_DEBUG
     palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOD,  3, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOD,  4, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOD,  5, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOD,  6, PAL_MODE_OUTPUT_PUSHPULL); 
 
     palWritePad(GPIOG, 11, 0);
     palWritePad(GPIOG, 10, 0);
+    palWritePad(GPIOD,  3, 0);
+    palWritePad(GPIOD,  4, 0);
+    palWritePad(GPIOD,  5, 0);
+    palWritePad(GPIOD,  6, 0);
 #endif
     exception_init();
 

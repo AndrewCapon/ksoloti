@@ -1047,7 +1047,8 @@ extern "C" {
   bool_t aduRequestsHook(USBDriver *usbp);
   void   aduDataTransmitted(USBDriver *usbp, usbep_t ep);
   void   aduDataReceived(USBDriver *usbp, usbep_t ep);
-  
+  void   aduSofHookI(AudioUSBDriver *adup);
+
   bool   aduControl(USBDriver *usbp);
   bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
 #ifdef __cplusplus
