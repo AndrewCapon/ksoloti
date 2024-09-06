@@ -11,8 +11,8 @@
 // this will be ping pong buffer
 // static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-static uint16_t aduTxBuffer[192];//  __attribute__ ((section (".sram3")));
-static uint16_t aduRxBuffer[192];//  __attribute__ ((section (".sram3")));
+static uint16_t aduTxBuffer[192] __attribute__ ((section (".ccmramend")));
+static uint16_t aduRxBuffer[192] __attribute__ ((section (".ccmramend")));
 
 uint8_t uRxWrite = 0;
 
@@ -683,6 +683,9 @@ void aduSofHookI(AudioUSBDriver *adup)
 {
   palWritePad(GPIOD, 4, 1);
   palWritePad(GPIOD, 4, 0);
+
+  // USBDriver *usbp = adup->config->usbp;
+  // aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
 }
 
 /**
@@ -697,6 +700,12 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
 {
   USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
   volatile uint32_t uTransmittedCount = pEpState->txcnt;
+  if(uTransmittedCount != 192)
+  {
+    palWritePad(GPIOD, 5, 1);
+    palWritePad(GPIOD, 5, 0);
+  }    
+
 #if ADU_LOGGING  
   aduAddLog(blEndTransmit, uTransmittedCount);
 #endif
