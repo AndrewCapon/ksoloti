@@ -77,12 +77,19 @@ void aduCodecData (int32_t *in, int32_t *out)
   uint8_t uWriteBuffer = !uUsbTransmittingBuffer;
   int16_t *pTxOut = &(aduTxBuffer[uWriteBuffer][uCodecOffset]);
 
+  if(uCodecOffset > 64)
+  {
+    palWritePad(GPIOB, 6, 1);
+    palWritePad(GPIOB, 6, 0);
+
+  }
+
   int u; for (u=0; u< 32; u++)
   {
     pTxOut[u] = out[u] >> 16;
   }
-
-  uCodecOffset = (uCodecOffset == 64) ? 0 : uCodecOffset+32;
+  
+  uCodecOffset += 32;
   palWritePad(GPIOB, 7, 0);
 }
 
@@ -711,7 +718,7 @@ void aduSofHookI(AudioUSBDriver *adup)
     palWritePad(GPIOB, 8, 1);
     palWritePad(GPIOB, 8, 0);
   }
-
+  uCodecOffset = 0;
   // USBDriver *usbp = adup->config->usbp;
   // aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
 }
