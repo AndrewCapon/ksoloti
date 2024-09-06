@@ -27,8 +27,11 @@
 #include "codec_ADAU1961.h"
 
 
+// bufs are ksoloti->codec
 int32_t buf[BUFSIZE*2]   __attribute__ ((section (".sram2")));
 int32_t buf2[BUFSIZE*2]  __attribute__ ((section (".sram2")));
+
+// rbufs are codec->ksoloti
 int32_t rbuf[BUFSIZE*2]  __attribute__ ((section (".sram2")));
 int32_t rbuf2[BUFSIZE*2] __attribute__ ((section (".sram2")));
 

@@ -125,17 +125,40 @@ int main(void) {
 #if ANDY_GPIO_DEBUG
     palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
+
     palSetPadMode(GPIOD,  3, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOD,  4, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOD,  5, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOD,  6, PAL_MODE_OUTPUT_PUSHPULL); 
 
+    palSetPadMode(GPIOA,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  8, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  7, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    palSetPadMode(GPIOB,  6, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  4, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  3, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOC,  7, PAL_MODE_OUTPUT_PUSHPULL); 
+
     palWritePad(GPIOG, 11, 0);
     palWritePad(GPIOG, 10, 0);
+
     palWritePad(GPIOD,  3, 0);
     palWritePad(GPIOD,  4, 0);
     palWritePad(GPIOD,  5, 0);
     palWritePad(GPIOD,  6, 0);
+
+    palWritePad(GPIOA,  9, 0); 
+    palWritePad(GPIOB,  9, 0); 
+    palWritePad(GPIOB,  8, 0); 
+    palWritePad(GPIOB,  7, 0); 
+
+    palWritePad(GPIOB,  6, 0); 
+    palWritePad(GPIOB,  4, 0); 
+    palWritePad(GPIOB,  3, 0); 
+    palWritePad(GPIOC,  7, 0); 
+
 #endif
     exception_init();
 

@@ -231,7 +231,9 @@ static msg_t ThreadDSP(void *arg) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
+                palWritePad(GPIOB,  9, 1); 
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
+                palWritePad(GPIOB,  9, 0); 
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -422,6 +424,8 @@ void start_dsp_thread(void) {
         pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
 }
 
+// usb test hack
+extern void aduCodecData (int32_t *in, int32_t *out);
 
 void computebufI(int32_t *inp, int32_t *outp) {
     int i; for (i = 0; i < 32; i++) {
@@ -429,6 +433,7 @@ void computebufI(int32_t *inp, int32_t *outp) {
     }
 
     outbuf = outp;
+    aduCodecData(inbuf, outbuf);
 
     chSysLockFromIsr();
     chEvtSignalI(pThreadDSP, (eventmask_t)1);

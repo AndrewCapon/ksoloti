@@ -11,10 +11,13 @@
 // this will be ping pong buffer
 // static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-static uint16_t aduTxBuffer[192] __attribute__ ((section (".ccmramend")));
-static uint16_t aduRxBuffer[192] __attribute__ ((section (".ccmramend")));
+static int16_t aduTxBuffer[2][192] __attribute__ ((section (".ccmramend")));
+static int16_t aduRxBuffer[192] __attribute__ ((section (".ccmramend")));
+
+uint16_t uCodecOffset = 0;
 
 uint8_t uRxWrite = 0;
+uint8_t uUsbTransmittingBuffer = 0;
 
 #if ADU_LOGGING
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
@@ -66,6 +69,24 @@ typedef struct
   uint16_t length;
 } SwitchDebug;
 
+// hacky test
+void aduCodecData (int32_t *in, int32_t *out)
+{
+  // 2 channel, 24 bits(in 32 bits)
+  palWritePad(GPIOB, 7, 1);
+  uint8_t uWriteBuffer = !uUsbTransmittingBuffer;
+  int16_t *pTxOut = &(aduTxBuffer[uWriteBuffer][uCodecOffset]);
+
+  int u; for (u=0; u< 32; u++)
+  {
+    pTxOut[u] = out[u] >> 16;
+  }
+
+  uCodecOffset = (uCodecOffset == 64) ? 0 : uCodecOffset+32;
+  palWritePad(GPIOB, 7, 0);
+}
+
+
 void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
 {
   palWritePad(GPIOG, 11, 1);
@@ -81,7 +102,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
   palWritePad(GPIOD, 5, 1);
   //memcpy(aduTxBuffer, aduRxBuffer[!uRxWrite], 192);
-  usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, USE_TRANSFER_SIZE);
+  usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer[uUsbTransmittingBuffer], USE_TRANSFER_SIZE);
 #if ADU_LOGGING
   aduAddLog(blStartTransmit, uCount);
 #endif
@@ -554,7 +575,7 @@ void aduInit(void)
 void aduObjectInit(AudioUSBDriver *adup)
 {
   // default sample rate
-  aduState.currentSampleRate = 44100;
+  aduState.currentSampleRate = 48000;
   
   // default is disabled
   aduState.isOutputActive = false;
@@ -684,6 +705,13 @@ void aduSofHookI(AudioUSBDriver *adup)
   palWritePad(GPIOD, 4, 1);
   palWritePad(GPIOD, 4, 0);
 
+  uUsbTransmittingBuffer = !uUsbTransmittingBuffer;
+  if(uCodecOffset != 64)
+  {
+    palWritePad(GPIOB, 8, 1);
+    palWritePad(GPIOB, 8, 0);
+  }
+
   // USBDriver *usbp = adup->config->usbp;
   // aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
 }
@@ -705,6 +733,8 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
     palWritePad(GPIOD, 5, 1);
     palWritePad(GPIOD, 5, 0);
   }    
+
+  uCodecOffset = 0;
 
 #if ADU_LOGGING  
   aduAddLog(blEndTransmit, uTransmittedCount);
