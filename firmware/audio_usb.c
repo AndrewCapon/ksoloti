@@ -713,11 +713,19 @@ void aduSofHookI(AudioUSBDriver *adup)
   palWritePad(GPIOD, 4, 0);
 
   uUsbTransmittingBuffer = !uUsbTransmittingBuffer;
-  if(uCodecOffset != 64)
+  if(uCodecOffset < 96)
   {
+    // underrun
     palWritePad(GPIOB, 8, 1);
     palWritePad(GPIOB, 8, 0);
   }
+  else if(uCodecOffset > 96)
+  {
+    // overrun
+    palWritePad(GPIOB, 6, 1);
+    palWritePad(GPIOB, 6, 0);
+  }
+
   uCodecOffset = 0;
   // USBDriver *usbp = adup->config->usbp;
   // aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE);
@@ -740,8 +748,6 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
     palWritePad(GPIOD, 5, 1);
     palWritePad(GPIOD, 5, 0);
   }    
-
-  uCodecOffset = 0;
 
 #if ADU_LOGGING  
   aduAddLog(blEndTransmit, uTransmittedCount);
