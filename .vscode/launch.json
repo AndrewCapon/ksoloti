@@ -13,7 +13,7 @@
             "servertype": "stlink",
             "device": "STM32F429ZG",
             "interface": "swd",
-            "runToEntryPoint": "main",
+            //"runToEntryPoint": "main",
             "preLaunchTask": "Build all",
             "svdFile": "./debug/STM32F429.svd",
             "swoConfig": {},
@@ -28,7 +28,7 @@
             "servertype": "stlink",
             "device": "STM32F429ZG",
             "interface": "swd",
-            "runToEntryPoint": "main",
+            //"runToEntryPoint": "main",
             "svdFile": "./debug/STM32F429.svd",
             "swoConfig": {},
             "serverArgs": ["-i 0030001B3532510F31333430", "--frequency 24000"]

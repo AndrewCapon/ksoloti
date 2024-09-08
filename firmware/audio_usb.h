@@ -1026,6 +1026,14 @@ typedef struct
   int16_t  volume[ADU_AUDIO_CHANNELS + 1];
   bool     isOutputActive;
   bool     isInputActive;
+  size_t   lastTransferSize;
+  uint16_t codecFrameSampleCount;
+  uint32_t currentFrame;
+  uint32_t lastOverunFrame;
+  uint32_t sampleAdjustEveryFrame;
+  uint32_t sampleAdjustFrameCounter;
+  int16_t  sampleOffset;
+  int16_t  codecMetricsSampleOffset;
 } AduState;
 
 /*===========================================================================*/
