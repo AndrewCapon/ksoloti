@@ -11,8 +11,8 @@
 // this will be ping pong buffer
 // static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-#define TX_RING_BUFFER_SIZE (192*3)
-#define CODEC_METICS_MS (1000)
+#define TX_RING_BUFFER_SIZE (576)
+#define CODEC_METICS_MS (100)
 
 static int16_t  aduTxRingBuffer[TX_RING_BUFFER_SIZE] __attribute__ ((section (".sram3")));
 
@@ -520,14 +520,15 @@ void aduObjectInit(AudioUSBDriver *adup)
   aduState.isInputActive = false;
   
   // frame stuff
-  aduState.currentFrame             = 0;
-  aduState.lastOverunFrame          = 0;
-  aduState.currentFrame             = 0;
-  aduState.lastOverunFrame          = 0;
-  aduState.sampleAdjustEveryFrame   = 0;
-  aduState.sampleAdjustFrameCounter = 0; 
-  aduState.sampleOffset             = 0;
-  aduState.codecMetricsSampleOffset = 0;
+  aduState.currentFrame               = 0;
+  aduState.lastOverunFrame            = 0;
+  aduState.currentFrame               = 0;
+  aduState.lastOverunFrame            = 0;
+  aduState.sampleAdjustEveryFrame     = 0;
+  aduState.sampleAdjustFrameCounter   = 0; 
+  aduState.sampleOffset               = 0;
+  aduState.codecMetricsSampleOffset   = 0;
+  aduState.codecMetricsBlocksOkCount  = 0;
 
   // set not muted
   aduState.mute[0] = 0;
@@ -762,7 +763,8 @@ void aduCodecData (int32_t *in, int32_t *out)
     int u; for (u=0; u< 32; u++)
     {
       aduTxRingBuffer[aduTxRingBufferWriteOffset] = out[u] >> 16;
-      aduTxRingBufferWriteOffset = (aduTxRingBufferWriteOffset == TX_RING_BUFFER_SIZE) ? 0 : aduTxRingBufferWriteOffset+1;
+      aduTxRingBufferWriteOffset = (aduTxRingBufferWriteOffset + 1) % TX_RING_BUFFER_SIZE;
+
       aduTxRingBufferUsedSize++;
     }
     aduState.codecFrameSampleCount+=32;
@@ -822,22 +824,21 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
     uint32_t u; for(u=0; u < USE_TRANSFER_SIZE_SAMPLES; u++)
     {
       aduTxBuffer[u] = aduTxRingBuffer[aduTxRingBufferReadOffset];
-      aduTxRingBufferReadOffset = (aduTxRingBufferReadOffset == TX_RING_BUFFER_SIZE) ? 0 : aduTxRingBufferReadOffset+1;
+      aduTxRingBufferReadOffset = (aduTxRingBufferReadOffset + 1) % TX_RING_BUFFER_SIZE;
+
       aduTxRingBufferUsedSize--;
     }
   }
   else
   {
     // underrun
-    palWritePad(GPIOB, 4, 1);
     aduState.lastTransferSize  = aduTxRingBufferUsedSize;
     uint32_t u; for(u=0; u < aduState.lastTransferSize; u++)
     {
       aduTxBuffer[u] = aduTxRingBuffer[aduTxRingBufferReadOffset];
-      aduTxRingBufferReadOffset = (aduTxRingBufferReadOffset == TX_RING_BUFFER_SIZE) ? 0 : aduTxRingBufferReadOffset+1;
+      aduTxRingBufferReadOffset = (aduTxRingBufferReadOffset + 1) % TX_RING_BUFFER_SIZE;
       aduTxRingBufferUsedSize--;
     }
-    palWritePad(GPIOB, 4, 0);
   }
 
   AddLog(2);
@@ -864,11 +865,14 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
     {
       // ok we are out of sync, adjust to sync over next second
       aduState.sampleOffset    += aduState.codecMetricsSampleOffset;
-      aduState.sampleAdjustEveryFrame = CODEC_METICS_MS / ((aduState.sampleOffset>>1)+1);
+      aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*(aduState.codecMetricsBlocksOkCount+1)) / ((aduState.sampleOffset>>1));
       aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+      aduState.codecMetricsBlocksOkCount = 0;
 
       palWritePad(GPIOB, 8, 0);
     }
+    else
+      aduState.codecMetricsBlocksOkCount++;
 
     aduState.codecMetricsSampleOffset = 0;
   }
@@ -933,8 +937,8 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
           aduTxRingBuffer[aduTxRingBufferWriteOffset+1] = aduTxRingBuffer[aduTxRingBufferWriteOffset-1];
         }
         aduTxRingBufferWriteOffset = (aduTxRingBufferWriteOffset +2) % TX_RING_BUFFER_SIZE;
-        aduTxRingBufferUsedSize++;
-        aduState.sampleOffset++;
+        aduTxRingBufferUsedSize+=2;
+        aduState.sampleOffset+=2;
         palWritePad(GPIOC, 7, 0);
       }
 
@@ -967,3 +971,5 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 #endif
   palWritePad(GPIOD, 5, 0);
 }
+
+

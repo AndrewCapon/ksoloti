@@ -1034,6 +1034,8 @@ typedef struct
   uint32_t sampleAdjustFrameCounter;
   int16_t  sampleOffset;
   int16_t  codecMetricsSampleOffset;
+  int16_t  codecMetricsBlocksOkCount;
+  
 } AduState;
 
 /*===========================================================================*/
