@@ -231,9 +231,9 @@ static msg_t ThreadDSP(void *arg) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
-                palWritePad(GPIOB,  9, 1); 
+                palWritePad(GPIOB, 9, 1); 
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
-                palWritePad(GPIOB,  9, 0); 
+                palWritePad(GPIOB, 9, 0); 
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -249,7 +249,7 @@ static msg_t ThreadDSP(void *arg) {
 
             DspTime = RTT2US(hal_lld_get_counter_value() - tStart);
             dspLoadPct = (100 * DspTime) / (1000000 / 3000);
-            if (dspLoadPct > 98) {
+            if (dspLoadPct > 298) {
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
                 // LogTextMessage("dsp overrun");

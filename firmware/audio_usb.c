@@ -15,7 +15,7 @@
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 #define TX_RING_BUFFER_SIZE (576)
 #define CODEC_METICS_MS (100)
-#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
+//#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
 
 static int16_t  aduTxRingBuffer[TX_RING_BUFFER_SIZE] __attribute__ ((section (".sram3")));
 
