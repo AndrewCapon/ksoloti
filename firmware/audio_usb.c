@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+
 #include "hal.h"
 #include "audio_usb.h"
 #include "usb_lld.h"
@@ -13,6 +15,7 @@
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 #define TX_RING_BUFFER_SIZE (576)
 #define CODEC_METICS_MS (100)
+#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
 
 static int16_t  aduTxRingBuffer[TX_RING_BUFFER_SIZE] __attribute__ ((section (".sram3")));
 
@@ -754,20 +757,32 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 // hacky test
 void aduCodecData (int32_t *in, int32_t *out)
 {
+  uint8_t uLen = 32;
+
   if(aduState.isOutputActive)
   {
+#if EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME
+    static uint16_t uCount = 0;
+    if(uCount == EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME)
+    {
+      uCount = 0;
+      uLen = 30;
+    }
+    else
+      uCount++;
+#endif  
     // 2 channel, 24 bits(in 32 bits)
     palWritePad(GPIOB, 7, 1);
 
     // add to ring buffer, add checks and optimise later
-    int u; for (u=0; u< 32; u++)
+    int u; for (u=0; u< uLen; u++)
     {
       aduTxRingBuffer[aduTxRingBufferWriteOffset] = out[u] >> 16;
       aduTxRingBufferWriteOffset = (aduTxRingBufferWriteOffset + 1) % TX_RING_BUFFER_SIZE;
 
       aduTxRingBufferUsedSize++;
     }
-    aduState.codecFrameSampleCount+=32;
+    aduState.codecFrameSampleCount+=uLen;
 
     palWritePad(GPIOB, 7, 0);
   }
@@ -815,6 +830,22 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   aduState.lastTransferSize = USE_TRANSFER_SIZE_BYTES;
   aduState.currentFrame++;
 
+  uint32_t uCalcUsed;
+  if(aduTxRingBufferWriteOffset < aduTxRingBufferReadOffset)
+  {
+    // wrapped
+    uCalcUsed = (TX_RING_BUFFER_SIZE+aduTxRingBufferWriteOffset) - aduTxRingBufferReadOffset;
+  }
+  else
+    uCalcUsed = aduTxRingBufferWriteOffset - aduTxRingBufferReadOffset;
+
+  if(uCalcUsed != aduTxRingBufferUsedSize)
+  {
+    palWritePad(GPIOG, 10, 1);
+    palWritePad(GPIOG, 10, 0);
+  }
+
+
   AddLog(1);
 
   // probably change to TX from ring buffer
@@ -843,8 +874,6 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
   AddLog(2);
   // stage 2 - If we have underrun/overrun adjust counters
-
-  // maybe do this every second, or 100ms or something to get better average
   int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
   aduState.codecMetricsSampleOffset += nFrameSampleOffest;
 
@@ -861,11 +890,22 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
   if(0 == (aduState.currentFrame % CODEC_METICS_MS))
   {
+    if(aduState.codecMetricsSampleOffset  < 0)
+    {
+      palWritePad(GPIOD, 6, 1);
+      palWritePad(GPIOD, 6, 0);
+    }
+    else if(aduState.codecMetricsSampleOffset  > 0)
+    {
+      palWritePad(GPIOD, 3, 1);
+      palWritePad(GPIOD, 3, 0);
+    }
+
     if(aduState.codecMetricsSampleOffset != 0)
     {
-      // ok we are out of sync, adjust to sync over next second
+      // ok we are out of sync, adjust to sync
       aduState.sampleOffset    += aduState.codecMetricsSampleOffset;
-      aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*(aduState.codecMetricsBlocksOkCount+1)) / ((aduState.sampleOffset>>1));
+      aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*(aduState.codecMetricsBlocksOkCount+1)) / ((abs(aduState.sampleOffset)>>1));
       aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
       aduState.codecMetricsBlocksOkCount = 0;
 
@@ -876,34 +916,6 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
     aduState.codecMetricsSampleOffset = 0;
   }
-
-  // if(nFrameSampleOffest != 0)
-  // {
-  //   // overrun
-  //   static uint32_t uLastOverrun = 0;
-
-  //   palWritePad(GPIOB, 6, 1);
-  //   uint32_t uOverrunTime = aduState.currentFrame - aduState.lastOverunFrame;
-    
-  //   if(uOverrunTime< 200)
-  //   {
-  //     palWritePad(GPIOC, 7, 1);
-  //     palWritePad(GPIOC, 7, 0);
-  //     if(uLastOverrun == 1)
-  //     {
-  //       palWritePad(GPIOC, 7, 1);
-  //       palWritePad(GPIOC, 7, 0);
-  //     }
-  //   }
-  //   uLastOverrun = uOverrunTime;
-
-  //   aduState.lastOverunFrame = aduState.currentFrame;
-  //   aduState.sampleOffset    += nFrameSampleOffest;
-  //   aduState.sampleAdjustEveryFrame = uOverrunTime / ((aduState.sampleOffset>>1)+1);
-  //   aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
-
-  //   palWritePad(GPIOB, 6, 0);
-  // }
 
   // stage 3 - handle overrun/underrun adjustments
   if( aduState.sampleOffset != 0)
@@ -964,6 +976,13 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   AddLog(3);
 
   aduState.codecFrameSampleCount = 0;
+
+  if(aduTxRingBufferUsedSize > 192)
+  {
+    palWritePad(GPIOG, 10, 1);
+    palWritePad(GPIOG, 10, 1);
+
+  }
 
   usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, aduState.lastTransferSize );
 #if ADU_LOGGING
