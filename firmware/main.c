@@ -145,6 +145,7 @@ int main(void) {
     palWritePad(GPIOG, 10, 0);
 
     palWritePad(GPIOD,  3, 0);
+    palWritePad(GPIOD,  4, 1);
     palWritePad(GPIOD,  4, 0);
     palWritePad(GPIOD,  5, 0);
     palWritePad(GPIOD,  6, 0);
