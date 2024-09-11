@@ -8,6 +8,11 @@
 
 // do not set higher than -O1
 #pragma GCC optimize ("O0")
+
+// O0 codecCopy = 14us, TX = 42.1us
+// O1 no Audio
+// O2 crash mac
+
 #define ADU_LOGGING 0
 
 // this will be ping pong buffer
@@ -523,16 +528,9 @@ void aduObjectInit(AudioUSBDriver *adup)
   aduState.isInputActive = false;
   
   // frame stuff
-  aduState.currentFrame               = 0;
-  aduState.lastOverunFrame            = 0;
-  aduState.currentFrame               = 0;
-  aduState.lastOverunFrame            = 0;
-  aduState.sampleAdjustEveryFrame     = 0;
-  aduState.sampleAdjustFrameCounter   = 0; 
-  aduState.sampleOffset               = 0;
-  aduState.codecMetricsSampleOffset   = 0;
-  aduState.codecMetricsBlocksOkCount  = 0;
-
+  aduResetOutputBuffers();
+  aduResetInputBuffers();
+  
   // set not muted
   aduState.mute[0] = 0;
   aduState.mute[1] = 0;
@@ -658,32 +656,38 @@ void aduSofHookI(AudioUSBDriver *adup)
   palWritePad(GPIOD, 4, 0);
 }
 
+void aduResetInputBuffers(void)
+{
+
+}
+
+void aduResetOutputBuffers(void)
+{
+  aduState.currentFrame               = 0;
+  aduState.lastOverunFrame            = 0;
+  aduState.currentFrame               = 0;
+  aduState.lastOverunFrame            = 0;
+  aduState.sampleAdjustEveryFrame     = 0;
+  aduState.sampleAdjustFrameCounter   = 0; 
+  aduState.sampleOffset               = 0;
+  aduState.codecMetricsSampleOffset   = 0;
+  aduState.codecMetricsBlocksOkCount  = 0;
+}
+
+
 void aduEnableInput(USBDriver *usbp, bool bEnable)
 {
   // this is ksoloti->host
   if(bEnable != aduState.isInputActive)
   {
-    if(bEnable)
-    {
-      // // lets fill the buffer;
-      // uint16_t *pBuf = aduTxBuffer;
-      // uint16_t u;
-      // uint16_t uInc = 0xffff / 48;
-      // uint16_t uVal = 0;
-      
-      // for(u = 0; u < 48; u++)
-      // {
-      //   *pBuf++ = uVal;
-      //   *pBuf++ = uVal;
-      //   uVal += uInc;
-      // }
-
-      chSysLockFromIsr();
-      chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
-      aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
-      chSysUnlockFromIsr();
-    }
     aduState.isInputActive = bEnable;
+    chSysLockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
+    if(bEnable)
+      aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
+    else
+      aduResetInputBuffers();
+    chSysUnlockFromIsr();
   }
 }
 
@@ -693,14 +697,14 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
   if(bEnable != aduState.isOutputActive)
   {
     aduState.isOutputActive = bEnable;
+    chSysLockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
     if(bEnable)
-    {
-      //memset(aduBuffer, 0, sizeof(aduBuffer));
-      chSysLockFromIsr();
-      chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
       aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE_BYTES);
-      chSysUnlockFromIsr();
-    }
+    else
+      aduResetOutputBuffers();
+
+    chSysUnlockFromIsr();
   }
 }
 
@@ -726,9 +730,14 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
   aduAddLog(blEndTransmit, uTransmittedCount);
 #endif
 
-  chSysLockFromIsr();
-  aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
-  chSysUnlockFromIsr();
+  if(aduState.isOutputActive)
+  {
+    chSysLockFromIsr();
+    aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
+    chSysUnlockFromIsr();
+  }
+  else
+    aduResetOutputBuffers();
 }
 
 /**
@@ -749,9 +758,14 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 
   uRxWrite = !uRxWrite;
 
-  chSysLockFromIsr();
-  aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE_BYTES);
-  chSysUnlockFromIsr();
+  if(aduState.isOutputActive)
+  {
+    chSysLockFromIsr();
+    aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE_BYTES);
+    chSysUnlockFromIsr();
+  }
+  else
+    aduResetInputBuffers();
 }
 
 // hacky test
@@ -909,6 +923,11 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
       aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
       aduState.codecMetricsBlocksOkCount = 0;
 
+      // if(aduState.sampleOffset > 32)
+      // {
+      //   palWritePad(GPIOG, 10, 1);
+      //   palWritePad(GPIOG, 10, 0);
+      // }
       palWritePad(GPIOB, 8, 0);
     }
     else
