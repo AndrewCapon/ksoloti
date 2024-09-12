@@ -31,6 +31,8 @@
 #include "spilink_lld.h"
 #endif
 
+#include "analyse.h"
+
 #define ADAU1961_I2C_ADDR 0x70 /* (0x38<<1) */
 #define TIMEOUT 1000000
 
@@ -320,7 +322,7 @@ static void dma_sai_a_interrupt(void* dat, uint32_t flags) {
 
     (void)dat;
     (void)flags;
-    palWritePad(GPIOA,  9, 1); 
+    Analyse(GPIOA,  9, 1); 
     codec_interrupt_timestamp = hal_lld_get_counter_value();
 
     if ((sai_a_dma)->stream->CR & STM32_DMA_CR_CT) {
@@ -331,7 +333,7 @@ static void dma_sai_a_interrupt(void* dat, uint32_t flags) {
     }
 
     dmaStreamClearInterrupt(sai_a_dma);
-    palWritePad(GPIOA,  9, 0); 
+    Analyse(GPIOA,  9, 0); 
 }
 
 #endif

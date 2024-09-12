@@ -31,6 +31,7 @@
 #ifdef FW_SPILINK
 #include "spilink.h"
 #endif
+#include "analyse.h"
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -231,9 +232,9 @@ static msg_t ThreadDSP(void *arg) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
-                palWritePad(GPIOB, 9, 1); 
+                Analyse(GPIOB, 9, 1); 
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
-                palWritePad(GPIOB, 9, 0); 
+                Analyse(GPIOB, 9, 0); 
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();

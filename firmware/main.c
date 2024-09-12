@@ -50,6 +50,7 @@
 
 #include "sdram.c"
 #include "stm32f4xx_fmc.c"
+#include "analyse.h"
 
 /*===========================================================================*/
 /* Initialization and main thread.                                           */
@@ -80,7 +81,8 @@
 #endif
 
 #define ENABLE_SERIAL_DEBUG 1
-#define ANDY_GPIO_DEBUG 1
+
+
 extern void MY_USBH_Init(void);
 
 #if TEST_SRAM3
@@ -122,7 +124,7 @@ int main(void) {
     chprintf((BaseSequentialStream * )&SD2,"Hello %u world!\r\n", 17);
 #endif
 
-#if ANDY_GPIO_DEBUG
+#if ANALYSE_ENABLE
     palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
 
@@ -141,24 +143,23 @@ int main(void) {
     palSetPadMode(GPIOB,  3, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOC,  7, PAL_MODE_OUTPUT_PUSHPULL); 
 
-    palWritePad(GPIOG, 11, 0);
-    palWritePad(GPIOG, 10, 0);
+    Analyse(GPIOG, 11, 0);
+    Analyse(GPIOG, 10, 0);
 
-    palWritePad(GPIOD,  3, 0);
-    palWritePad(GPIOD,  4, 1);
-    palWritePad(GPIOD,  4, 0);
-    palWritePad(GPIOD,  5, 0);
-    palWritePad(GPIOD,  6, 0);
+    Analyse(GPIOD,  3, 0);
+    Analyse(GPIOD,  4, 0);
+    Analyse(GPIOD,  5, 0);
+    Analyse(GPIOD,  6, 0);
 
-    palWritePad(GPIOA,  9, 0); 
-    palWritePad(GPIOB,  9, 0); 
-    palWritePad(GPIOB,  8, 0); 
-    palWritePad(GPIOB,  7, 0); 
+    Analyse(GPIOA,  9, 0); 
+    Analyse(GPIOB,  9, 0); 
+    Analyse(GPIOB,  8, 0); 
+    Analyse(GPIOB,  7, 0); 
 
-    palWritePad(GPIOB,  6, 0); 
-    palWritePad(GPIOB,  4, 0); 
-    palWritePad(GPIOB,  3, 0); 
-    palWritePad(GPIOC,  7, 0); 
+    Analyse(GPIOB,  6, 0); 
+    Analyse(GPIOB,  4, 0); 
+    Analyse(GPIOB,  3, 0); 
+    Analyse(GPIOC,  7, 0); 
 
 #endif
     exception_init();

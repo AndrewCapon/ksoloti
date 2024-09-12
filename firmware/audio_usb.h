@@ -1035,7 +1035,11 @@ typedef struct
   int16_t  sampleOffset;
   int16_t  codecMetricsSampleOffset;
   int16_t  codecMetricsBlocksOkCount;
-  
+
+  uint16_t txRingBufferWriteOffset;
+  uint16_t txRingBufferReadOffset;
+  uint16_t txRingBufferUsedSize;
+  uint16_t txCurrentRingBufferSize;
 } AduState;
 
 /*===========================================================================*/
