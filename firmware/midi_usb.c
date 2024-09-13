@@ -35,7 +35,9 @@
 
 #if 1 // HAL_USE_MIDI_USB || defined(__DOXYGEN__)
 
+#define MDU_LOG_COUNT 0
 
+#if MDU_LOG_COUNT 
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
 
 typedef struct _DBGLOG
@@ -44,7 +46,7 @@ typedef struct _DBGLOG
   uint16_t  uSize;
 } DBGLOG;
 
-DBGLOG mduLog[1024] __attribute__ ((section (".sram3")));
+DBGLOG mduLog[MDU_LOG_COUNT] __attribute__ ((section (".sram3")));
 uint16_t umduLogCount = 0;
 
 void mduAddLog(BLType type, uint16_t uSize)
@@ -55,9 +57,12 @@ void mduAddLog(BLType type, uint16_t uSize)
   mduLog[umduLogCount].type = type;
   mduLog[umduLogCount].uSize = uSize;
   umduLogCount++;
-  if(umduLogCount == 1024)
+  if(umduLogCount == MDU_LOG_COUNT)
     umduLogCount = 0;
 }
+#else
+  #define mduAddLog(a,b)
+#endif
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */

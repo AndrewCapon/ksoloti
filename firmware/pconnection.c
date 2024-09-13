@@ -506,9 +506,9 @@ typedef struct _PCDebug
   int state;
 } PCDebug;
 
-#define DBG_COUNT (1024*4)
-
-PCDebug dbg_received[DBG_COUNT]  __attribute__ ((section (".sram3")));;
+#define PC_DBG_COUNT (0)
+#if PC_DBG_COUNT
+PCDebug dbg_received[PC_DBG_COUNT]  __attribute__ ((section (".sram3")));;
 uint16_t uCount = 0;
 
 void AddPCDebug(uint8_t c, int state)
@@ -516,9 +516,12 @@ void AddPCDebug(uint8_t c, int state)
   dbg_received[uCount].c = c;
   dbg_received[uCount].state = state;
   uCount++;
-  if(uCount==DBG_COUNT)
+  if(uCount==PC_DBG_COUNT)
     uCount = 0;
 }
+#else
+  #define AddPCDebug(a,b)
+#endif
 
 int gValue;
 

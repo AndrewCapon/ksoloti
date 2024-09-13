@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "hal.h"
 #include "audio_usb.h"
@@ -22,19 +23,21 @@
 // this will be ping pong buffer
 // static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-#define TX_RING_BUFFER_NORMAL_SIZE (192*2)
-#define TX_RING_BUFFER_OVERFLOW_SIZE (192)
+#define TX_RING_BUFFER_NORMAL_SIZE (96*2)
+#define TX_RING_BUFFER_OVERFLOW_SIZE (96)
 #define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_OVERFLOW_SIZE)
 
 #define CODEC_METICS_MS (100)
 //#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
 
 static int16_t aduTxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
-static int16_t aduTxBuffer[192] __attribute__ ((section (".sram3")));
-static int16_t aduRxBuffer[192] __attribute__ ((section (".sram3")));
+static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
+static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
+#define ADU_TRANSFER_LOG_SIZE 0
+#define ADU_OVERRUN_LOG_SIZE 6000
 
-#if ADU_LOGGING
+#if ADU_TRANSFER_LOG_SIZE
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
  
 typedef struct _DBGLOG
@@ -43,21 +46,54 @@ typedef struct _DBGLOG
   uint16_t  uSize;
 } DBGLOG;
 
-DBGLOG aduLog[1024] __attribute__ ((section (".sram3")));
+DBGLOG aduTransferLog[ADU_TRANSFER_LOG_SIZE] __attribute__ ((section (".sram3")));
 uint16_t aduLogCount = 0;
 
-void aduAddLog(BLType type, uint16_t uSize)
+void aduAddTransferLog(BLType type, uint16_t uSize)
 {
   if(aduLogCount == 0)
-    memset(aduLog, 0, sizeof(aduLog));
+    memset(aduTransferLog, 0, sizeof(aduTransferLog));
 
-  aduLog[aduLogCount].type = type;
-  aduLog[aduLogCount].uSize = uSize;
+  aduTransferLog[aduLogCount].type = type;
+  aduTransferLog[aduLogCount].uSize = uSize;
   aduLogCount++;
-  if(aduLogCount == 1024)
+  if(aduLogCount == ADU_TRANSFER_LOG_SIZE)
     aduLogCount = 0;
 }
+#else
+  #define aduAddTransferLog(a, b)
 #endif 
+
+
+#if ADU_OVERRUN_LOG_SIZE
+typedef struct _OverrunDebug
+{
+  uint8_t  index;
+  uint16_t txRingBufferUsedSize;
+  uint16_t txRingBufferWriteOffset;
+  uint16_t txRingBufferReadOffset;
+  int16_t  sampleOffset;
+//  uint16_t txCurrentRingBufferSize;
+} __attribute__((packed)) OverrunDebug;
+
+OverrunDebug overrunDebug[ADU_OVERRUN_LOG_SIZE]   __attribute__ ((section (".sram3")));
+uint16_t uLogIndex = 0;
+
+void AddOverunLog(uint8_t index)
+{
+  overrunDebug[uLogIndex].index = index;
+  overrunDebug[uLogIndex].txRingBufferUsedSize = aduState.txRingBufferUsedSize;
+  overrunDebug[uLogIndex].txRingBufferWriteOffset = aduState.txRingBufferWriteOffset;
+  overrunDebug[uLogIndex].txRingBufferReadOffset = aduState.txRingBufferReadOffset;
+  overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
+  uLogIndex++;
+  if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
+    uLogIndex = 0;
+}
+#else
+  #define AddOverunLogLog(a)
+#endif 
+
 
 //#define USE_TRANSFER_SIZE 176
 #define USE_TRANSFER_SAMPLE_SIZE 2
@@ -77,68 +113,7 @@ const uint32_t aduSampleRates[] = {48000};
 static uint8_t aduControlData[8];
 static uint8_t aduControlChannel;
 
-#define SWITCH_INTERFACE_DEBUG 1
 
-#if SWITCH_INTERFACE_DEBUG
-typedef struct 
-{
-  uint8_t iface;
-  uint8_t entity;
-  uint8_t req;
-  uint16_t wValue;
-  uint16_t length;
-} SwitchDebug;
-
-
-#define MAX_SWITCH_INTERFACE_DEBUG 1024
-SwitchDebug switchDebug[MAX_SWITCH_INTERFACE_DEBUG]  __attribute__ ((section (".sram3")));
-uint32_t nextSdIndex = 0;
-
-void AddSwitchDebug(uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length)
-{
-  switchDebug[nextSdIndex].iface = iface;
-  switchDebug[nextSdIndex].entity = entity;
-  switchDebug[nextSdIndex].req = req;
-  switchDebug[nextSdIndex].wValue = wValue;
-  switchDebug[nextSdIndex].length = length;
-  
-  nextSdIndex++;
-  if(nextSdIndex == MAX_SWITCH_INTERFACE_DEBUG)
-    nextSdIndex = 0;
-}
-#endif
-
-
-
-#if CONTROL_MESSAGES_DEBUG
-#define LOG_AMOUNT 128
-uint32_t uLogCount = 0;
-uint32_t uBadRequestsCount = 0;
-
-
-audio_control_request_t requests[LOG_AMOUNT] __attribute__ ((section (".sram3")));
-uint32_t badRequests[LOG_AMOUNT] __attribute__ ((section (".sram3")));;
-
-
-#define SAMPLE_RATE_COUNT 128
-typedef struct _SampleRateRequests
-{
-  bool     bGet;
-  uint32_t uFreq;
-} SampleRateRequests;
-uint32_t uNextSampleRateRequestIndex = 0;
-
-static SampleRateRequests aduSampleRateRequests[SAMPLE_RATE_COUNT]  __attribute__ ((section (".sram3")));
-
-static void aduAddSampleRateRequest(bool bGet, uint32_t uSampleRate)
-{
-  aduSampleRateRequests[uNextSampleRateRequestIndex].bGet = 0;
-  aduSampleRateRequests[uNextSampleRateRequestIndex].uFreq = uSampleRate;
-  uNextSampleRateRequestIndex++;
-  if(uNextSampleRateRequestIndex > SAMPLE_RATE_COUNT)
-    uNextSampleRateRequestIndex = 0;
-}
-#endif
 
 
 
@@ -176,20 +151,8 @@ static void aduSetSampleRate(USBDriver *usbp)
   audio_control_cur_4_t const *pData = (audio_control_cur_4_t const *)&aduControlData[0];
   uint32_t uSampleRate = (uint32_t) pData->bCur;
 
-#if CONTROL_MESSAGES_DEBUG
-  aduAddSampleRateRequest(0, uSampleRate);
-#endif
-
   if(uSampleRate == 44100 || uSampleRate == 48000 || uSampleRate == 96000)
     aduState.currentSampleRate =  uSampleRate;
-
-#if CONTROL_MESSAGES_DEBUG
-  else
-  {
-    badRequests[uBadRequestsCount++] = uLogCount-1;
-    // this should really not be happening!
-  }
-#endif
 
   // notify
   chSysLockFromIsr();
@@ -301,13 +264,6 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
 {
   bool bResult = false;
 
-#if CONTROL_MESSAGES_DEBUG
-  if(uLogCount < LOG_AMOUNT)
-    memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
-  else
-    uLogCount = 0;
-#endif
-
   if (request->bControlSelector == AUDIO_CS_CTRL_SAM_FREQ)
   {
     if(request->bmRequestType_bit.direction) // Get requests
@@ -316,10 +272,6 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
       {
         case AUDIO_CS_REQ_CUR:
         {
-#if CONTROL_MESSAGES_DEBUG
-          // get current sample rate
-          aduAddSampleRateRequest(1, aduCurrentSampleRate);
-#endif
           audio_control_cur_4_t curf = { (int32_t) aduState.currentSampleRate };
           usbSetupTransfer(usbp, (uint8_t *)&curf, sizeof(curf), NULL);
           bResult = true;
@@ -368,8 +320,7 @@ bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audi
     usbSetupTransfer(usbp, (uint8_t *)&cur_valid, sizeof(cur_valid), NULL);
     bResult = true;
   }
-
-  
+ 
   return bResult;
 }
 
@@ -402,13 +353,7 @@ bool aduControl(USBDriver *usbp)
 //                                       4              5               1            (3 << 8) | 2     6
 bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length) 
 {
-  // something dodgy here
-#if SWITCH_INTERFACE_DEBUG
-  AddSwitchDebug(iface, entity, req, wValue, length);
-#endif
-
   bool bResult = false;
-
  
   if(entity == 0)
   {
@@ -436,31 +381,6 @@ bool aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t 
  */
 static void inotify(GenericQueue *qp) 
 {
-  // size_t n, maxsize;
-  // AudioUSBDriver *adup = chQGetLink(qp);
-
-  // /* If the USB driver is not in the appropriate state then transactions
-  //    must not be started.*/
-  // if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
-  //     (bdup->state != BDU_READY))
-  //   return;
-
-  // /* If there is in the queue enough space to hold at least one packet and
-  //    a transaction is not yet started then a new transaction is started for
-  //    the available space.*/
-  // maxsize = bdup->config->usbp->epc[bdup->config->bulk_out]->out_maxsize;
-  // if (!usbGetReceiveStatusI(bdup->config->usbp, bdup->config->bulk_out) &&
-  //     ((n = chIQGetEmptyI(&bdup->iqueue)) >= maxsize)) {
-  //   chSysUnlock();
-
-  //   n = (n / maxsize) * maxsize;
-  //   usbPrepareQueuedReceive(bdup->config->usbp,
-  //                           bdup->config->bulk_out,
-  //                           &bdup->iqueue, n);
-
-  //   chSysLock();
-  //   usbStartReceiveI(bdup->config->usbp, bdup->config->bulk_out);
-  //}
 }
 
 /**
@@ -468,28 +388,6 @@ static void inotify(GenericQueue *qp)
  */
 static void onotify(GenericQueue *qp) 
 {
-  // size_t n;
-  // AudioUSBDriver *bdup = chQGetLink(qp);
-
-  // /* If the USB driver is not in the appropriate state then transactions
-  //    must not be started.*/
-  // if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
-  //     (bdup->state != BDU_READY))
-  //   return;
-
-  // /* If there is not an ongoing transaction and the output queue contains
-  //    data then a new transaction is started.*/
-  // if (!usbGetTransmitStatusI(bdup->config->usbp, bdup->config->bulk_in) &&
-  //     ((n = chOQGetFullI(&bdup->oqueue)) > 0)) {
-  //   chSysUnlock();
-
-  //   usbPrepareQueuedTransmit(bdup->config->usbp,
-  //                            bdup->config->bulk_in,
-  //                            &bdup->oqueue, n);
-
-  //   chSysLock();
-  //   usbStartTransmitI(bdup->config->usbp, bdup->config->bulk_in);
-  // }
 }
 
 /*===========================================================================*/
@@ -731,9 +629,7 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
     Analyse(GPIOD, 5, 0);
   }    
 
-#if ADU_LOGGING  
-  aduAddLog(blEndTransmit, uTransmittedCount);
-#endif
+  aduAddTransferLog(blEndTransmit, uTransmittedCount);
 
   if(aduState.isOutputActive)
   {
@@ -755,10 +651,10 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
  */
 void aduDataReceived(USBDriver *usbp, usbep_t ep) 
 {
-#if ADU_LOGGING
+#if ADU_TRANSFER_LOG_SIZE
   USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
   volatile uint32_t uReceivedCount = pEpState->rxcnt;
-  aduAddLog(blEndReceive, uReceivedCount);
+  aduAddTransferLog(blEndReceive, uReceivedCount);
 #endif
 
 
@@ -803,46 +699,22 @@ void aduCodecData (int32_t *in, int32_t *out)
     aduState.txRingBufferUsedSize+=uLen;
     aduState.codecFrameSampleCount+=uLen;
 
+    AddOverunLog(0);
+
     Analyse(GPIOB, 7, 0);
   }
 }
 
 
-#define USE_OVERRUN_LOG 0
 void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
 {
   Analyse(GPIOG, 11, 1);
 //  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer[uRxWrite], USE_TRANSFER_SIZE);
   usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE_BYTES);
-#if ADU_LOGGING  
-  aduAddLog(blStartReceive, uCount);
-#endif
+  aduAddTransferLog(blStartReceive, uCount);
   Analyse(GPIOG, 11, 0);
 }
 
-#if USE_OVERRUN_LOG
-typedef struct _OverrunDebug
-{
-  uint8_t  index;
-  uint16_t aduState.txRingBufferUsedSize;
-  uint16_t sampleOffset;
-} __attribute__((packed)) OverrunDebug;
-
-#define OVERRUN_DEBUG_SIZE (1024*2)
-OverrunDebug overrunDebug[OVERRUN_DEBUG_SIZE]   __attribute__ ((section (".sram3")));
-uint16_t uLogIndex = 0;
-
-void AddLog(uint8_t index)
-{
-  overrunDebug[uLogIndex].aduState.txRingBufferUsedSize = aduState.txRingBufferUsedSize;
-  overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
-  overrunDebug[uLogIndex].index = index;
-
-  uLogIndex++;
-  if(uLogIndex == OVERRUN_DEBUG_SIZE)
-    uLogIndex = 0;
-}
-#endif 
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
@@ -869,9 +741,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
-#if USE_OVERRUN_LOG
-  AddLog(1);
-#endif
+  AddOverunLog(1);
 
   // probably change to TX from ring buffer
   // Stage 1 - remove from ring buffer and put in transferbuffer
@@ -907,10 +777,8 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
- #if USE_OVERRUN_LOG
-  AddLog(2);
- #endif
-
+  //AddOverunLog(2);
+ 
   // stage 2 - If we have underrun/overrun adjust counters
   int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
   aduState.codecMetricsSampleOffset += nFrameSampleOffest;
@@ -1018,23 +886,21 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
- #if USE_OVERRUN_LOG
-  AddLog(3);
-#endif
+  //AddOverunLog(3);
 
   aduState.codecFrameSampleCount = 0;
 
-  if(aduState.txRingBufferUsedSize > 192)
+  if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
   {
     Analyse(GPIOG, 10, 1);
-    Analyse(GPIOG, 10, 1);
+    Analyse(GPIOG, 10, 0);
 
   }
 
   usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, aduState.lastTransferSize );
-#if ADU_LOGGING
-  aduAddLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);
-#endif
+
+  aduAddTransferLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);
+
   Analyse(GPIOD, 5, 0);
 }
 

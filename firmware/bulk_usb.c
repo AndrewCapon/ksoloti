@@ -36,7 +36,8 @@
 
 #if 1 // HAL_USE_BULK_USB || defined(__DOXYGEN__)
 
-
+#define BDU_LOG_SIZE 0
+#if BDU_LOG_SIZE
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
 
 typedef struct _DBGLOG
@@ -45,7 +46,7 @@ typedef struct _DBGLOG
   uint16_t  uSize;
 } DBGLOG;
 
-DBGLOG bduLog[1024] __attribute__ ((section (".sram3")));
+DBGLOG bduLog[BDU_LOG_SIZE] __attribute__ ((section (".sram3")));
 uint16_t uBduLogCount = 0;
 
 void bduAddLog(BLType type, uint16_t uSize)
@@ -56,11 +57,13 @@ void bduAddLog(BLType type, uint16_t uSize)
   bduLog[uBduLogCount].type = type;
   bduLog[uBduLogCount].uSize = uSize;
   uBduLogCount++;
-  if(uBduLogCount == 1024)
+  if(uBduLogCount == BDU_LOG_SIZE)
     uBduLogCount = 0;
 }
+#else
+  #define bduAddLog(a,b)
+#endif
 
-/*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
