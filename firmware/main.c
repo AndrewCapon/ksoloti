@@ -116,20 +116,20 @@ int main(void) {
     Analyse(GPIOG, 11, 0);
     Analyse(GPIOG, 10, 0);
 
-    Analyse(GPIOD,  3, 0);
-    Analyse(GPIOD,  4, 0);
-    Analyse(GPIOD,  5, 0);
-    Analyse(GPIOD,  6, 0);
+    Analyse(GPIOD, 3, 0);
+    Analyse(GPIOD, 4, 0);
+    Analyse(GPIOD, 5, 0);
+    Analyse(GPIOD, 6, 0);
 
-    Analyse(GPIOA,  9, 0); 
-    Analyse(GPIOB,  9, 0); 
-    Analyse(GPIOB,  8, 0); 
-    Analyse(GPIOB,  7, 0); 
+    Analyse(GPIOA, 9, 0); 
+    Analyse(GPIOB, 9, 0); 
+    Analyse(GPIOB, 8, 0); 
+    Analyse(GPIOB, 7, 0); 
 
-    Analyse(GPIOB,  6, 0); 
-    Analyse(GPIOB,  4, 0); 
-    Analyse(GPIOB,  3, 0); 
-    Analyse(GPIOC,  7, 0); 
+    Analyse(GPIOB, 6, 0); 
+    Analyse(GPIOB, 4, 0); 
+    Analyse(GPIOB, 3, 0); 
+    Analyse(GPIOC, 7, 0); 
 
 #endif
     exception_init();

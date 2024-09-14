@@ -35,7 +35,7 @@ static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
 static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
 #define ADU_TRANSFER_LOG_SIZE 0
-#define ADU_OVERRUN_LOG_SIZE 6000
+#define ADU_OVERRUN_LOG_SIZE 4900
 
 #if ADU_TRANSFER_LOG_SIZE
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
@@ -73,6 +73,8 @@ typedef struct _OverrunDebug
   uint16_t txRingBufferWriteOffset;
   uint16_t txRingBufferReadOffset;
   int16_t  sampleOffset;
+  uint16_t codecFrameSampleCount;
+  int16_t  codecMetricsSampleOffset;
 //  uint16_t txCurrentRingBufferSize;
 } __attribute__((packed)) OverrunDebug;
 
@@ -86,6 +88,9 @@ void AddOverunLog(uint8_t index)
   overrunDebug[uLogIndex].txRingBufferWriteOffset = aduState.txRingBufferWriteOffset;
   overrunDebug[uLogIndex].txRingBufferReadOffset = aduState.txRingBufferReadOffset;
   overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
+  overrunDebug[uLogIndex].codecFrameSampleCount = aduState.codecFrameSampleCount;
+  overrunDebug[uLogIndex].codecMetricsSampleOffset = aduState.codecMetricsSampleOffset;
+  
   uLogIndex++;
   if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
     uLogIndex = 0;
@@ -668,6 +673,20 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
     aduResetInputBuffers();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // hacky test
 void aduCodecData (int32_t *in, int32_t *out)
 {
@@ -718,7 +737,11 @@ void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
+  static bool bClockOk = true;
+
   Analyse(GPIOD, 5, 1);
+
+  AddOverunLog(1);
 
   aduState.lastTransferSize = USE_TRANSFER_SIZE_BYTES;
   aduState.currentFrame++;
@@ -741,7 +764,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
-  AddOverunLog(1);
+  uint8_t startTxRingBufferReadOffset = aduState.txRingBufferReadOffset;
 
   // probably change to TX from ring buffer
   // Stage 1 - remove from ring buffer and put in transferbuffer
@@ -750,34 +773,33 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
     uint32_t u; for(u=0; u < USE_TRANSFER_SIZE_SAMPLES; u++)
     {
       aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
-      //aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset + 1) % TX_RING_BUFFER_NORMAL_SIZE;
 
       if (++(aduState.txRingBufferReadOffset) == TX_RING_BUFFER_NORMAL_SIZE) 
         aduState.txRingBufferReadOffset= 0;
-
-      //aduState.txRingBufferUsedSize--;
     }
     aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
   }
   else
   {
-    // underrun
+    // Real USB underrun just send any data we have, avoids extra buffer.
     aduState.lastTransferSize  = aduState.txRingBufferUsedSize;
     uint32_t u; for(u=0; u < aduState.lastTransferSize; u++)
     {
       aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
-//      aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset + 1) % TX_RING_BUFFER_NORMAL_SIZE;
+
       if (++(aduState.txRingBufferReadOffset) == TX_RING_BUFFER_NORMAL_SIZE) 
         aduState.txRingBufferReadOffset= 0;
-//      aduState.txRingBufferUsedSize--;
     }
     aduState.txRingBufferUsedSize -= aduState.lastTransferSize;
+
+    // add missing samples as if we had used thm
+    aduState.codecFrameSampleCount += (USE_TRANSFER_SIZE_SAMPLES - aduState.lastTransferSize);
   }
+  AddOverunLog(3);
 
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
-  //AddOverunLog(2);
  
   // stage 2 - If we have underrun/overrun adjust counters
   int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
@@ -820,6 +842,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
       //   Analyse(GPIOG, 10, 1);
       //   Analyse(GPIOG, 10, 0);
       // }
+      bClockOk = false;
       Analyse(GPIOB, 8, 0);
     }
     else
@@ -827,6 +850,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
     aduState.codecMetricsSampleOffset = 0;
   }
+  AddOverunLog(4);
 
   // stage 3 - handle overrun/underrun adjustments
   if( aduState.sampleOffset != 0)
@@ -880,13 +904,27 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   }
   else
   {
-    Analyse(GPIOB, 8, 1);
+    if(!bClockOk)
+    {    
+      Analyse(GPIOB, 8, 1);
+      bClockOk = true;
+    }
   }
   
   // Analyse(GPIOD, 5, 0);
   // Analyse(GPIOD, 5, 1);
 
-  //AddOverunLog(3);
+  AddOverunLog(5);
+
+  if(aduState.txRingBufferUsedSize == 0)
+  {
+    // ok all data is synced and the read data is not in the first normal block, reset the offsets
+    if(startTxRingBufferReadOffset >= USE_TRANSFER_SIZE_SAMPLES)
+    {
+      aduState.txRingBufferReadOffset = 0;
+      aduState.txRingBufferWriteOffset = 0;
+    }
+  }
 
   aduState.codecFrameSampleCount = 0;
 

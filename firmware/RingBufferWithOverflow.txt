@@ -1,0 +1,75 @@
+txRingBufferWriteOffset
+
+	aduCodecData() 
+		- increases with codec data
+	aduInitiateTransmitI() 
+		- Stage 3, increases by 2 with under adjustment
+
+
+txRingBufferReadOffset
+
+	aduInitiateTransmitI() 
+		- Stage 1, increases when copying data, 96 (48*2)
+		- Stage 3, increases by 2 with over adjustment
+
+
+txRingBufferUsedSize
+
+	aduCodecData() 
+		- increases with codec data
+	aduInitiateTransmitI() 
+		- Stage 1, decreases when copying data
+		- Stage 3, decreases by 2 with over adjustment
+		- Stage 3, increases by 2 with under adjustment
+
+
+sampleOffset
+
+	aduInitiateTransmitI() 
+		- Stage 2, +/- changes on code metrics
+		- Stage 3, +/- 2 on sampleAdjustFrameCounter
+
+
+for output:
+
+Buffer is 3 frames long, 2 normal and then one overflow.
+
+0                    96									 192                 288									
+----------------------------------------------------------------
+|         96         |         96         |         96         |
+----------------------------------------------------------------
+----------------------------------------------------------------
+|  32  |  32  |  32  |  32  |  32  |  32  |  32  |  32  |  32  |
+----------------------------------------------------------------
+
+timing of codec can change in relation to USB
+----------------------------------------------------------------
+   |  32  |  32  |  32  |  32  |  32  |  32  |  32  |  32  |  32
+----------------------------------------------------------------
+
+Frequency of codec can change in relation to USB
+----------------------------------------------------------------
+   |  32  |  32  |  32  |   32   |  32  |  32  |  32  |  32  |  32
+----------------------------------------------------------------
+
+Objective: 
+
+TX can read entire 96 buffer from ring buffer
+
+Issues:
+
+aduState.txRingBufferWriteOffset can increase for underun adjustments (adding samples)
+aduState.txRingBufferReadOffset can increase for overruns (removing samples)
+
+Both of these will lead to the 192 normal buffer wrapping, and will need extending into the overflow buffer.
+
+So we have the problem that these can have differect offsets to each other (aduState.txRingBufferUsedSize) and only every increase.
+
+We need to be able to reset the offsets before they overflow the overflow buffer at the end
+
+So first job is probably to sync the codeccopy, I think this already happens. Need to check.
+
+At the end of a transfer if aduState.txRingBufferUsedSize==0 and startTxRingBufferReadOffset >= 96 then we can reset the offsets
+
+So initial test with existing code is this...
+
