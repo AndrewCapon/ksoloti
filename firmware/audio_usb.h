@@ -1019,6 +1019,14 @@ struct AudioUSBDriver {
   _audio_usb_driver_data
 };
 
+typedef enum _adustate
+{
+  asInit,
+  asFillingUnderflow,
+  asNormal,
+  asAdjustingClock
+} ADUState;
+
 typedef struct 
 {
   uint32_t currentSampleRate;
@@ -1040,6 +1048,8 @@ typedef struct
   uint16_t txRingBufferReadOffset;
   uint16_t txRingBufferUsedSize;
   uint16_t txCurrentRingBufferSize;
+
+  ADUState state;
 } AduState;
 
 /*===========================================================================*/

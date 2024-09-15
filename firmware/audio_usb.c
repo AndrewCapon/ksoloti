@@ -6,6 +6,7 @@
 #include "audio_usb.h"
 #include "usb_lld.h"
 #include "chevents.h"
+#include "chdebug.h"
 #include "usbcfg.h"
 #include "analyse.h"
 
@@ -23,9 +24,18 @@
 // this will be ping pong buffer
 // static uint16_t aduTxBuffer[AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
 // static uint16_t aduRxBuffer[2][AUDIO_USB_BUFFERS_SIZE + AUDIO_MAX_PACKET_SIZE]  __attribute__ ((section (".sram3")));
-#define TX_RING_BUFFER_NORMAL_SIZE (96*2)
-#define TX_RING_BUFFER_OVERFLOW_SIZE (96)
-#define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_OVERFLOW_SIZE)
+
+// samples to try to keep in buffer
+#define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
+
+// normal ring buffer sample size
+#define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
+
+// Overflow sample size to keep USB transfers fully confined in ring buffer
+#define TX_RING_BUFFER_OVERFLOW_SIZE  (96)
+
+// Total allocated size in samples
+#define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_OVERFLOW_SIZE)
 
 #define CODEC_METICS_MS (100)
 //#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
@@ -35,7 +45,7 @@ static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
 static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
 #define ADU_TRANSFER_LOG_SIZE 0
-#define ADU_OVERRUN_LOG_SIZE 4900
+#define ADU_OVERRUN_LOG_SIZE 4000
 
 #if ADU_TRANSFER_LOG_SIZE
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
@@ -70,11 +80,14 @@ typedef struct _OverrunDebug
 {
   uint8_t  index;
   uint16_t txRingBufferUsedSize;
+  uint16_t txCurrentRingBufferSize;
   uint16_t txRingBufferWriteOffset;
   uint16_t txRingBufferReadOffset;
   int16_t  sampleOffset;
   uint16_t codecFrameSampleCount;
   int16_t  codecMetricsSampleOffset;
+  ADUState state;
+
 //  uint16_t txCurrentRingBufferSize;
 } __attribute__((packed)) OverrunDebug;
 
@@ -90,6 +103,8 @@ void AddOverunLog(uint8_t index)
   overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
   overrunDebug[uLogIndex].codecFrameSampleCount = aduState.codecFrameSampleCount;
   overrunDebug[uLogIndex].codecMetricsSampleOffset = aduState.codecMetricsSampleOffset;
+  overrunDebug[uLogIndex].txCurrentRingBufferSize = aduState.txCurrentRingBufferSize;
+  overrunDebug[uLogIndex].state = aduState.state;
   
   uLogIndex++;
   if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
@@ -578,8 +593,11 @@ void aduResetOutputBuffers(void)
   aduState.txRingBufferWriteOffset    = 0;
   aduState.txRingBufferReadOffset     = 0;
   aduState.txRingBufferUsedSize       = 0;
-  aduState.txCurrentRingBufferSize    = TX_RING_BUFFER_NORMAL_SIZE;
+  aduState.txCurrentRingBufferSize    = TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE;
+  aduState.state                      = asInit;
 
+  memset(aduTxRingBuffer, 0, sizeof(aduTxRingBuffer));
+  memset(aduTxBuffer, 0, sizeof(aduTxBuffer));
 }
 
 
@@ -711,8 +729,7 @@ void aduCodecData (int32_t *in, int32_t *out)
     int u; for (u=0; u< uLen; u++)
     {
       aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
-      //aduState.txRingBufferWriteOffset = (aduState.txRingBufferWriteOffset + 1) % TX_RING_BUFFER_NORMAL_SIZE;
-      if (++(aduState.txRingBufferWriteOffset) == TX_RING_BUFFER_NORMAL_SIZE) 
+      if (++(aduState.txRingBufferWriteOffset) == aduState.txCurrentRingBufferSize) 
         aduState.txRingBufferWriteOffset= 0;
     }
     aduState.txRingBufferUsedSize+=uLen;
@@ -746,195 +763,229 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   aduState.lastTransferSize = USE_TRANSFER_SIZE_BYTES;
   aduState.currentFrame++;
 
-  uint32_t uCalcUsed;
-  if(aduState.txRingBufferWriteOffset < aduState.txRingBufferReadOffset)
-  {
-    // wrapped
-    uCalcUsed = (TX_RING_BUFFER_NORMAL_SIZE+aduState.txRingBufferWriteOffset) - aduState.txRingBufferReadOffset;
-  }
-  else
-    uCalcUsed = aduState.txRingBufferWriteOffset - aduState.txRingBufferReadOffset;
-
-  if(uCalcUsed != aduState.txRingBufferUsedSize)
-  {
-    Analyse(GPIOG, 10, 1);
-    Analyse(GPIOG, 10, 0);
-  }
-
-  // Analyse(GPIOD, 5, 0);
-  // Analyse(GPIOD, 5, 1);
-
   uint8_t startTxRingBufferReadOffset = aduState.txRingBufferReadOffset;
 
-  // probably change to TX from ring buffer
-  // Stage 1 - remove from ring buffer and put in transferbuffer
-  if(aduState.txRingBufferUsedSize >= USE_TRANSFER_SIZE_SAMPLES)
+  if(aduState.state == asInit || aduState.state == asFillingUnderflow)
   {
-    uint32_t u; for(u=0; u < USE_TRANSFER_SIZE_SAMPLES; u++)
+    // send full frame of silence
+    uint32_t u; for(u=0; u <USE_TRANSFER_SIZE_SAMPLES; u++)
     {
-      aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
-
-      if (++(aduState.txRingBufferReadOffset) == TX_RING_BUFFER_NORMAL_SIZE) 
-        aduState.txRingBufferReadOffset= 0;
+      aduTxBuffer[u] = 0;
     }
-    aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
+
+    if(aduState.txRingBufferUsedSize >= TX_RING_BUFFER_UNDERFLOW_SIZE)
+      aduState.state = asNormal;
+    else
+      aduState.state = asFillingUnderflow;
   }
   else
   {
-    // Real USB underrun just send any data we have, avoids extra buffer.
-    aduState.lastTransferSize  = aduState.txRingBufferUsedSize;
-    uint32_t u; for(u=0; u < aduState.lastTransferSize; u++)
+    // probably change to TX from ring buffer
+    // Stage 1 - remove from ring buffer and put in transferbuffer
+    if(aduState.txRingBufferUsedSize >= USE_TRANSFER_SIZE_SAMPLES)
     {
-      aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
+      uint32_t u; for(u=0; u < USE_TRANSFER_SIZE_SAMPLES; u++)
+      {
+        aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
 
-      if (++(aduState.txRingBufferReadOffset) == TX_RING_BUFFER_NORMAL_SIZE) 
-        aduState.txRingBufferReadOffset= 0;
-    }
-    aduState.txRingBufferUsedSize -= aduState.lastTransferSize;
+        if (++(aduState.txRingBufferReadOffset) == aduState.txCurrentRingBufferSize) 
+        {
+          aduState.txRingBufferReadOffset= 0;
 
-    // add missing samples as if we had used thm
-    aduState.codecFrameSampleCount += (USE_TRANSFER_SIZE_SAMPLES - aduState.lastTransferSize);
-  }
-  AddOverunLog(3);
-
-  // Analyse(GPIOD, 5, 0);
-  // Analyse(GPIOD, 5, 1);
-
- 
-  // stage 2 - If we have underrun/overrun adjust counters
-  int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
-  aduState.codecMetricsSampleOffset += nFrameSampleOffest;
-
-  if(nFrameSampleOffest < 0)
-  {
-    Analyse(GPIOB, 4, 1);
-    Analyse(GPIOB, 4, 0);
-  }
-  else if(nFrameSampleOffest > 0)
-  {
-    Analyse(GPIOB, 6, 1);
-    Analyse(GPIOB, 6, 0);
-  }
-
-  if(0 == (aduState.currentFrame % CODEC_METICS_MS))
-  {
-    if(aduState.codecMetricsSampleOffset  < 0)
-    {
-      Analyse(GPIOD, 6, 1);
-      Analyse(GPIOD, 6, 0);
-    }
-    else if(aduState.codecMetricsSampleOffset  > 0)
-    {
-      Analyse(GPIOD, 3, 1);
-      Analyse(GPIOD, 3, 0);
-    }
-
-    if(aduState.codecMetricsSampleOffset != 0)
-    {
-      // ok we are out of sync, adjust to sync
-      aduState.sampleOffset    += aduState.codecMetricsSampleOffset;
-      aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*(aduState.codecMetricsBlocksOkCount+1)) / ((abs(aduState.sampleOffset)>>1));
-      aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
-      aduState.codecMetricsBlocksOkCount = 0;
-
-      // if(aduState.sampleOffset > 32)
-      // {
-      //   Analyse(GPIOG, 10, 1);
-      //   Analyse(GPIOG, 10, 0);
-      // }
-      bClockOk = false;
-      Analyse(GPIOB, 8, 0);
+          // if(u != 0)
+          // {
+          //   Analyse(GPIOG, 10, 1);
+          //   Analyse(GPIOG, 10, 0);
+          // }
+        }
+      }
+      aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
     }
     else
-      aduState.codecMetricsBlocksOkCount++;
-
-    aduState.codecMetricsSampleOffset = 0;
-  }
-  AddOverunLog(4);
-
-  // stage 3 - handle overrun/underrun adjustments
-  if( aduState.sampleOffset != 0)
-  {
-    if(aduState.sampleAdjustFrameCounter == 0)
     {
-      if(aduState.sampleOffset > 0)
+      // this should never happen now
+      // Avoids extra buffer.
+      // Send full frame of silence, sending smaller packets whatever you read messes up OSX at least.
+      size_t uActual = aduState.txRingBufferUsedSize;
+      aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset + uActual) % aduState.txCurrentRingBufferSize;
+
+      uint32_t u; for(u=0; u <USE_TRANSFER_SIZE_SAMPLES; u++)
       {
-        // adjust overrun
-        // chuck samples awway
-        Analyse(GPIOB, 3, 1);
-        aduState.sampleOffset-=2;
-        aduState.txRingBufferUsedSize-=2;
-        aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset+2) % TX_RING_BUFFER_NORMAL_SIZE;
-        Analyse(GPIOB, 3, 0);
+        aduTxBuffer[u] = 0;
+      }
+      aduState.txRingBufferUsedSize -= uActual;
+
+      // add missing sample metrics as if we had used them
+      aduState.codecFrameSampleCount += (USE_TRANSFER_SIZE_SAMPLES - uActual);
+
+      // aduState.lastTransferSize  = aduState.txRingBufferUsedSize;
+      // uint32_t u; for(u=0; u < aduState.lastTransferSize; u++)
+      // {
+      //   aduTxBuffer[u] = aduTxRingBuffer[aduState.txRingBufferReadOffset];
+
+      //   if (++(aduState.txRingBufferReadOffset) == aduState.txCurrentRingBufferSize) 
+      //     aduState.txRingBufferReadOffset= 0;
+      // }
+      // aduState.txRingBufferUsedSize -= aduState.lastTransferSize;
+
+      // // add missing samples as if we had used thm
+      // aduState.codecFrameSampleCount += (USE_TRANSFER_SIZE_SAMPLES - aduState.lastTransferSize);
+    }
+    AddOverunLog(3);
+
+    // Analyse(GPIOD, 5, 0);
+    // Analyse(GPIOD, 5, 1);
+
+  
+    // stage 2 - If we have underrun/overrun adjust counters
+    int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
+    aduState.codecMetricsSampleOffset += nFrameSampleOffest;
+
+    if(nFrameSampleOffest < 0)
+    {
+      Analyse(GPIOB, 4, 1);
+      Analyse(GPIOB, 4, 0);
+    }
+    else if(nFrameSampleOffest > 0)
+    {
+      Analyse(GPIOB, 6, 1);
+      Analyse(GPIOB, 6, 0);
+    }
+
+    if(0 == (aduState.currentFrame % CODEC_METICS_MS))
+    {
+      if(aduState.codecMetricsSampleOffset  < 0)
+      {
+        Analyse(GPIOD, 6, 1);
+        Analyse(GPIOD, 6, 0);
+      }
+      else if(aduState.codecMetricsSampleOffset  > 0)
+      {
+        Analyse(GPIOD, 3, 1);
+        Analyse(GPIOD, 3, 0);
+      }
+
+      if(aduState.codecMetricsSampleOffset != 0)
+      {
+        // ok we are out of sync, adjust to sync
+        aduState.sampleOffset    += aduState.codecMetricsSampleOffset;
+        uint16_t uUseBlocks = aduState.codecMetricsBlocksOkCount;
+
+        // make recovery 1 block quicker
+        if(uUseBlocks > 1)
+          uUseBlocks -=1;
+
+        aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*uUseBlocks) / ((abs(aduState.sampleOffset)>>1));
+
+        aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+        aduState.codecMetricsBlocksOkCount = 0;
+
+
+        // if(aduState.sampleOffset > 32)
+        // {
+        //   Analyse(GPIOG, 10, 1);
+        //   Analyse(GPIOG, 10, 0);
+        // }
+        bClockOk = false;
+        Analyse(GPIOB, 8, 0);
       }
       else
+        aduState.codecMetricsBlocksOkCount++;
+
+      aduState.codecMetricsSampleOffset = 0;
+    }
+    AddOverunLog(4);
+
+    // stage 3 - handle overrun/underrun adjustments
+    if( aduState.sampleOffset != 0)
+    {
+      if(aduState.sampleAdjustFrameCounter == 0)
       {
-        // adjust underrun
-        // duplicate sample
-        Analyse(GPIOC, 7, 1);
-        if(aduState.txRingBufferWriteOffset == 0)
+        if(aduState.sampleOffset > 0)
         {
-          //duplicate from end
-          aduTxRingBuffer[aduState.txRingBufferWriteOffset]   = aduTxRingBuffer[TX_RING_BUFFER_NORMAL_SIZE-2];
-          aduTxRingBuffer[aduState.txRingBufferWriteOffset+1] = aduTxRingBuffer[TX_RING_BUFFER_NORMAL_SIZE-1];
+          // adjust overrun
+          // chuck samples awway
+          Analyse(GPIOB, 3, 1);
+          aduState.sampleOffset-=2;
+          aduState.txRingBufferUsedSize-=2;
+          aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset+2) % aduState.txCurrentRingBufferSize;
+          // aduState.txRingBufferReadOffset += 2;
+          // aduState.txCurrentRingBufferSize += 2;
+          // if(aduState.txCurrentRingBufferSize > 96*3)
+          // {
+          //   Analyse(GPIOG, 10, 1);
+          //   Analyse(GPIOG, 10, 0);
+          // }
+
+          Analyse(GPIOB, 3, 0);
         }
         else
         {
-          aduTxRingBuffer[aduState.txRingBufferWriteOffset]   = aduTxRingBuffer[aduState.txRingBufferWriteOffset-2];
-          aduTxRingBuffer[aduState.txRingBufferWriteOffset+1] = aduTxRingBuffer[aduState.txRingBufferWriteOffset-1];
+          // adjust underrun
+          // duplicate sample
+          Analyse(GPIOC, 7, 1);
+          if(aduState.txRingBufferWriteOffset == 0)
+          {
+            //duplicate from end
+            aduTxRingBuffer[aduState.txRingBufferWriteOffset]   = aduTxRingBuffer[aduState.txCurrentRingBufferSize-2];
+            aduTxRingBuffer[aduState.txRingBufferWriteOffset+1] = aduTxRingBuffer[aduState.txCurrentRingBufferSize-1];
+          }
+          else
+          {
+            aduTxRingBuffer[aduState.txRingBufferWriteOffset]   = aduTxRingBuffer[aduState.txRingBufferWriteOffset-2];
+            aduTxRingBuffer[aduState.txRingBufferWriteOffset+1] = aduTxRingBuffer[aduState.txRingBufferWriteOffset-1];
+          }
+          aduState.txRingBufferWriteOffset = (aduState.txRingBufferWriteOffset +2) % aduState.txCurrentRingBufferSize;
+          aduState.txRingBufferUsedSize+=2;
+          aduState.sampleOffset+=2;
+          Analyse(GPIOC, 7, 0);
         }
-        aduState.txRingBufferWriteOffset = (aduState.txRingBufferWriteOffset +2) % TX_RING_BUFFER_NORMAL_SIZE;
-        aduState.txRingBufferUsedSize+=2;
-        aduState.sampleOffset+=2;
-        Analyse(GPIOC, 7, 0);
-      }
 
-      // check for finish or restert
-      if(aduState.sampleOffset)
-      {
-        aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+        // check for finish or restert
+        if(aduState.sampleOffset)
+        {
+          aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+        }
+        else
+        {
+          aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame = 0;
+        }
       }
       else
-      {
-        aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame = 0;
-      }
+        aduState.sampleAdjustFrameCounter--;
     }
     else
-      aduState.sampleAdjustFrameCounter--;
-  }
-  else
-  {
-    if(!bClockOk)
-    {    
-      Analyse(GPIOB, 8, 1);
-      bClockOk = true;
-    }
-  }
-  
-  // Analyse(GPIOD, 5, 0);
-  // Analyse(GPIOD, 5, 1);
-
-  AddOverunLog(5);
-
-  if(aduState.txRingBufferUsedSize == 0)
-  {
-    // ok all data is synced and the read data is not in the first normal block, reset the offsets
-    if(startTxRingBufferReadOffset >= USE_TRANSFER_SIZE_SAMPLES)
     {
-      aduState.txRingBufferReadOffset = 0;
-      aduState.txRingBufferWriteOffset = 0;
+      if(!bClockOk)
+      {    
+        Analyse(GPIOB, 8, 1);
+        bClockOk = true;
+      }
+    }
+    
+      // Analyse(GPIOD, 5, 0);
+      // Analyse(GPIOD, 5, 1);
+
+    AddOverunLog(5);
+
+    if(aduState.txRingBufferUsedSize == TX_RING_BUFFER_UNDERFLOW_SIZE)
+    {
+      // ok all data is synced and the read data is not in the first normal block, reset the offsets
+      if(startTxRingBufferReadOffset >= USE_TRANSFER_SIZE_SAMPLES)
+      {
+        aduState.txRingBufferReadOffset = 0;
+        aduState.txRingBufferWriteOffset = 0;
+        aduState.txCurrentRingBufferSize = TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE;
+        Analyse(GPIOG, 10, 1);
+        Analyse(GPIOG, 10, 0);
+      }
     }
   }
 
+  // reset codec fram sample count
   aduState.codecFrameSampleCount = 0;
 
-  if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
-  {
-    Analyse(GPIOG, 10, 1);
-    Analyse(GPIOG, 10, 0);
-
-  }
-
+  // transmit
   usbStartTransmitI(usbp, 3, (uint8_t *)aduTxBuffer, aduState.lastTransferSize );
 
   aduAddTransferLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);

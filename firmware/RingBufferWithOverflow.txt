@@ -71,5 +71,15 @@ So first job is probably to sync the codeccopy, I think this already happens. Ne
 
 At the end of a transfer if aduState.txRingBufferUsedSize==0 and startTxRingBufferReadOffset >= 96 then we can reset the offsets
 
-So initial test with existing code is this...
+So initial test with existing code is this... Ok Reset is working.
+
+
+Next stage is to extend into overflow buffer, we always need from aduState.txRingBufferReadOffset to have at least 96 samples available.
+So when codec copy is running it needs to be writing into this overflow area.
+
+Need to fix problem with original code, it's ok for log term drift but if we start modifying the drift and then almost immediately get less data we can USB Underrun.
+Seems to happen around 53 minutes here. thinking a pre buffer of 32 samples would fix this, so 1/3 ms extra lattency. Or full USB buffer 1ms lattency.
+Or maybe rewrite the drift code :(
+
+)
 
