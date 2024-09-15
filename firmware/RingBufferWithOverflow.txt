@@ -82,5 +82,7 @@ Seems to happen around 53 minutes here. thinking a pre buffer of 32 samples woul
 
 So added an underflow buffer, running for 73 minutes without issue, needs longer testing.
 
-Running test now on keeping withing overflow buffer.
+Running test now on keeping withing overflow buffer. 151 minutes without underrun or buffer wrap.
+
+
 
