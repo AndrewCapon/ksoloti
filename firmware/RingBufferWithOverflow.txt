@@ -79,7 +79,8 @@ So when codec copy is running it needs to be writing into this overflow area.
 
 Need to fix problem with original code, it's ok for log term drift but if we start modifying the drift and then almost immediately get less data we can USB Underrun.
 Seems to happen around 53 minutes here. thinking a pre buffer of 32 samples would fix this, so 1/3 ms extra lattency. Or full USB buffer 1ms lattency.
-Or maybe rewrite the drift code :(
 
-)
+So added an underflow buffer, running for 73 minutes without issue, needs longer testing.
+
+Running test now on keeping withing overflow buffer.
 

@@ -32,6 +32,7 @@
 #define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
 
 // Overflow sample size to keep USB transfers fully confined in ring buffer
+// need to check this, should probably only be 2
 #define TX_RING_BUFFER_OVERFLOW_SIZE  (96)
 
 // Total allocated size in samples
@@ -96,6 +97,8 @@ uint16_t uLogIndex = 0;
 
 void AddOverunLog(uint8_t index)
 {
+  static uint16_t uMaxRingBufferSize = 0;
+
   overrunDebug[uLogIndex].index = index;
   overrunDebug[uLogIndex].txRingBufferUsedSize = aduState.txRingBufferUsedSize;
   overrunDebug[uLogIndex].txRingBufferWriteOffset = aduState.txRingBufferWriteOffset;
@@ -106,6 +109,9 @@ void AddOverunLog(uint8_t index)
   overrunDebug[uLogIndex].txCurrentRingBufferSize = aduState.txCurrentRingBufferSize;
   overrunDebug[uLogIndex].state = aduState.state;
   
+  if(aduState.txCurrentRingBufferSize > uMaxRingBufferSize)
+    uMaxRingBufferSize = aduState.txCurrentRingBufferSize;
+    
   uLogIndex++;
   if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
     uLogIndex = 0;
@@ -763,7 +769,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   aduState.lastTransferSize = USE_TRANSFER_SIZE_BYTES;
   aduState.currentFrame++;
 
-  uint8_t startTxRingBufferReadOffset = aduState.txRingBufferReadOffset;
+  uint16_t startTxRingBufferReadOffset = aduState.txRingBufferReadOffset;
 
   if(aduState.state == asInit || aduState.state == asFillingUnderflow)
   {
@@ -790,16 +796,22 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
         if (++(aduState.txRingBufferReadOffset) == aduState.txCurrentRingBufferSize) 
         {
+          if(u != USE_TRANSFER_SIZE_SAMPLES-1)
+          {
+            Analyse(GPIOA, 9, 1); 
+            Analyse(GPIOA, 9, 0);
+          }
+
           aduState.txRingBufferReadOffset= 0;
 
-          // if(u != 0)
-          // {
-          //   Analyse(GPIOG, 10, 1);
-          //   Analyse(GPIOG, 10, 0);
-          // }
         }
       }
       aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
+      if(aduState.txRingBufferReadOffset==0)
+      {
+        // we are synced, reset buffer length
+        aduState.txCurrentRingBufferSize = TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE;
+      }
     }
     else
     {
@@ -908,14 +920,14 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
           Analyse(GPIOB, 3, 1);
           aduState.sampleOffset-=2;
           aduState.txRingBufferUsedSize-=2;
-          aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset+2) % aduState.txCurrentRingBufferSize;
-          // aduState.txRingBufferReadOffset += 2;
-          // aduState.txCurrentRingBufferSize += 2;
-          // if(aduState.txCurrentRingBufferSize > 96*3)
-          // {
-          //   Analyse(GPIOG, 10, 1);
-          //   Analyse(GPIOG, 10, 0);
-          // }
+          //aduState.txRingBufferReadOffset = (aduState.txRingBufferReadOffset+2) % aduState.txCurrentRingBufferSize;
+          aduState.txRingBufferReadOffset += 2;
+          aduState.txCurrentRingBufferSize += 2;
+          if(aduState.txCurrentRingBufferSize > TX_RING_BUFFER_FULL_SIZE)
+          {
+            Analyse(GPIOG, 10, 1);
+            Analyse(GPIOG, 10, 0);
+          }
 
           Analyse(GPIOB, 3, 0);
         }

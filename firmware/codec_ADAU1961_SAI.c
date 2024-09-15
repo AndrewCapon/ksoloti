@@ -322,7 +322,7 @@ static void dma_sai_a_interrupt(void* dat, uint32_t flags) {
 
     (void)dat;
     (void)flags;
-    Analyse(GPIOA,  9, 1); 
+    //Analyse(GPIOA, 9, 1); 
     codec_interrupt_timestamp = hal_lld_get_counter_value();
 
     if ((sai_a_dma)->stream->CR & STM32_DMA_CR_CT) {
@@ -333,7 +333,7 @@ static void dma_sai_a_interrupt(void* dat, uint32_t flags) {
     }
 
     dmaStreamClearInterrupt(sai_a_dma);
-    Analyse(GPIOA,  9, 0); 
+    //Analyse(GPIOA, 9, 0); 
 }
 
 #endif
