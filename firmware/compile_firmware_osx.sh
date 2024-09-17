@@ -11,7 +11,7 @@ make -j16 -f Makefile.patch clean
 
 mkdir -p build/obj
 mkdir -p build/lst
-if ! make $1; then
+if ! make $1 -j16; then
     exit 1
 fi
 # rm -rf .dep

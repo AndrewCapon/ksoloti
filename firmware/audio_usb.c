@@ -652,78 +652,33 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
   }
 }
 
-/**
- * @brief   Default data transmitted callback.
- * @details The application must use this function as callback for the IN
- *          data endpoint.
- *
- * @param[in] usbp      pointer to the @p USBDriver object
- * @param[in] ep        endpoint number
- */
-void aduDataTransmitted(USBDriver *usbp, usbep_t ep) 
+
+
+
+
+
+
+
+
+
+#define CODEC_CONTROLLED 0
+
+#if CODEC_CONTROLLED
+void aduCodecData (int32_t *in, int32_t *out)
 {
-  USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
-  volatile uint32_t uTransmittedCount = pEpState->txcnt;
-  if(uTransmittedCount != aduState.lastTransferSize)
-  {
-    Analyse(GPIOD, 5, 1);
-    Analyse(GPIOD, 5, 0);
-  }    
-
-  aduAddTransferLog(blEndTransmit, uTransmittedCount);
-
-  if(aduState.isOutputActive)
-  {
-    chSysLockFromIsr();
-    aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
-    chSysUnlockFromIsr();
-  }
-  else
-    aduResetOutputBuffers();
+  Analyse(GPIOB, 7, 1);
+  AddOverunLog(0);
+  Analyse(GPIOB, 7, 0);
 }
 
-/**
- * @brief   Default data received callback.
- * @details The application must use this function as callback for the OUT
- *          data endpoint.
- *
- * @param[in] usbp      pointer to the @p USBDriver object
- * @param[in] ep        endpoint number
- */
-void aduDataReceived(USBDriver *usbp, usbep_t ep) 
+void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
-#if ADU_TRANSFER_LOG_SIZE
-  USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
-  volatile uint32_t uReceivedCount = pEpState->rxcnt;
-  aduAddTransferLog(blEndReceive, uReceivedCount);
-#endif
-
-
-  if(aduState.isOutputActive)
-  {
-    chSysLockFromIsr();
-    aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE_BYTES);
-    chSysUnlockFromIsr();
-  }
-  else
-    aduResetInputBuffers();
+  Analyse(GPIOD, 5, 1);
+  AddOverunLog(1);
+  Analyse(GPIOD, 5, 0);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// hacky test
+#else
 void aduCodecData (int32_t *in, int32_t *out)
 {
   uint8_t uLen = 32;
@@ -770,17 +725,6 @@ void aduCodecData (int32_t *in, int32_t *out)
   }
 #endif
 }
-
-
-void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
-{
-  Analyse(GPIOG, 11, 1);
-//  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer[uRxWrite], USE_TRANSFER_SIZE);
-  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE_BYTES);
-  aduAddTransferLog(blStartReceive, uCount);
-  Analyse(GPIOG, 11, 0);
-}
-
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
@@ -1052,6 +996,76 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   aduAddTransferLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);
 
   Analyse(GPIOD, 5, 0);
+}
+
+#endif
+
+/**
+ * @brief   Default data transmitted callback.
+ * @details The application must use this function as callback for the IN
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void aduDataTransmitted(USBDriver *usbp, usbep_t ep) 
+{
+  USBInEndpointState *pEpState = usbp->epc[ep]->in_state;
+  volatile uint32_t uTransmittedCount = pEpState->txcnt;
+  if(uTransmittedCount != aduState.lastTransferSize)
+  {
+    Analyse(GPIOD, 5, 1);
+    Analyse(GPIOD, 5, 0);
+  }    
+
+  aduAddTransferLog(blEndTransmit, uTransmittedCount);
+
+  if(aduState.isOutputActive)
+  {
+    chSysLockFromIsr();
+    aduInitiateTransmitI(usbp, USE_TRANSFER_SIZE_BYTES);
+    chSysUnlockFromIsr();
+  }
+  else
+    aduResetOutputBuffers();
+}
+
+/**
+ * @brief   Default data received callback.
+ * @details The application must use this function as callback for the OUT
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void aduDataReceived(USBDriver *usbp, usbep_t ep) 
+{
+#if ADU_TRANSFER_LOG_SIZE
+  USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
+  volatile uint32_t uReceivedCount = pEpState->rxcnt;
+  aduAddTransferLog(blEndReceive, uReceivedCount);
+#endif
+
+
+  if(aduState.isOutputActive)
+  {
+    chSysLockFromIsr();
+    aduInitiateReceiveI(usbp, USE_TRANSFER_SIZE_BYTES);
+    chSysUnlockFromIsr();
+  }
+  else
+    aduResetInputBuffers();
+}
+
+
+
+void aduInitiateReceiveI(USBDriver *usbp, size_t uCount)
+{
+  Analyse(GPIOG, 11, 1);
+//  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer[uRxWrite], USE_TRANSFER_SIZE);
+  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE_BYTES);
+  aduAddTransferLog(blStartReceive, uCount);
+  Analyse(GPIOG, 11, 0);
 }
 
 
