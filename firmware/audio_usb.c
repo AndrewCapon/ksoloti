@@ -56,33 +56,6 @@ static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
 #define ADU_TRANSFER_LOG_SIZE 0
 #define ADU_OVERRUN_LOG_SIZE 4000
-//#define ADU_OVERRUN_LOG_SIZE 0
-
-// 10 seconds
-//#define ADU_CODEC_METICS_LOG_SIZE ((1000/CODEC_METICS_MS) * 10)
-#define ADU_CODEC_METICS_LOG_SIZE 0
-
-#if ADU_CODEC_METICS_LOG_SIZE
-typedef struct _CodecMetrics
-{
-  float   fMovingAverage;
-  int16_t codecMetricsSampleOffset;
-} CodecMetrics;
-
-CodecMetrics aduTransferCodecMetricsLog[ADU_CODEC_METICS_LOG_SIZE] __attribute__ ((section (".sram3")));
-uint16_t aduCodecMetricsLogCount = 0;
-
-void aduAddCodecMetricsLog(float fMovingAverage, uint16_t codecMetricsSampleOffset)
-{
-  aduTransferCodecMetricsLog[aduCodecMetricsLogCount].fMovingAverage = fMovingAverage;
-  aduTransferCodecMetricsLog[aduCodecMetricsLogCount].codecMetricsSampleOffset = codecMetricsSampleOffset;
-  aduCodecMetricsLogCount++;
-  if(aduCodecMetricsLogCount == ADU_CODEC_METICS_LOG_SIZE)
-    aduCodecMetricsLogCount = 0;
-}
-#else
-  #define aduAddCodecMetricsLog(a, b)
-#endif 
 
 
 #if ADU_TRANSFER_LOG_SIZE
@@ -114,9 +87,18 @@ void aduAddTransferLog(BLType type, uint16_t uSize)
 
 
 #if ADU_OVERRUN_LOG_SIZE
+typedef enum _LogType
+{
+  ltCodecCopyEnd__,
+  ltFrameEndedEnd__,
+  ltFrameStartedEnd,
+  ltWaitingForSync_,
+  ltAfterTXAdjust__
+} LogType; 
+
 typedef struct _OverrunDebug
 {
-  uint8_t  index;
+  LogType  type;
   uint16_t txRingBufferUsedSize;
   uint16_t txCurrentRingBufferSize;
   uint16_t txRingBufferWriteOffset;
@@ -132,11 +114,11 @@ typedef struct _OverrunDebug
 OverrunDebug overrunDebug[ADU_OVERRUN_LOG_SIZE]   __attribute__ ((section (".sram3")));
 uint16_t uLogIndex = 0;
 
-void AddOverunLog(uint8_t index)
+void AddOverunLog(LogType type)
 {
   static uint16_t uMaxRingBufferSize = 0;
 
-  overrunDebug[uLogIndex].index = index;
+  overrunDebug[uLogIndex].type = type;
   overrunDebug[uLogIndex].txRingBufferUsedSize = aduState.txRingBufferUsedSize;
   overrunDebug[uLogIndex].txRingBufferWriteOffset = aduState.txRingBufferWriteOffset;
   overrunDebug[uLogIndex].txRingBufferReadOffset = aduState.txRingBufferReadOffset;
@@ -737,11 +719,11 @@ void aduCodecData (int32_t *in, int32_t *out)
         aduState.txRingBufferWriteOffset= 0;
     }
 
-    aduState.txRingBufferUsedSize+=uFeedbackLen;
+    aduState.txRingBufferUsedSize+=uLen;
     aduState.codecFrameSampleCount+=uFeedbackLen;
 
 
-    AddOverunLog(0);
+    AddOverunLog(ltCodecCopyEnd__);
     Analyse(GPIOB, 7, 0);
   }
 }
@@ -824,6 +806,26 @@ void aduCodecFrameEnded(void)
 
 
   // we need some checks here
+  if((aduState.state > asFillingUnderflow) && (aduState.txRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES))
+  {
+    Analyse(GPIOA, 9, 1);
+    Analyse(GPIOA, 9, 0);
+  }
+
+
+  if((aduState.state > asFillingUnderflow) && (aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE))
+  {
+    Analyse(GPIOG, 10, 1);
+    if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_UNDERFLOW_SIZE)
+    {
+      // really bad 
+      Analyse(GPIOG, 10, 0);
+      Analyse(GPIOG, 10, 1);
+    }
+    Analyse(GPIOG, 10, 0);
+  }
+
+  AddOverunLog(ltFrameEndedEnd__);
 }
 
 void aduCodecFrameStarted(void)
@@ -868,6 +870,8 @@ void aduCodecFrameStarted(void)
   }
   else
     Analyse(GPIOB, 8, 1);
+
+  AddOverunLog(ltFrameStartedEnd);
 }
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
@@ -876,7 +880,6 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
   
   // tell codec copy that USB frame has ended
   aduCodecFrameEnded();
-  AddOverunLog(1);
 
   int16_t *pTxLocation = NULL;
   if(aduState.state == asInit || aduState.state == asFillingUnderflow)
@@ -892,7 +895,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
       aduResetInputBuffers();
       aduResetOutputBuffers();
     }
-    AddOverunLog(2);
+    AddOverunLog(ltWaitingForSync_);
   }
 
   // transmit from buffer, increase read offset
@@ -910,11 +913,10 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
     aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
   }
 
-  AddOverunLog(3);
+  AddOverunLog(ltAfterTXAdjust__);
 
   // tell codec copy that USB frame has started
   aduCodecFrameStarted();
-  AddOverunLog(4);
 
   // transmit USB data
   usbStartTransmitI(usbp, 3, (uint8_t *)pTxLocation, USE_TRANSFER_SIZE_BYTES);
