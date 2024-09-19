@@ -1024,32 +1024,34 @@ typedef enum _adustate
   asInit,
   asFillingUnderflow,
   asNormal,
-  asAdjustingClock
+  asCodecRemove,
+  asCodecDuplicate,
 } ADUState;
+
 
 typedef struct 
 {
-  uint32_t currentSampleRate;
-  int8_t   mute[ADU_AUDIO_CHANNELS + 1];
-  int16_t  volume[ADU_AUDIO_CHANNELS + 1];
-  bool     isOutputActive;
-  bool     isInputActive;
-  size_t   lastTransferSize;
-  uint16_t codecFrameSampleCount;
-  uint32_t currentFrame;
-  uint32_t lastOverunFrame;
-  uint32_t sampleAdjustEveryFrame;
-  uint32_t sampleAdjustFrameCounter;
-  int16_t  sampleOffset;
-  int16_t  codecMetricsSampleOffset;
-  int16_t  codecMetricsBlocksOkCount;
+  uint_fast32_t currentSampleRate;
+  int_fast8_t   mute[ADU_AUDIO_CHANNELS + 1];
+  int_fast16_t  volume[ADU_AUDIO_CHANNELS + 1];
+  bool          isOutputActive;
+  bool          isInputActive;
+  size_t        lastTransferSize;
+  uint_fast16_t codecFrameSampleCount;
+  uint_fast32_t currentFrame;
+  uint_fast32_t lastOverunFrame;
+  uint_fast32_t sampleAdjustEveryFrame;
+  uint_fast32_t sampleAdjustFrameCounter;
+  int_fast16_t  sampleOffset;
+  int_fast16_t  codecMetricsSampleOffset;
+  int_fast16_t  codecMetricsBlocksOkCount;
 
-  uint16_t txRingBufferWriteOffset;
-  uint16_t txRingBufferReadOffset;
-  uint16_t txRingBufferUsedSize;
-  uint16_t txCurrentRingBufferSize;
+  uint_fast16_t txRingBufferWriteOffset;
+  uint_fast16_t txRingBufferReadOffset;
+  uint_fast16_t txRingBufferUsedSize;
+  uint_fast16_t txCurrentRingBufferSize;
 
-  ADUState state;
+  ADUState      state;
 } AduState;
 
 /*===========================================================================*/

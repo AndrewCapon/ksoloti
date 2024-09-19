@@ -55,8 +55,35 @@ static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
 static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
 #define ADU_TRANSFER_LOG_SIZE 0
-//#define ADU_OVERRUN_LOG_SIZE 4000
-#define ADU_OVERRUN_LOG_SIZE 0
+#define ADU_OVERRUN_LOG_SIZE 4000
+//#define ADU_OVERRUN_LOG_SIZE 0
+
+// 10 seconds
+//#define ADU_CODEC_METICS_LOG_SIZE ((1000/CODEC_METICS_MS) * 10)
+#define ADU_CODEC_METICS_LOG_SIZE 0
+
+#if ADU_CODEC_METICS_LOG_SIZE
+typedef struct _CodecMetrics
+{
+  float   fMovingAverage;
+  int16_t codecMetricsSampleOffset;
+} CodecMetrics;
+
+CodecMetrics aduTransferCodecMetricsLog[ADU_CODEC_METICS_LOG_SIZE] __attribute__ ((section (".sram3")));
+uint16_t aduCodecMetricsLogCount = 0;
+
+void aduAddCodecMetricsLog(float fMovingAverage, uint16_t codecMetricsSampleOffset)
+{
+  aduTransferCodecMetricsLog[aduCodecMetricsLogCount].fMovingAverage = fMovingAverage;
+  aduTransferCodecMetricsLog[aduCodecMetricsLogCount].codecMetricsSampleOffset = codecMetricsSampleOffset;
+  aduCodecMetricsLogCount++;
+  if(aduCodecMetricsLogCount == ADU_CODEC_METICS_LOG_SIZE)
+    aduCodecMetricsLogCount = 0;
+}
+#else
+  #define aduAddCodecMetricsLog(a, b)
+#endif 
+
 
 #if ADU_TRANSFER_LOG_SIZE
 typedef enum _BLType {blStartTransmit, blStartReceive, blEndTransmit, blEndReceive} BLType;
@@ -661,20 +688,238 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
 
 
 
-#define CODEC_CONTROLLED 0
+#define CODEC_CONTROLLED 1
 
 #if CODEC_CONTROLLED
+
+// simplify.
+
+// TX always transmits base on packet size, so fixed offsets, 96, 192, 288 etc
+
+// aduCodecData handles keeping the buffer full so TX is not starved
+// and doesn;t over or under flow.
+
+// Attempts to keep two TX buffers worth of data at all times before next TX - TX_RING_BUFFER_NORMAL_SIZE
+
+// ring buffer never changes size.
+
 void aduCodecData (int32_t *in, int32_t *out)
 {
-  Analyse(GPIOB, 7, 1);
-  AddOverunLog(0);
-  Analyse(GPIOB, 7, 0);
+  if(aduState.isOutputActive)
+  {
+    Analyse(GPIOB, 7, 1);
+
+    uint16_t uLen = 32;
+    uint16_t uFeedbackLen = uLen;
+
+    if(aduState.state == asCodecRemove)
+    {
+      // remove two samples
+      uLen -= 2;
+      aduState.state = asNormal;
+    } 
+    else if(aduState.state == asCodecDuplicate)
+    {
+      // add two samples 
+      int u; for (u=0; u< 2; u++)
+      {
+        aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
+        if (++(aduState.txRingBufferWriteOffset) == aduState.txCurrentRingBufferSize) 
+          aduState.txRingBufferWriteOffset= 0;
+      }
+      aduState.state = asNormal;
+    }
+
+    int u; for (u=0; u< uLen; u++)
+    {
+      aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
+      if (++(aduState.txRingBufferWriteOffset) == aduState.txCurrentRingBufferSize) 
+        aduState.txRingBufferWriteOffset= 0;
+    }
+
+    aduState.txRingBufferUsedSize+=uFeedbackLen;
+    aduState.codecFrameSampleCount+=uFeedbackLen;
+
+
+    AddOverunLog(0);
+    Analyse(GPIOB, 7, 0);
+  }
+}
+
+void aduCodecFrameEnded(void)
+{
+  // USB clock and Codec clock will be different
+  // we can get underruns and overruns.
+  // also the clocks slide against each other so we can get
+  // jitter in the number of codec frames received
+  // per USB frame, 1, 2, 3, 0r 4.
+  //
+  // we want to distort the USB stream as little as possible
+  // so we can't adjust the sample counts based on the codec clock
+  // or on the USB clock
+
+  // we want to try to maintain TX_RING_BUFFER_NORMAL_SIZE samples available
+  // at the end of this method,
+
+  // we must never go under USE_TRANSFER_SIZE_BYTES samples available
+  // at the end of this method
+
+  // invrement current usb frame
+  aduState.currentFrame++;
+
+  int16_t nFrameSampleOffest = (int16_t)(aduState.codecFrameSampleCount)-96;
+  aduState.codecMetricsSampleOffset += nFrameSampleOffest;
+
+  if(nFrameSampleOffest < 0)
+  {
+    Analyse(GPIOB, 4, 1);
+    Analyse(GPIOB, 4, 0);
+  }
+  else if(nFrameSampleOffest > 0)
+  {
+    Analyse(GPIOB, 6, 1);
+    Analyse(GPIOB, 6, 0);
+  }
+
+  if(0 == (aduState.currentFrame % CODEC_METICS_MS))
+  {
+    if(aduState.codecMetricsSampleOffset  < 0)
+    {
+      Analyse(GPIOD, 6, 1);
+      Analyse(GPIOD, 6, 0);
+    }
+    else if(aduState.codecMetricsSampleOffset  > 0)
+    {
+      Analyse(GPIOD, 3, 1);
+      Analyse(GPIOD, 3, 0);
+    }
+
+    if(aduState.codecMetricsSampleOffset != 0)
+    {
+      // ok we are out of sync, adjust to sync
+      aduState.sampleOffset += aduState.codecMetricsSampleOffset;
+      uint16_t uUseBlocks   = aduState.codecMetricsBlocksOkCount;
+
+      // make recovery 1 block quicker
+      if(uUseBlocks > 1)
+        uUseBlocks -=1;
+
+      // calculate sample adjust counter
+      aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*uUseBlocks) / ((abs(aduState.sampleOffset)>>1));
+      aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+
+      // reset
+      aduState.codecMetricsBlocksOkCount = 0;
+
+      Analyse(GPIOB, 8, 0);
+    }
+    else
+    {
+      // block is ok so increment counter
+      aduState.codecMetricsBlocksOkCount++;
+    }
+
+    aduState.codecMetricsSampleOffset = 0;
+  }
+
+
+  // we need some checks here
+}
+
+void aduCodecFrameStarted(void)
+{
+  aduState.codecFrameSampleCount = 0;
+  
+  if( aduState.sampleOffset != 0)
+  {
+    if(aduState.sampleAdjustFrameCounter == 0)
+    {
+      if(aduState.sampleOffset > 0)
+      {
+        // adjust overrun
+        // chuck samples awway
+        Analyse(GPIOB, 3, 1);
+        aduState.sampleOffset-=2;
+        aduState.state = asCodecRemove;
+        Analyse(GPIOB, 3, 0);
+      }
+      else
+      {
+        // adjust underrun
+        // duplicate sample
+        Analyse(GPIOC, 7, 1);
+        aduState.sampleOffset+=2;
+        aduState.state = asCodecDuplicate;
+        Analyse(GPIOC, 7, 0);
+      }
+
+      // check for finish or restert
+      if(aduState.sampleOffset)
+      {
+        aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
+      }
+      else
+      {
+        aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame = 0;
+      }
+    }
+    else
+      aduState.sampleAdjustFrameCounter--;
+  }
+  else
+    Analyse(GPIOB, 8, 1);
 }
 
 void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 {
   Analyse(GPIOD, 5, 1);
+  
+  // tell codec copy that USB frame has ended
+  aduCodecFrameEnded();
   AddOverunLog(1);
+
+  int16_t *pTxLocation = NULL;
+  if(aduState.state == asInit || aduState.state == asFillingUnderflow)
+  {
+    // send silence
+    pTxLocation = (aduTxRingBuffer + TX_RING_BUFFER_FULL_SIZE) - USE_TRANSFER_SIZE_SAMPLES;
+
+    // wait for unflow buffer to be filled and synced
+    if(aduState.txRingBufferUsedSize == TX_RING_BUFFER_NORMAL_SIZE)
+      aduState.state = asNormal;
+    else if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
+    {
+      aduResetInputBuffers();
+      aduResetOutputBuffers();
+    }
+    AddOverunLog(2);
+  }
+
+  // transmit from buffer, increase read offset
+  if(aduState.state > asFillingUnderflow)
+  {
+    // set transmit location
+    pTxLocation = aduTxRingBuffer + aduState.txRingBufferReadOffset;
+
+    // increase and wrap read offset
+    aduState.txRingBufferReadOffset += USE_TRANSFER_SIZE_SAMPLES;
+    if(aduState.txRingBufferReadOffset == TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)
+      aduState.txRingBufferReadOffset = 0;
+
+    // decrease buffer used size
+    aduState.txRingBufferUsedSize -= USE_TRANSFER_SIZE_SAMPLES;
+  }
+
+  AddOverunLog(3);
+
+  // tell codec copy that USB frame has started
+  aduCodecFrameStarted();
+  AddOverunLog(4);
+
+  // transmit USB data
+  usbStartTransmitI(usbp, 3, (uint8_t *)pTxLocation, USE_TRANSFER_SIZE_BYTES);
+  aduAddTransferLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);
+
   Analyse(GPIOD, 5, 0);
 }
 

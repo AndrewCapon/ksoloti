@@ -36,7 +36,8 @@
         "rope": "c",
         "usbcfg.h": "c",
         "bulk_usb.h": "c",
-        "analyse.h": "c"
+        "analyse.h": "c",
+        "random": "c"
     },
     "C_Cpp.default.compilerPath": "/Volumes/X82/Development/ksoloti/platform_osx/bin/arm-none-eabi-gcc",
     "cortex-debug.variableUseNaturalFormat": true,
