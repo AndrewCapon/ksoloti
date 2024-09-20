@@ -687,6 +687,8 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
 // ring buffer never changes size.
 uint16_t aduSkippedSamplesStart = 0;
 int16_t aduSkippedSampleValue = 0;
+uint16_t aduAddedSamplesStart = 0;
+int16_t aduAddedSampleValue = 0;
 
 void aduCodecData (int32_t *in, int32_t *out)
 {
@@ -699,7 +701,8 @@ void aduCodecData (int32_t *in, int32_t *out)
 
 #if EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME
     static uint16_t uCount = 0;
-    if(uCount == EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME)
+    // dont emulate if we are not in normal state
+    if((uCount >= EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME) && (aduState.state == asNormal))
     {
       uCount = 0;
       uLen = 30;
@@ -721,6 +724,9 @@ void aduCodecData (int32_t *in, int32_t *out)
     {
       // add two samples 
       Analyse(GPIOC, 7, 1);
+      aduAddedSamplesStart = aduState.txRingBufferWriteOffset;
+      aduAddedSampleValue = out[0]>>16;
+
       int u; for (u=0; u< 2; u++)
       {
         aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
