@@ -45,8 +45,6 @@
 // Total allocated size in samples
 #define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_OVERFLOW_SIZE)
 
-#define CODEC_METICS_MS (100)
-//#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/2)
 
 static int16_t aduTxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
 #if !TX_DIRECT
@@ -54,6 +52,9 @@ static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
 #endif
 static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
+// debugging defines
+#define CODEC_METICS_MS (100)
+#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/(2*32))
 #define ADU_TRANSFER_LOG_SIZE 0
 #define CHECK_USB_DATA 1
 #define ADU_OVERRUN_LOG_SIZE 4000
@@ -696,6 +697,18 @@ void aduCodecData (int32_t *in, int32_t *out)
     uint16_t uLen = 32;
     uint16_t uFeedbackLen = uLen;
 
+#if EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME
+    static uint16_t uCount = 0;
+    if(uCount == EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME)
+    {
+      uCount = 0;
+      uLen = 30;
+      uFeedbackLen -=2;
+    }
+    else
+      uCount++;
+#endif  
+
     if(aduState.state == asCodecRemove)
     {
       // remove two samples
@@ -793,11 +806,11 @@ void aduCodecFrameEnded(void)
     {
       // ok we are out of sync, adjust to sync
       aduState.sampleOffset += aduState.codecMetricsSampleOffset;
-      uint16_t uUseBlocks   = aduState.codecMetricsBlocksOkCount;
+      uint16_t uUseBlocks   = aduState.codecMetricsBlocksOkCount+1;
 
       // make recovery 1 block quicker
-      if(uUseBlocks > 1)
-        uUseBlocks -=1;
+      // if(uUseBlocks > 1)
+      //   uUseBlocks -=1;
 
       // calculate sample adjust counter
       aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*uUseBlocks) / ((abs(aduState.sampleOffset)>>1));
@@ -947,7 +960,7 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
 #if CHECK_USB_DATA
   // DEBUG test USB Data, requires USBOutputTest.axp running on Ksoloiti
-  int16_t tmpData[46];
+  volatile int16_t tmpData[46];
   bool bOk = true;
   uint16_t u; for( u = 0; u < 46; u++)
   {
