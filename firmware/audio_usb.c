@@ -55,6 +55,7 @@ static int16_t aduTxBuffer[96] __attribute__ ((section (".sram3")));
 static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
 
 #define ADU_TRANSFER_LOG_SIZE 0
+#define CHECK_USB_DATA 1
 #define ADU_OVERRUN_LOG_SIZE 4000
 
 
@@ -140,7 +141,6 @@ void AddOverunLog(LogType type)
 #endif 
 
 
-//#define USE_TRANSFER_SIZE 176
 #define USE_TRANSFER_SAMPLE_SIZE 2
 #define USE_TRANSFER_CHANNEL_SIZE 2
 #define USE_TRANSFER_SAMPLES_MS 48
@@ -218,7 +218,7 @@ static void aduSetVolume(USBDriver *usbp)
   aduState.volume[aduControlChannel] = ((audio_control_cur_2_t const *)aduControlData)->bCur;
 }
 
-bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, audio_control_request_t *request)
+bool aduHandleVolumeRequest(USBDriver *usbp, audio_control_request_t *request)
 {
   // if(uLogCount < LOG_AMOUNT)
   //   memcpy(&requests[uLogCount++], request, sizeof(audio_control_request_t));
@@ -305,7 +305,7 @@ bool __attribute__((optimize("O0"))) aduHandleVolumeRequest(USBDriver *usbp, aud
   return bResult;
 }
 
-bool __attribute__((optimize("O0"))) aduHandleClockRequest(USBDriver *usbp, audio_control_request_t *request)
+bool aduHandleClockRequest(USBDriver *usbp, audio_control_request_t *request)
 {
   bool bResult = false;
 
@@ -684,6 +684,8 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
 // Attempts to keep two TX buffers worth of data at all times before next TX - TX_RING_BUFFER_NORMAL_SIZE
 
 // ring buffer never changes size.
+uint16_t aduSkippedSamplesStart = 0;
+int16_t aduSkippedSampleValue = 0;
 
 void aduCodecData (int32_t *in, int32_t *out)
 {
@@ -697,12 +699,15 @@ void aduCodecData (int32_t *in, int32_t *out)
     if(aduState.state == asCodecRemove)
     {
       // remove two samples
+      Analyse(GPIOB, 3, 1);
       uLen -= 2;
       aduState.state = asNormal;
+      Analyse(GPIOB, 3, 0);
     } 
     else if(aduState.state == asCodecDuplicate)
     {
       // add two samples 
+      Analyse(GPIOC, 7, 1);
       int u; for (u=0; u< 2; u++)
       {
         aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
@@ -710,6 +715,8 @@ void aduCodecData (int32_t *in, int32_t *out)
           aduState.txRingBufferWriteOffset= 0;
       }
       aduState.state = asNormal;
+      aduState.txRingBufferUsedSize+=2;
+      Analyse(GPIOC, 7, 0);
     }
 
     int u; for (u=0; u< uLen; u++)
@@ -719,11 +726,17 @@ void aduCodecData (int32_t *in, int32_t *out)
         aduState.txRingBufferWriteOffset= 0;
     }
 
+    if(uLen < 32)
+    {
+      aduSkippedSamplesStart = aduState.txRingBufferWriteOffset;
+      aduSkippedSampleValue = out[uLen+1] >> 16;
+    }
     aduState.txRingBufferUsedSize+=uLen;
     aduState.codecFrameSampleCount+=uFeedbackLen;
 
 
     AddOverunLog(ltCodecCopyEnd__);
+
     Analyse(GPIOB, 7, 0);
   }
 }
@@ -805,24 +818,38 @@ void aduCodecFrameEnded(void)
   }
 
 
-  // we need some checks here
-  if((aduState.state > asFillingUnderflow) && (aduState.txRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES))
+  // we need some checks here for debugging
+  if(aduState.state > asFillingUnderflow)
   {
-    Analyse(GPIOA, 9, 1);
-    Analyse(GPIOA, 9, 0);
-  }
-
-
-  if((aduState.state > asFillingUnderflow) && (aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE))
-  {
-    Analyse(GPIOG, 10, 1);
-    if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_UNDERFLOW_SIZE)
+    if(aduState.txRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES)
     {
-      // really bad 
-      Analyse(GPIOG, 10, 0);
-      Analyse(GPIOG, 10, 1);
+      Analyse(GPIOA, 9, 1);
+      Analyse(GPIOA, 9, 0);
     }
-    Analyse(GPIOG, 10, 0);
+
+    if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
+    {
+      Analyse(GPIOG, 10, 1);
+      if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_UNDERFLOW_SIZE)
+      {
+        // really bad 
+        Analyse(GPIOG, 10, 0);
+        Analyse(GPIOG, 10, 1);
+      }
+      Analyse(GPIOG, 10, 0);
+    }
+
+    uint16_t uCalcSize;
+    if((aduState.txRingBufferWriteOffset < aduState.txRingBufferReadOffset))
+      uCalcSize = (aduState.txRingBufferWriteOffset + TX_RING_BUFFER_NORMAL_SIZE + TX_RING_BUFFER_UNDERFLOW_SIZE) - aduState.txRingBufferReadOffset;
+    else
+      uCalcSize = aduState.txRingBufferWriteOffset - aduState.txRingBufferReadOffset;
+
+    if(uCalcSize != aduState.txRingBufferUsedSize)
+    {
+      Analyse(GPIOG, 10, 1);
+      Analyse(GPIOG, 10, 0);
+    }
   }
 
   AddOverunLog(ltFrameEndedEnd__);
@@ -840,19 +867,19 @@ void aduCodecFrameStarted(void)
       {
         // adjust overrun
         // chuck samples awway
-        Analyse(GPIOB, 3, 1);
+        //Analyse(GPIOB, 3, 1);
         aduState.sampleOffset-=2;
         aduState.state = asCodecRemove;
-        Analyse(GPIOB, 3, 0);
+        //Analyse(GPIOB, 3, 0);
       }
       else
       {
         // adjust underrun
         // duplicate sample
-        Analyse(GPIOC, 7, 1);
+        //Analyse(GPIOC, 7, 1);
         aduState.sampleOffset+=2;
         aduState.state = asCodecDuplicate;
-        Analyse(GPIOC, 7, 0);
+        //Analyse(GPIOC, 7, 0);
       }
 
       // check for finish or restert
@@ -917,6 +944,29 @@ void aduInitiateTransmitI(USBDriver *usbp, size_t uCount)
 
   // tell codec copy that USB frame has started
   aduCodecFrameStarted();
+
+#if CHECK_USB_DATA
+  // DEBUG test USB Data, requires USBOutputTest.axp running on Ksoloiti
+  int16_t tmpData[46];
+  bool bOk = true;
+  uint16_t u; for( u = 0; u < 46; u++)
+  {
+    uint32_t uDiff = abs(pTxLocation[(u*2)+2] - pTxLocation[u*2]);
+    tmpData[u] = (pTxLocation[(u*2)+2] - pTxLocation[u*2]);
+    if(uDiff > 300)
+    {
+      bOk = false;
+      Analyse(GPIOA, 9, 1);
+      Analyse(GPIOA, 9, 0);
+    }
+  }
+
+  if(!bOk)
+  {
+    Analyse(GPIOA, 9, 1);
+    Analyse(GPIOA, 9, 0);
+  }
+#endif
 
   // transmit USB data
   usbStartTransmitI(usbp, 3, (uint8_t *)pTxLocation, USE_TRANSFER_SIZE_BYTES);
