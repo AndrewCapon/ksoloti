@@ -1098,8 +1098,7 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep);
 void aduDataReceived(USBDriver *usbp, usbep_t ep);
 void aduInitiateReceiveI(USBDriver *usbp);
 void aduInitiateTransmitI(USBDriver *usbp);
-void aduResetInputBuffers(void);
-void aduResetOutputBuffers(void);
+void aduResetBuffers(void);
 
 #ifdef __cplusplus
 extern "C" {

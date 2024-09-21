@@ -337,8 +337,7 @@ void aduObjectInit(AudioUSBDriver *adup)
   aduState.isInputActive = false;
   
   // frame stuff
-  aduResetOutputBuffers();
-  aduResetInputBuffers();
+  aduResetBuffers();
   
   // set not muted
   aduState.mute[0] = 0;
@@ -465,12 +464,8 @@ void aduSofHookI(AudioUSBDriver *adup)
   Analyse(GPIOD, 4, 0);
 }
 
-void aduResetInputBuffers(void)
-{
 
-}
-
-void aduResetOutputBuffers(void)
+void aduResetBuffers(void)
 {
   aduState.currentFrame               = 0;
   aduState.lastOverunFrame            = 0;
@@ -504,7 +499,7 @@ void aduEnableInput(USBDriver *usbp, bool bEnable)
     if(bEnable)
       aduInitiateTransmitI(usbp);
     else
-      aduResetInputBuffers();
+      aduResetBuffers();
     chSysUnlockFromIsr();
   }
 }
@@ -520,7 +515,7 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
     if(bEnable)
       aduInitiateReceiveI(usbp);
     else
-      aduResetOutputBuffers();
+      aduResetBuffers();
 
     chSysUnlockFromIsr();
   }
@@ -813,8 +808,7 @@ void aduInitiateTransmitI(USBDriver *usbp)
       aduState.state = asNormal;
     else if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
     {
-      aduResetInputBuffers();
-      aduResetOutputBuffers();
+      aduResetBuffers();
     }
     AddOverunLog(ltWaitingForSync_);
   }
@@ -896,7 +890,7 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
     chSysUnlockFromIsr();
   }
   else
-    aduResetOutputBuffers();
+    aduResetBuffers();
 }
 
 
@@ -949,7 +943,7 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
     chSysUnlockFromIsr();
   }
   else
-    aduResetInputBuffers();
+    aduResetBuffers();
 }
 
 
