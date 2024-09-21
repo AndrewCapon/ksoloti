@@ -1075,7 +1075,10 @@ typedef struct
   uint_fast16_t txRingBufferWriteOffset;
   uint_fast16_t txRingBufferReadOffset;
   uint_fast16_t txRingBufferUsedSize;
-  uint_fast16_t txCurrentRingBufferSize;
+
+  uint_fast16_t rxRingBufferWriteOffset;
+  uint_fast16_t rxRingBufferReadOffset;
+  uint_fast16_t rxRingBufferUsedSize;
 
   ADUState      state;
 } AduState;

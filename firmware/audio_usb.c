@@ -29,7 +29,7 @@
 
 
 static int16_t aduTxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
-static int16_t aduRxBuffer[96] __attribute__ ((section (".sram3")));
+static int16_t aduRxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
 extern AudioUSBDriver ADU1;
 #define N_SAMPLE_RATES  1
 const uint32_t aduSampleRates[] = {48000};
@@ -484,7 +484,9 @@ void aduResetOutputBuffers(void)
   aduState.txRingBufferWriteOffset    = 0;
   aduState.txRingBufferReadOffset     = 0;
   aduState.txRingBufferUsedSize       = 0;
-  aduState.txCurrentRingBufferSize    = TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE;
+  aduState.rxRingBufferWriteOffset    = 0;
+  aduState.rxRingBufferReadOffset     = 0;
+  aduState.rxRingBufferUsedSize       = 0;
   aduState.state                      = asInit;
 
   memset(aduTxRingBuffer, 0, sizeof(aduTxRingBuffer));
@@ -586,7 +588,7 @@ void aduCodecData (int32_t *in, int32_t *out)
       int u; for (u=0; u< 2; u++)
       {
         aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
-        if (++(aduState.txRingBufferWriteOffset) == aduState.txCurrentRingBufferSize) 
+        if (++(aduState.txRingBufferWriteOffset) == TX_RING_BUFFER_FULL_SIZE) 
           aduState.txRingBufferWriteOffset= 0;
       }
       aduState.state = asNormal;
@@ -597,7 +599,7 @@ void aduCodecData (int32_t *in, int32_t *out)
     int u; for (u=0; u< uLen; u++)
     {
       aduTxRingBuffer[aduState.txRingBufferWriteOffset] = out[u] >> 16;
-      if (++(aduState.txRingBufferWriteOffset) == aduState.txCurrentRingBufferSize) 
+      if (++(aduState.txRingBufferWriteOffset) == TX_RING_BUFFER_FULL_SIZE) 
         aduState.txRingBufferWriteOffset= 0;
     }
 
@@ -825,7 +827,7 @@ void aduInitiateTransmitI(USBDriver *usbp)
 
     // increase and wrap read offset
     aduState.txRingBufferReadOffset += USE_TRANSFER_SIZE_SAMPLES;
-    if(aduState.txRingBufferReadOffset == TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)
+    if(aduState.txRingBufferReadOffset == TX_RING_BUFFER_FULL_SIZE)
       aduState.txRingBufferReadOffset = 0;
 
     // decrease buffer used size
@@ -908,7 +910,10 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
 void aduInitiateReceiveI(USBDriver *usbp)
 {
   Analyse(GPIOG, 11, 1);
-  usbStartReceiveI(usbp, 3, (uint8_t *)aduRxBuffer, USE_TRANSFER_SIZE_BYTES);
+
+  int16_t *pRxLocation = aduRxRingBuffer + aduState.rxRingBufferWriteOffset;
+
+  usbStartReceiveI(usbp, 3, (uint8_t *)pRxLocation, USE_TRANSFER_SIZE_BYTES);
   aduAddTransferLog(blStartReceive, uCount);
   Analyse(GPIOG, 11, 0);
 }
@@ -929,6 +934,13 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
   aduAddTransferLog(blEndReceive, uReceivedCount);
 #endif
 
+  // increase and wrap write offset
+  aduState.rxRingBufferWriteOffset += USE_TRANSFER_SIZE_SAMPLES;
+  if(aduState.rxRingBufferWriteOffset == TX_RING_BUFFER_FULL_SIZE)
+    aduState.rxRingBufferWriteOffset = 0;
+
+  // increase buffer used size
+  aduState.rxRingBufferUsedSize += USE_TRANSFER_SIZE_SAMPLES;
 
   if(aduState.isOutputActive)
   {
