@@ -906,6 +906,32 @@ typedef struct __attribute__ ((packed))
 #define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
 #define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
 
+
+// samples to try to keep in buffer
+#define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
+
+// normal ring buffer sample size
+#define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
+
+// Total allocated size in samples
+#define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)
+
+// debugging defines
+#define ADU_LOGGING 0
+#define CODEC_METICS_MS (100)
+//#define EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME (3000/(2*32))
+#define ADU_TRANSFER_LOG_SIZE 0
+#define CHECK_USB_DATA 1
+//#define ADU_OVERRUN_LOG_SIZE 4000
+
+#define USE_TRANSFER_SAMPLE_SIZE 2
+#define USE_TRANSFER_CHANNEL_SIZE 2
+#define USE_TRANSFER_SAMPLES_MS 48
+
+#define USE_TRANSFER_SIZE_SAMPLES (USE_TRANSFER_CHANNEL_SIZE * USE_TRANSFER_SAMPLES_MS)
+#define USE_TRANSFER_SIZE_BYTES   (USE_TRANSFER_SAMPLE_SIZE * USE_TRANSFER_CHANNEL_SIZE * USE_TRANSFER_SAMPLES_MS)
+
+
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -1063,6 +1089,15 @@ typedef struct
 /*===========================================================================*/
 extern AduState aduState;
 
+void aduEnableInput(USBDriver *usbp, bool bEnable);
+void aduEnableOutput(USBDriver *usbp, bool bEnable);
+void aduDataTransmitted(USBDriver *usbp, usbep_t ep); 
+void aduDataReceived(USBDriver *usbp, usbep_t ep);
+void aduInitiateReceiveI(USBDriver *usbp);
+void aduInitiateTransmitI(USBDriver *usbp);
+void aduResetInputBuffers(void);
+void aduResetOutputBuffers(void);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1079,6 +1114,7 @@ extern "C" {
   bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
 #ifdef __cplusplus
 }
+
 #endif
 
 #endif // _AUDIO_USB_H_
