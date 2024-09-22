@@ -31,20 +31,23 @@ void aduAddTransferLog(BLType type, uint16_t uSize)
 #if ADU_OVERRUN_LOG_SIZE
 typedef enum _LogType
 {
-  ltCodecCopyEnd__,
+  ltCodecCopyEnd___,
   ltFrameEndedEnd__,
   ltFrameStartedEnd,
   ltWaitingForSync_,
-  ltAfterTXAdjust__
+  ltAfterTXAdjust__,
+  ltAfterDataRX____,
 } LogType; 
 
 typedef struct _OverrunDebug
 {
   LogType  type;
-  uint16_t txRingBufferUsedSize;
-  uint16_t txCurrentRingBufferSize;
-  uint16_t txRingBufferWriteOffset;
-  uint16_t txRingBufferReadOffset;
+  uint16_t txUsedSize;
+  uint16_t txWriteOffset;
+  uint16_t txReadOffset;
+  uint16_t rxUsedSize;
+  uint16_t rxWriteOffset;
+  uint16_t rxReadOffset;
   int16_t  sampleOffset;
   uint16_t codecFrameSampleCount;
   int16_t  codecMetricsSampleOffset;
@@ -58,24 +61,24 @@ uint16_t uLogIndex = 0;
 
 void AddOverunLog(LogType type)
 {
-  static uint16_t uMaxRingBufferSize = 0;
+  if((type == ltCodecCopyEnd___) || (type == ltAfterDataRX____))
+  {
+    overrunDebug[uLogIndex].type = type;
+    overrunDebug[uLogIndex].txUsedSize = aduState.txRingBufferUsedSize;
+    overrunDebug[uLogIndex].txWriteOffset = aduState.txRingBufferWriteOffset;
+    overrunDebug[uLogIndex].txReadOffset = aduState.txRingBufferReadOffset;
+    overrunDebug[uLogIndex].rxUsedSize = aduState.rxRingBufferUsedSize;
+    overrunDebug[uLogIndex].rxWriteOffset = aduState.rxRingBufferWriteOffset;
+    overrunDebug[uLogIndex].rxReadOffset = aduState.rxRingBufferReadOffset;
+    overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
+    overrunDebug[uLogIndex].codecFrameSampleCount = aduState.codecFrameSampleCount;
+    overrunDebug[uLogIndex].codecMetricsSampleOffset = aduState.codecMetricsSampleOffset;
+    overrunDebug[uLogIndex].state = aduState.state;
 
-  overrunDebug[uLogIndex].type = type;
-  overrunDebug[uLogIndex].txRingBufferUsedSize = aduState.txRingBufferUsedSize;
-  overrunDebug[uLogIndex].txRingBufferWriteOffset = aduState.txRingBufferWriteOffset;
-  overrunDebug[uLogIndex].txRingBufferReadOffset = aduState.txRingBufferReadOffset;
-  overrunDebug[uLogIndex].sampleOffset = aduState.sampleOffset;
-  overrunDebug[uLogIndex].codecFrameSampleCount = aduState.codecFrameSampleCount;
-  overrunDebug[uLogIndex].codecMetricsSampleOffset = aduState.codecMetricsSampleOffset;
-  overrunDebug[uLogIndex].txCurrentRingBufferSize = aduState.txCurrentRingBufferSize;
-  overrunDebug[uLogIndex].state = aduState.state;
-  
-  if(aduState.txCurrentRingBufferSize > uMaxRingBufferSize)
-    uMaxRingBufferSize = aduState.txCurrentRingBufferSize;
-
-  uLogIndex++;
-  if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
-    uLogIndex = 0;
+    uLogIndex++;
+    if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
+      uLogIndex = 0;
+  }
 }
 #else
   #define AddOverunLog(a)

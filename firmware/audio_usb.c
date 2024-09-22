@@ -419,7 +419,7 @@ void aduStop(AudioUSBDriver *adup)
   chSysUnlock()
   ;
 }
-
+ 
 /**
  * @brief   USB device configured handler.
  *
@@ -526,10 +526,15 @@ void aduEnableOutput(USBDriver *usbp, bool bEnable)
 
 
 #if CHECK_USB_DATA
-uint16_t aduSkippedSamplesStart = 0;
-int16_t aduSkippedSampleValue = 0;
-uint16_t aduAddedSamplesStart = 0;
-int16_t aduAddedSampleValue = 0;
+uint16_t aduSkippedTxSamplesStart = 0;
+int16_t  aduSkippedTxSampleValue = 0;
+uint16_t aduAddedTxSamplesStart = 0;
+int16_t  aduAddedTxSampleValue = 0;
+
+uint16_t aduSkippedRxSamplesStart = 0;
+int16_t  aduSkippedRxSampleValue = 0;
+uint16_t aduAddedRxSamplesStart = 0;
+int16_t  aduAddedRxSampleValue = 0;
 #endif
 
 /**
@@ -540,6 +545,7 @@ int16_t aduAddedSampleValue = 0;
  * @param[in] out   pointer to out data -> USB
  */
 
+// todo: sync read buffer, don't be transfering to codec in init phase!
 void aduCodecData (int32_t *in, int32_t *out)
 {
   if(aduState.isOutputActive)
@@ -560,14 +566,16 @@ void aduCodecData (int32_t *in, int32_t *out)
     }
     else
       uCount++;
-#endif  
+#endif // EMULATE_UNDERRUN_SKIP_SAMPLE_EVERY_CODEC_FRAME
 
+    /////////////////////////////////
+    // codec -> USB
+    /////////////////////////////////
     if(aduState.state == asCodecRemove)
     {
       // remove two samples
       Analyse(GPIOB, 3, 1);
       uLen -= 2;
-      aduState.state = asNormal;
       Analyse(GPIOB, 3, 0);
     } 
     else if(aduState.state == asCodecDuplicate)
@@ -576,9 +584,9 @@ void aduCodecData (int32_t *in, int32_t *out)
       Analyse(GPIOC, 7, 1);
 
 #if CHECK_USB_DATA
-      aduAddedSamplesStart = aduState.txRingBufferWriteOffset;
-      aduAddedSampleValue = out[0]>>16;
-#endif
+      aduAddedTxSamplesStart = aduState.txRingBufferWriteOffset;
+      aduAddedTxSampleValue = out[0]>>16;
+#endif // CHECK_USB_DATA
 
       int u; for (u=0; u< 2; u++)
       {
@@ -586,7 +594,6 @@ void aduCodecData (int32_t *in, int32_t *out)
         if (++(aduState.txRingBufferWriteOffset) == TX_RING_BUFFER_FULL_SIZE) 
           aduState.txRingBufferWriteOffset= 0;
       }
-      aduState.state = asNormal;
       aduState.txRingBufferUsedSize+=2;
       Analyse(GPIOC, 7, 0);
     }
@@ -601,18 +608,93 @@ void aduCodecData (int32_t *in, int32_t *out)
 #if CHECK_USB_DATA
     if(uLen < 32)
     {
-      aduSkippedSamplesStart = aduState.txRingBufferWriteOffset;
-      aduSkippedSampleValue = out[uLen+1] >> 16;
+      aduSkippedTxSamplesStart = aduState.txRingBufferWriteOffset;
+      aduSkippedTxSampleValue = out[uLen+1] >> 16;
     }
-#endif
+#endif // CHECK_USB_DATA
 
     aduState.txRingBufferUsedSize+=uLen;
     aduState.codecFrameSampleCount+=uFeedbackLen;
 
+    /////////////////////////////////
+    // USB -> codec
+    /////////////////////////////////
+    if(aduState.state > asFillingUnderflow)
+    {
+      // always copy 32 samples
 
-    AddOverunLog(ltCodecCopyEnd__);
+      for (u=0; u < 32; u++)
+      {
+        in[u] = aduTxRingBuffer[aduState.rxRingBufferReadOffset] << 16;
+        if (++(aduState.rxRingBufferReadOffset) == TX_RING_BUFFER_FULL_SIZE) 
+          aduState.rxRingBufferReadOffset= 0;
+      }
+      aduState.rxRingBufferUsedSize -= 32;
 
-    Analyse(GPIOB, 7, 0);
+      // adjustments 
+
+      if(aduState.state == asCodecDuplicate)
+      {
+        // 2 two many in USB buffer
+
+#if CHECK_USB_DATA
+      aduSkippedRxSamplesStart = aduState.rxRingBufferReadOffset;
+      aduSkippedRxSampleValue = aduRxRingBuffer[aduSkippedRxSamplesStart];
+#endif // CHECK_USB_DATA
+
+        aduState.rxRingBufferReadOffset = (aduState.rxRingBufferReadOffset+2) % TX_RING_BUFFER_FULL_SIZE;
+        aduState.rxRingBufferUsedSize -= 2;
+      }
+      else if(aduState.state == asCodecRemove)
+      {
+        // two  little in USB buffer
+#if CHECK_USB_DATA
+      aduAddedRxSamplesStart = aduState.rxRingBufferReadOffset;
+      aduAddedRxSampleValue = aduRxRingBuffer[aduSkippedRxSamplesStart];
+#endif // CHECK_USB_DATA
+
+      if(aduState.rxRingBufferReadOffset == 0)
+        aduState.rxRingBufferReadOffset = TX_RING_BUFFER_FULL_SIZE -2;
+      else
+        aduState.rxRingBufferReadOffset -= 2;
+
+      aduState.rxRingBufferUsedSize += 2;
+      }
+
+
+#if CHECK_USB_DATA
+      // DEBUG test USB Data, requires USBOutputTest.axp running on Ksoloiti
+      volatile int16_t tmpCodecData[46];
+      bool bOk = true;
+      for( u = 0; u < 14; u++)
+      {
+        int16_t nV1 = in[(u*2)+2] >> 16;
+        int16_t nV2 = in[(u*2)] >> 16;
+        
+        uint32_t uDiff = abs(nV1 - nV2);
+        tmpCodecData[u] = (nV1 - nV2);
+        if(uDiff > 300)
+        {
+          bOk = false;
+          Analyse(GPIOA, 9, 1);
+          Analyse(GPIOA, 9, 0);
+        }
+      }
+
+      if(!bOk)
+      {
+        Analyse(GPIOA, 9, 1);
+        Analyse(GPIOA, 9, 0);
+      }
+#endif // CHECK_USB_DATA
+
+      if((aduState.state == asCodecRemove) || (aduState.state == asCodecDuplicate))
+        aduState.state = asNormal;
+
+      AddOverunLog(ltCodecCopyEnd___);
+
+      Analyse(GPIOB, 7, 0);
+    }
   }
 }
 
@@ -908,7 +990,7 @@ void aduInitiateReceiveI(USBDriver *usbp)
   int16_t *pRxLocation = aduRxRingBuffer + aduState.rxRingBufferWriteOffset;
 
   usbStartReceiveI(usbp, 3, (uint8_t *)pRxLocation, USE_TRANSFER_SIZE_BYTES);
-  aduAddTransferLog(blStartReceive, uCount);
+  aduAddTransferLog(blStartReceive, USE_TRANSFER_SIZE_BYTES);
   Analyse(GPIOG, 11, 0);
 }
 
@@ -935,6 +1017,8 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 
   // increase buffer used size
   aduState.rxRingBufferUsedSize += USE_TRANSFER_SIZE_SAMPLES;
+
+  AddOverunLog(ltAfterDataRX____);
 
   if(aduState.isOutputActive)
   {
