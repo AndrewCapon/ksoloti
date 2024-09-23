@@ -373,11 +373,11 @@ void codec_ADAU1961_hw_init(uint16_t samplerate, bool_t isMaster) {
     }
 
 #else
-#define CODEC_TESTING 1 
-#if CODEC_TESTING == 1
+#define USB_CODEC_TESTING 0 
+#if USB_CODEC_TESTING == 1
     // USB Underrun
     uint8_t pllreg[6] = {0x00, 127, 0x00, 0x12, 0x31, 0x01};
-#elif CODEC_TESTING==2
+#elif USB_CODEC_TESTING==2
     // USB Overrun
     uint8_t pllreg[6] = {0x00, 123, 0x00, 0x12, 0x31, 0x01};
 #else
