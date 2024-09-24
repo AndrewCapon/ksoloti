@@ -36,16 +36,21 @@ typedef enum _LogType
   ltFrameStartedEnd,
   ltWaitingForSync_,
   ltAfterTXAdjust__,
+  ltStartDataRX____,
   ltAfterDataRX____,
+  ltTxRxSynced_____,
+  ltResetForSync___
 } LogType; 
 
 typedef struct _OverrunDebug
 {
+  uint16_t I;
   LogType  type;
   uint16_t txUsedSize;
   uint16_t txWriteOffset;
   uint16_t txReadOffset;
   uint16_t rxUsedSize;
+  uint16_t C;
   uint16_t rxWriteOffset;
   uint16_t rxReadOffset;
   int16_t  sampleOffset;
@@ -61,9 +66,10 @@ uint16_t uLogIndex = 0;
 
 void AddOverunLog(LogType type)
 {
-  if((type == ltCodecCopyEnd___) || (type == ltAfterDataRX____))
+  // if((type == ltCodecCopyEnd___) || (type == ltAfterDataRX____))
   {
     overrunDebug[uLogIndex].type = type;
+    overrunDebug[uLogIndex].I = aduState.currentFrame;
     overrunDebug[uLogIndex].txUsedSize = aduState.txRingBufferUsedSize;
     overrunDebug[uLogIndex].txWriteOffset = aduState.txRingBufferWriteOffset;
     overrunDebug[uLogIndex].txReadOffset = aduState.txRingBufferReadOffset;
@@ -74,6 +80,13 @@ void AddOverunLog(LogType type)
     overrunDebug[uLogIndex].codecFrameSampleCount = aduState.codecFrameSampleCount;
     overrunDebug[uLogIndex].codecMetricsSampleOffset = aduState.codecMetricsSampleOffset;
     overrunDebug[uLogIndex].state = aduState.state;
+
+    if((aduState.rxRingBufferWriteOffset < aduState.rxRingBufferReadOffset))
+    {
+      overrunDebug[uLogIndex].C = (aduState.rxRingBufferWriteOffset + TX_RING_BUFFER_FULL_SIZE) - aduState.rxRingBufferReadOffset;
+    }
+    else
+      overrunDebug[uLogIndex].C = aduState.rxRingBufferWriteOffset - aduState.rxRingBufferReadOffset;
 
     uLogIndex++;
     if(uLogIndex == ADU_OVERRUN_LOG_SIZE)
