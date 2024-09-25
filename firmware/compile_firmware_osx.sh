@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-export PATH=${axoloti_runtime}/platform_osx/bin:$PATH
-echo $path
+#export PATH=${axoloti_runtime}/platform_osx/bin:$PATH
+#echo $path
 which arm-none-eabi-gcc
 
 echo "Compiling Ksoloti firmware... ${axoloti_firmware}"

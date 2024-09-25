@@ -911,7 +911,7 @@ typedef struct __attribute__ ((packed))
 #define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
 
 // normal ring buffer sample size
-#define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
+#define TX_RING_BUFFER_NORMAL_SIZE    (96*4)
 
 // Total allocated size in samples
 #define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)
@@ -920,8 +920,8 @@ typedef struct __attribute__ ((packed))
 #define ADU_LOGGING 0
 #define CODEC_METICS_MS (100)
 //#define ADU_TRANSFER_LOG_SIZE 4000
-//#define CHECK_USB_DATA 1
-//#define ADU_OVERRUN_LOG_SIZE 2600
+#define CHECK_USB_DATA 1
+#define ADU_OVERRUN_LOG_SIZE 2600
 
 #define USE_TRANSFER_SAMPLE_SIZE 2
 #define USE_TRANSFER_CHANNEL_SIZE 2

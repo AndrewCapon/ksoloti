@@ -39,7 +39,9 @@ typedef enum _LogType
   ltStartDataRX____,
   ltAfterDataRX____,
   ltTxRxSynced_____,
-  ltResetForSync___
+  ltResetForSync___,
+  ltErrorBefore____,
+  ltErrorAfter_____,
 } LogType; 
 
 typedef struct _OverrunDebug
