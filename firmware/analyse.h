@@ -4,8 +4,8 @@
 
 #if ANALYSE_ENABLE
 
-#define Analyse(port, pad, bit)                                         \
-  palWritePort(port, (palReadLatch(port) & ~PAL_PORT_BIT(pad)) |            \
+#define Analyse(port, pad, bit)                                    \
+  palWritePort(port, (palReadLatch(port) & ~PAL_PORT_BIT(pad)) |   \
                      (((bit) & 1U) << pad))
 #else
 #define Analyse(port, pad, bit)             

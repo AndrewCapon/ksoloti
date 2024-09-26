@@ -919,9 +919,9 @@ typedef struct __attribute__ ((packed))
 // debugging defines
 #define ADU_LOGGING 0
 #define CODEC_METICS_MS (100)
-//#define ADU_TRANSFER_LOG_SIZE 4000
-#define CHECK_USB_DATA 1
-#define ADU_OVERRUN_LOG_SIZE 2600
+#define ADU_TRANSFER_LOG_SIZE 4000
+//#define CHECK_USB_DATA 1
+//#define ADU_OVERRUN_LOG_SIZE 2600
 
 #define USE_TRANSFER_SAMPLE_SIZE 2
 #define USE_TRANSFER_CHANNEL_SIZE 2

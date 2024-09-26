@@ -22,10 +22,9 @@
             "defines": ["HAL_USE_USB=1", "THUMB"],
             "macFrameworkPath": [],
             "cStandard": "c11",
-            "cppStandard": "c++14",
+            "cppStandard": "c++11",
             "intelliSenseMode": "macos-gcc-arm",
-            "configurationProvider": "ms-vscode.makefile-tools"
-        }
+            "configurationProvider": "ms-vscode.makefile-tools"        }
     ],
     "version": 4
 }
