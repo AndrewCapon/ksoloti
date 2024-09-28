@@ -21,6 +21,7 @@
 
 #include "migration_v3.h"
 
+#define USB_USE_WAIT 1
 
 /*
  * Board oscillators-related settings.

@@ -32,6 +32,7 @@
 #include "spilink.h"
 #endif
 #include "analyse.h"
+#include "audio_usb.h"
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -41,6 +42,7 @@ patchMeta_t patchMeta;
 volatile patchStatus_t patchStatus;
 
 int dspLoadPct; // DSP load in percent
+uint32_t dspLoad200; // DSP load in percent
 unsigned int DspTime;
 
 char loadFName[64] = "";
@@ -227,14 +229,13 @@ static msg_t ThreadDSP(void *arg) {
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
             static unsigned int tStart;
+            Analyse(GPIOB, 9, 1); 
             tStart = hal_lld_get_counter_value();
             watchdog_feed();
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
-                Analyse(GPIOB, 9, 1); 
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
-                Analyse(GPIOB, 9, 0); 
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -249,11 +250,22 @@ static msg_t ThreadDSP(void *arg) {
             adc_convert();
 
             DspTime = RTT2US(hal_lld_get_counter_value() - tStart);
-            dspLoadPct = (100 * DspTime) / (1000000 / 3000);
-            if (dspLoadPct > 298) {
+            Analyse(GPIOB, 9, 0); 
+            dspLoad200 = (2000 * DspTime) / 3333;
+            dspLoadPct = dspLoad200 / 2;
+            // if (dspLoadPct >=84) {
+            //     Analyse(GPIOD, 6, 1);
+            //     Analyse(GPIOD, 6, 0);
+            // }
+
+            if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
-                // LogTextMessage("dsp overrun");
+
+                // reset USB audio
+                aduReset();
+
+                // LogTextMessage("DSP overrun");
 
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);

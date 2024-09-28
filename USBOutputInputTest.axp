@@ -1,0 +1,78 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="350" y="14">
+      <params>
+         <frac32.u.map name="amp" value="48.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="dac_11" x="476" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out right" uuid="e58a4cbbb087052c5480366e3f5d3a04aa319777" name="dac_21" x="476" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/tri cheap" uuid="9d5f09ac82b4951ee329feab93af35896b44e8a6" name="tri_1" x="112" y="112">
+      <params>
+         <frac32.s.map name="pitch" value="-16.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="476" y="154" text="left and right audio output"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="FREEZE" x="392" y="238">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_128s_trig1" x="476" y="238">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="112" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_128s_trig1_" x="266" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="546" text="Needs the host computer to echo back left audio input to right audio output."/>
+   <obj type="ksoloti/Andy/waster" uuid="0c158304-6945-45ac-89c9-816d1fa152d6" name="waster_1" x="126" y="644">
+      <params>
+         <int32 name="us" value="284"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="dac_11" inlet="wave"/>
+         <dest obj="scope_128s_trig1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="FREEZE" outlet="o"/>
+         <dest obj="scope_128s_trig1" inlet="hold"/>
+      </net>
+      <net>
+         <source obj="tri_1" outlet="wave"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="scope_128s_trig1_" inlet="in"/>
+         <dest obj="dac_21" inlet="wave"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>394</x>
+      <y>102</y>
+      <width>1178</width>
+      <height>1294</height>
+   </windowPos>
+</patch-1.0>

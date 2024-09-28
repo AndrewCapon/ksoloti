@@ -84,6 +84,12 @@ AduState aduState;
 /*===========================================================================*/
 // something to do with starting stopping patch in ksoloti arseing things up!
 // disconnecting usb (closing live), also causing issue
+
+void aduReset(void)
+{
+  aduState.state = asNeedsReset;
+}
+
 void HandleError(void)
 {
   Analyse(GPIOA, 9, 1);
@@ -92,8 +98,7 @@ void HandleError(void)
   AddOverunLog(ltErrorBefore____);
 
   // ok we are all out of sync, try to recover
-  aduResetBuffers();
-  AddOverunLog(ltErrorAfter_____);
+  aduReset();
 }
 
 // Set the sample rate
@@ -914,7 +919,7 @@ FORCE_INLINE void aduCodecFrameEnded(void)
       // reset
       aduState.codecMetricsBlocksOkCount = 0;
 
-      Analyse(GPIOB, 8, 0);
+      //Analyse(GPIOB, 8, 0);
     }
     else
     {
@@ -1027,8 +1032,8 @@ FORCE_INLINE void aduCodecFrameStarted(void)
     else
       aduState.sampleAdjustFrameCounter--;
   }
-  else
-    Analyse(GPIOB, 8, 1);
+  //else
+    //Analyse(GPIOB, 8, 1);
 
   AddOverunLog(ltFrameStartedEnd);
 }
@@ -1047,6 +1052,11 @@ void aduInitiateTransmitI(USBDriver *usbp)
   aduCodecFrameEnded();
 
   int16_t *pTxLocation = NULL;
+  if(aduState.state == asNeedsReset)
+  {
+    aduResetBuffers(); // sets to asInit
+  }
+
   if(aduState.state == asInit || aduState.state == asFillingUnderflow)
   {
     // send silence

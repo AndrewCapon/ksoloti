@@ -921,7 +921,7 @@ typedef struct __attribute__ ((packed))
 #define CODEC_METICS_MS (100)
 //#define ADU_TRANSFER_LOG_SIZE 4000
 //#define CHECK_USB_DATA 1
-//#define ADU_OVERRUN_LOG_SIZE 2600
+#define ADU_OVERRUN_LOG_SIZE 2600
 
 #define USE_TRANSFER_SAMPLE_SIZE 2
 #define USE_TRANSFER_CHANNEL_SIZE 2
@@ -1046,6 +1046,7 @@ struct AudioUSBDriver {
 
 typedef enum _adustate
 {
+  asNeedsReset,
   asInit,
   asFillingUnderflow,
   asNormal,
@@ -1098,6 +1099,7 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep);
 void aduInitiateReceiveI(USBDriver *usbp);
 void aduInitiateTransmitI(USBDriver *usbp);
 void aduResetBuffers(void);
+void aduReset(void);
 
 #ifdef __cplusplus
 extern "C" {

@@ -28,17 +28,20 @@
 
 //#pragma GCC optimize ("O0")
 
+#define USE_BLOCKED_TX 1
+#define USE_BLOCKED_RX 0
 
 #include "ch.h"
 #include "hal.h"
 #include "bulk_usb.h"
 #include "usbcfg.h"
+#include "analyse.h"
 
 #if 1 // HAL_USE_BULK_USB || defined(__DOXYGEN__)
 
-#define BDU_LOG_SIZE 5000
+#define BDU_LOG_SIZE 0
 #if BDU_LOG_SIZE
-typedef enum _BLType {blWrite, blStartTransmit, blStartReceive, blEndTransmit, blEndReceive, blFromNotify, blFromUSBInt, blConfigure, blNotifyCalled} BLType;
+typedef enum _BLType {blWrite, blStartTransmit, blStartReceive, blEndTransmit, blEndReceive, blFromNotify, blFromUSBInt, blConfigure, blNotifyCalled, blBlockedTX, blBlockedRX} BLType;
 
 typedef struct _DBGLOG
 {
@@ -91,13 +94,23 @@ uint8_t bduTransmitBuffer[BULK_USB_BUFFERS_SIZE];
  */
 
 static size_t write(void *ip, const uint8_t *bp, size_t n) {
+#if USE_BLOCKED_TX  
+  BulkUSBDriver *bdup = (BulkUSBDriver *)ip;
+  USBDriver *usbp = bdup->config->usbp;
 
-  if(n>256)
-  {
-    chprintf((BaseSequentialStream * )&SD2,"Larger than buffer %lu\r\n", n);
-  }
+  if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
+      (bdup->state != BDU_READY))
+    return 0;
+
+  bduAddLog(blBlockedTX, n);
+
+  msg_t r = usbTransmit(usbp, bdup->config->bulk_in, bp, n);
+
+  return r;
+#else
   return chOQWriteTimeout(&((BulkUSBDriver *)ip)->oqueue, bp,
-                          n, TIME_INFINITE);
+                           n, TIME_INFINITE);
+#endif
 }
 
 static size_t read(void *ip, uint8_t *bp, size_t n) {
@@ -132,8 +145,22 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 }
 
 static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
+#if USE_BLOCKED_RX
+  BulkUSBDriver *bdup = (BulkUSBDriver *)ip;
+  USBDriver *usbp = bdup->config->usbp;
 
+  if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
+      (bdup->state != BDU_READY))
+    return 0;
+
+  bduAddLog(blBlockedRX, n);
+
+  msg_t r = usbReceive(usbp, bdup->config->bulk_out, bp, n);
+
+  return r;
+#else
   return chIQReadTimeout(&((BulkUSBDriver *)ip)->iqueue, bp, n, time);
+#endif
 }
 
 static const struct BulkUSBDriverVMT vmt = {
@@ -144,8 +171,7 @@ static const struct BulkUSBDriverVMT vmt = {
 
 void bduInitiateReceiveI(BulkUSBDriver *bdup, size_t uCount)
 {
-  if(uCount==244)
-    chprintf((BaseSequentialStream * )&SD2,"256\r\n");
+  //Analyse(GPIOB, 3, 1);
 
   USBDriver *usbp = bdup->config->usbp;
 
@@ -153,6 +179,7 @@ void bduInitiateReceiveI(BulkUSBDriver *bdup, size_t uCount)
   usbStartReceiveI(usbp, bdup->config->bulk_out, bduReceiveBuffer, uRequestCount);
 
   bduAddLog(blStartReceive, uRequestCount);
+  //Analyse(GPIOB, 3, 0);
 }
 
 void bduInitiateTransmitI(BulkUSBDriver *bdup, size_t uCount)
@@ -346,8 +373,10 @@ void bduConfigureHookI(BulkUSBDriver *bdup) {
   //CH16 usbPrepareQueuedReceive(usbp, bdup->config->bulk_out, &bdup->iqueue,
   //                        usbp->epc[bdup->config->bulk_out]->out_maxsize);
   //usbStartReceiveI(usbp, bdup->config->bulk_out);
+#if !USE_BLOCKED_RX  
   bduAddLog(blConfigure, usbp->epc[bdup->config->bulk_out]->out_maxsize);
   bduInitiateReceiveI(bdup, usbp->epc[bdup->config->bulk_out]->out_maxsize);
+#endif
 }
 
 /**
@@ -380,6 +409,9 @@ bool_t bduRequestsHook(USBDriver *usbp) {
  * @param[in] ep        endpoint number
  */
 void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
+#if USE_BLOCKED_TX    
+  return;
+#else
   size_t n;
   BulkUSBDriver *bdup = usbp->in_params[ep - 1];
 
@@ -426,6 +458,7 @@ void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
   }
 
   chSysUnlockFromIsr();
+#endif  
 }
 
 /**
@@ -437,6 +470,12 @@ void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
  * @param[in] ep        endpoint number
  */
 void bduDataReceived(USBDriver *usbp, usbep_t ep) {
+
+#if USE_BLOCKED_RX  
+  return;
+#endif
+  //Analyse(GPIOC, 7, 1);
+
   size_t uQueueRemainingSize, maxsize;
   BulkUSBDriver *bdup = usbp->out_params[ep - 1];
 
@@ -478,6 +517,9 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
 
   chSysUnlockFromIsr()
   ;
+
+  //Analyse(GPIOC, 7, 0);
+
 }
 
 #endif /* HAL_USE_BULK_USB */
