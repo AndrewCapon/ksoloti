@@ -87,6 +87,7 @@ AduState aduState;
 
 void aduReset(void)
 {
+  AddOverunLog(ltUSBReset_______);
   aduState.state = asNeedsReset;
 }
 
@@ -529,6 +530,8 @@ void __attribute__((optimize("O0"))) aduResetBuffers(void)
   aduState.state                      = asInit;
 
   memset(aduTxRingBuffer, 0, sizeof(aduTxRingBuffer));
+
+  AddOverunLog(ltResetForSync___);
 }
 
 void __attribute__((optimize("O0"))) aduEnable(USBDriver *usbp)
@@ -599,6 +602,17 @@ int16_t  aduAddedRxSampleValue = 0;
 static FORCE_INLINE void aduMoveDataToTX(int32_t *pData, uint_fast16_t uLen)
 {
 #if NEW_CODE_TRY_TX
+
+  if(aduState.txRingBufferUsedSize+uLen > TX_RING_BUFFER_NORMAL_SIZE)
+  {
+    //HandleError();
+    if(aduState.txRingBufferUsedSize+uLen > TX_RING_BUFFER_FULL_SIZE)
+    {
+      // really bad 
+      HandleError();
+    }
+  }
+
   uint_fast16_t uSamplesBeforeWrap = TX_RING_BUFFER_FULL_SIZE - aduState.txRingBufferWriteOffset;
   int16_t *pSrc = ((int16_t *)pData)+1;
   int16_t *pDst = &(aduTxRingBuffer[aduState.txRingBufferWriteOffset]);
@@ -655,6 +669,11 @@ static FORCE_INLINE void aduMoveDataToTX(int32_t *pData, uint_fast16_t uLen)
 static FORCE_INLINE void aduMoveDataFromRX(int32_t *pData, uint_fast16_t uLen)
 {
 #if NEW_CODE_TRY_RX
+
+  // RX check
+  if(aduState.rxRingBufferUsedSize < uLen)
+    HandleError();
+
   uint_fast16_t uSamplesBeforeWrap = TX_RING_BUFFER_FULL_SIZE - aduState.rxRingBufferReadOffset;
   int32_t *pDst = pData;
   int16_t *pSrc = &(aduRxRingBuffer[aduState.rxRingBufferReadOffset]);
@@ -710,6 +729,7 @@ void aduCodecData (int32_t *in, int32_t *out)
     uint16_t uLen = 32;
     uint16_t uFeedbackLen = uLen;
     uint_fast16_t u;
+
 
     /////////////////////////////////
     // codec -> USB
@@ -934,22 +954,6 @@ FORCE_INLINE void aduCodecFrameEnded(void)
   // we need some checks here for debugging
   if(aduState.state > asFillingUnderflow)
   {
-    // TX Checks
-    if(aduState.txRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES)
-    {
-      HandleError();
-    }
-
-    if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
-    {
-      //HandleError();
-      if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_FULL_SIZE)
-      {
-        // really bad 
-        HandleError();
-      }
-    }
-
     uint16_t uTXCalcSize;
     if((aduState.txRingBufferWriteOffset < aduState.txRingBufferReadOffset))
       uTXCalcSize = (aduState.txRingBufferWriteOffset + TX_RING_BUFFER_FULL_SIZE) - aduState.txRingBufferReadOffset;
@@ -958,20 +962,6 @@ FORCE_INLINE void aduCodecFrameEnded(void)
 
     if(uTXCalcSize != aduState.txRingBufferUsedSize)
       HandleError();
-
-    // RX checks
-    if(aduState.rxRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES)
-      HandleError();
-
-    if(aduState.rxRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
-    {
-      //HandleError();
-      if(aduState.rxRingBufferUsedSize > TX_RING_BUFFER_FULL_SIZE)
-      {
-        // really bad 
-        HandleError();
-      }
-    }
 
     uint16_t uRXCalcSize;
     if((aduState.rxRingBufferWriteOffset < aduState.rxRingBufferReadOffset))
@@ -1028,6 +1018,8 @@ FORCE_INLINE void aduCodecFrameStarted(void)
       {
         aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame = 0;
       }
+
+      AddOverunLog(ltSampleAdjusted_);
     }
     else
       aduState.sampleAdjustFrameCounter--;
@@ -1035,7 +1027,6 @@ FORCE_INLINE void aduCodecFrameStarted(void)
   //else
     //Analyse(GPIOB, 8, 1);
 
-  AddOverunLog(ltFrameStartedEnd);
 }
 
 /**
@@ -1063,7 +1054,7 @@ void aduInitiateTransmitI(USBDriver *usbp)
     pTxLocation = (aduTxRingBuffer + TX_RING_BUFFER_FULL_SIZE) - USE_TRANSFER_SIZE_SAMPLES;
 
     // wait for unflow buffer to be filled and synced
-    uint16_t uRxSamplesRequired = USE_TRANSFER_SIZE_SAMPLES*2;
+    uint16_t uRxSamplesRequired = USE_TRANSFER_SIZE_SAMPLES;
     if((aduState.txRingBufferUsedSize == TX_RING_BUFFER_NORMAL_SIZE) && (aduState.rxRingBufferUsedSize >= uRxSamplesRequired))
     {
       // adjust the size of the RX buffer so we are in sync, we want USE_TRANSFER_SIZE_SAMPLES samples
@@ -1088,7 +1079,6 @@ void aduInitiateTransmitI(USBDriver *usbp)
     else if(aduState.txRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
     {
       aduResetBuffers();
-      AddOverunLog(ltResetForSync___);
     }
     AddOverunLog(ltWaitingForSync_);
   }
@@ -1096,6 +1086,11 @@ void aduInitiateTransmitI(USBDriver *usbp)
   // transmit from buffer, increase read offset
   if(aduState.state > asFillingUnderflow)
   {
+    if(aduState.txRingBufferUsedSize < USE_TRANSFER_SIZE_SAMPLES)
+    {
+      HandleError();
+    }
+
     // set transmit location
     pTxLocation = aduTxRingBuffer + aduState.txRingBufferReadOffset;
 
@@ -1136,6 +1131,9 @@ void aduInitiateTransmitI(USBDriver *usbp)
 #endif
 
   // transmit USB data
+  AddOverunLog(ltStartTransmit__);
+
+  
   usbStartTransmitI(usbp, 3, (uint8_t *)pTxLocation, USE_TRANSFER_SIZE_BYTES);
   aduAddTransferLog(blStartTransmit, USE_TRANSFER_SIZE_BYTES);
 
@@ -1188,6 +1186,7 @@ void aduInitiateReceiveI(USBDriver *usbp)
 
   Analyse(GPIOG, 11, 1);
 
+  AddOverunLog(ltStartReceive___);
   int16_t *pRxLocation = aduRxRingBuffer + aduState.rxRingBufferWriteOffset;
 
   usbStartReceiveI(usbp, 3, (uint8_t *)pRxLocation, USE_TRANSFER_SIZE_BYTES);
@@ -1213,7 +1212,6 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
   volatile uint32_t uReceivedCount = pEpState->rxcnt;
   aduAddTransferLog(blEndReceive, uReceivedCount);
 #endif
-  AddOverunLog(ltStartDataRX____);
 
   // increase and wrap write offset
   aduState.rxRingBufferWriteOffset += USE_TRANSFER_SIZE_SAMPLES;
@@ -1223,7 +1221,17 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
   // increase buffer used size
   aduState.rxRingBufferUsedSize += USE_TRANSFER_SIZE_SAMPLES;
 
-  AddOverunLog(ltAfterDataRX____);
+  if(aduState.rxRingBufferUsedSize > TX_RING_BUFFER_NORMAL_SIZE)
+  {
+    //HandleError();
+    if(aduState.rxRingBufferUsedSize > TX_RING_BUFFER_FULL_SIZE)
+    {
+      // really bad 
+      HandleError();
+    }
+  }
+
+  AddOverunLog(ltAfterRXAdjust__);
 
   if(aduState.isOutputActive)
     aduInitiateReceiveI(usbp);

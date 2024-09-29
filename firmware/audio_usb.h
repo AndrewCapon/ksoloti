@@ -911,7 +911,7 @@ typedef struct __attribute__ ((packed))
 #define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
 
 // normal ring buffer sample size
-#define TX_RING_BUFFER_NORMAL_SIZE    (96*4)
+#define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
 
 // Total allocated size in samples
 #define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)

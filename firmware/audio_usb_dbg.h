@@ -33,15 +33,18 @@ typedef enum _LogType
 {
   ltCodecCopyEnd___,
   ltFrameEndedEnd__,
-  ltFrameStartedEnd,
+  ltSampleAdjusted_,
   ltWaitingForSync_,
   ltAfterTXAdjust__,
-  ltStartDataRX____,
+  ltAfterRXAdjust__,
   ltAfterDataRX____,
   ltTxRxSynced_____,
   ltResetForSync___,
   ltErrorBefore____,
   ltErrorAfter_____,
+  ltStartReceive___,
+  ltStartTransmit__,
+  ltUSBReset_______
 } LogType; 
 
 typedef struct _OverrunDebug
