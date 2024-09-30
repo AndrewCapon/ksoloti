@@ -251,6 +251,13 @@ static msg_t ThreadDSP(void *arg) {
             adc_convert();
 
             DspTime = RTT2US(hal_lld_get_counter_value() - tStart);
+
+            // USB Fifo code takes 33us, adjust so we get
+            // overload at aproximately the correct place where
+            // the Fifo stops working
+            // volatile static uint16_t uBodge = 16;
+            // DspTime += uBodge; // for USB
+
             Analyse(GPIOB, 9, 0); 
             dspLoad200 = (2000 * DspTime) / 3333;
             dspLoadPct = dspLoad200 / 2;
