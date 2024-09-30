@@ -48,7 +48,9 @@
         "sstream": "c",
         "stop_token": "c",
         "streambuf": "c",
-        "*.def": "c"
+        "*.def": "c",
+        "condition_variable": "c",
+        "future": "c"
     },
     "C_Cpp.default.compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
     "C_Cpp.default.cppStandard": "c++11",

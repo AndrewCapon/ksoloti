@@ -211,6 +211,7 @@ static int StartPatch1(void) {
     return 0;
 }
 
+extern void usb_lld_external_pump(void);
 
 static msg_t ThreadDSP(void *arg) {
     (void)(arg);
@@ -270,6 +271,9 @@ static msg_t ThreadDSP(void *arg) {
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);
             }
+#if USE_EXTERNAL_USB_FIFO_PUMP            
+            usb_lld_external_pump();
+#endif
         }
         else if (evt == 2) {
             /* load patch event */
