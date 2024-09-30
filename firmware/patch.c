@@ -52,6 +52,12 @@ static const char *index_fn = "/index.axb";
 static int32_t inbuf[32];
 static int32_t *outbuf;
 
+#ifdef USE_USB_AUDIO_BUFFERS
+static int32_t inbufUsb[32];
+static int32_t outbufUsb[32];
+#endif
+
+
 static int nThreadsBeforePatch;
 static WORKING_AREA(waThreadDSP, 7200) __attribute__ ((section (".ccmramend")));
 static Thread *pThreadDSP = 0;
@@ -236,7 +242,11 @@ static msg_t ThreadDSP(void *arg) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
+#ifdef USE_USB_AUDIO_BUFFERS              
+               (patchMeta.fptr_dsp_process)(inbuf, outbuf, inbufUsb, outbufUsb);
+#else
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
+#endif
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -457,8 +467,13 @@ void computebufI(int32_t *inp, int32_t *outp) {
     }
 
     outbuf = outp;
+#ifdef USE_USB_AUDIO_BUFFERS      
+    //use the audio buffers
+    aduCodecData(inbufUsb, outbufUsb);
+#else
+    // directly use the codec buffers
     aduCodecData(inbuf, outbuf);
-
+#endif
     chSysLockFromIsr();
     chEvtSignalI(pThreadDSP, (eventmask_t)1);
     chSysUnlockFromIsr();

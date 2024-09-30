@@ -1632,7 +1632,11 @@ public class Patch {
         c += "};\n\n";
         c += "static rootc root;\n\n";
 
-        c += "void PatchProcess( int32_t * inbuf, int32_t * outbuf) {\n"
+        c += "#ifdef USE_USB_AUDIO_BUFFERS\n";
+        c += "void PatchProcess( int32_t * inbuf, int32_t * outbuf, int32_t * inbufUsb, int32_t * outbufUsb) {\n";
+        c += "#else\n";
+        c += "void PatchProcess( int32_t * inbuf, int32_t * outbuf) {\n";
+        c += "#endif\n"
            + I + "uint8_t i;\n";
 
         /* audioInputMode and audioOutputMode are modified during
@@ -1642,6 +1646,10 @@ public class Patch {
         c += I + "for (i=0;i<BUFSIZE;i++) {\n"
            + I+I + "AudioInputLeft[i] = inbuf[i*2]>>4;\n"
            + I+I + "AudioInputRight[i] = AudioInputLeft[i];\n"
+           + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+           + I+I + "UsbInputLeft[i]  = inbufUsb[i*2]>>4;\n"
+           + I+I + "UsbInputRight[i] = UsbInputLeft[i];\n"
+           + "#endif\n"
            + I + "}\n";
         }
         else if (audioInputMode == 2) {
@@ -1649,12 +1657,20 @@ public class Patch {
            + I+I + "AudioInputLeft[i] = inbuf[i*2]>>4;\n"
            + I+I + "AudioInputLeft[i] = (AudioInputLeft[i] - (inbuf[i*2+1]>>4) ) >> 1;\n"
            + I+I + "AudioInputRight[i] = AudioInputLeft[i];\n"
+           + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+           + I+I + "UsbInputLeft[i] = (UsbInputLeft[i] - (inbufUsb[i*2+1]>>4) ) >> 1;\n"
+           + I+I + "UsbInputRight[i] = UsbInputLeft[i];\n"
+           + "#endif\n"
            + I + "}\n";
         }
         else {
         c += I + "for (i=0;i<BUFSIZE;i++) {\n"
            + I+I + "AudioInputLeft[i] = inbuf[i*2]>>4;\n"
            + I+I + "AudioInputRight[i] = inbuf[i*2+1]>>4;\n"
+           + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+           + I+I + "UsbInputLeft[i] = inbufUsb[i*2]>>4;\n"
+           + I+I + "UsbInputRight[i] = inbufUsb[i*2+1]>>4;\n"
+           + "#endif\n"
            + I + "}\n";
 
         }
@@ -1666,18 +1682,30 @@ public class Patch {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = __SSAT(AudioOutputLeft[i],28)<<4;\n"
                    + I+I + "outbuf[i*2+1] = 0;\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
+                   + I+I + "outbufUsb[i*2+1] = 0;\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
             else if (audioOutputMode == 2) {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = __SSAT(AudioOutputLeft[i],28)<<4;\n"
                    + I+I + "outbuf[i*2+1] = ~outbuf[i*2];\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
+                   + I+I + "outbufUsb[i*2+1] = ~outbuf[i*2];\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
             else {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = __SSAT(AudioOutputLeft[i],28)<<4;\n"
                    + I+I + "outbuf[i*2+1] = __SSAT(AudioOutputRight[i],28)<<4;\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
+                   + I+I + "outbufUsb[i*2+1] = __SSAT(UsbOutputRight[i],28)<<4;\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
         }
@@ -1686,18 +1714,30 @@ public class Patch {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i*2+1] = 0;\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
+                   + I+I + "outbufUsb[i*2+1] = 0;\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
             else if (audioOutputMode == 2) {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i*2+1] = ~outbuf[i*2];\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
+                   + I+I + "outbufUsb[i*2+1] = ~outbufUsb[i*2];\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
             else {
                 c += I + "for (i=0; i<BUFSIZE; i++) {\n"
                    + I+I + "outbuf[i*2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i*2+1] = AudioOutputRight[i];\n"
+                   + "#ifdef USE_USB_AUDIO_BUFFERS\n"
+                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
+                   + I+I + "outbufUsb[i*2+1] = UsbOutputRight[i];\n"
+                   + "#endif\n"
                    + I + "}\n";
             }
         }
@@ -1817,7 +1857,12 @@ public class Patch {
 
         c += "void PatchMidiInHandler(midi_device_t dev, uint8_t port, uint8_t status, uint8_t data1, uint8_t data2);\n\n";
 
-        c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight;\n\n";
+        c += "#if USE_USB_AUDIO_BUFFERS\n";
+        c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight, UsbInputLeft, UsbInputRight, UsbOutputLeft, UsbOutputRight;\n";
+        c += "#else\n";
+        c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight;\n";
+        c += "#endif\n\n";
+
         // c += "typedef enum { A_STEREO, A_MONO, A_BALANCED } AudioModeType;\n";
         // c += "AudioModeType AudioInputMode = A_STEREO;\n";
         // c += "AudioModeType AudioOutputMode = A_STEREO;\n\n";
