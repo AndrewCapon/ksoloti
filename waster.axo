@@ -1,7 +1,7 @@
 <objdefs appVersion="1.0.12">
-   <obj.normal id="waster" uuid="0c158304-6945-45ac-89c9-816d1fa152d6">
+   <obj.normal id="waster" uuid="50bb887e2b01468197105d4f872d1106">
       <sDescription>Waste Time.</sDescription>
-      <author>Andy Capon</author>
+      <author>Andrew Capon</author>
       <license>BSD</license>
       <helpPatch>waster.axh</helpPatch>
       <inlets/>

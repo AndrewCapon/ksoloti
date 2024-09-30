@@ -23,7 +23,9 @@ CCFLAGS = \
     -fno-use-cxa-atexit \
     -Wno-unused-parameter \
     -fpermissive \
-    -Wno-return-type 
+    -Wno-return-type \
+    -DUSE_USB_AUDIO_BUFFERS=1
+
 
 LDFLAGS = \
     -nostartfiles \

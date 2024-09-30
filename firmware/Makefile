@@ -467,7 +467,8 @@ UDEFS = \
     -DARM_MATH_CM4 \
     -D__FPU_PRESENT \
     -DSTM32F429xx \
-    -DCRT1_AREAS_NUMBER=0
+    -DCRT1_AREAS_NUMBER=0 \
+    -DUSE_USB_AUDIO_BUFFERS=1
 
 # Define ASM defines here
 UADEFS =
