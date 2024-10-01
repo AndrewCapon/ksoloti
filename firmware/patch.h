@@ -30,7 +30,7 @@
 
 typedef void (*fptr_patch_init_t)(int32_t fwID);
 typedef void (*fptr_patch_dispose_t)(void);
-#ifdef USE_USB_AUDIO_BUFFERS
+#if USE_USB_AUDIO_BUFFERS
 typedef void (*fptr_patch_dsp_process_t)(int32_t *, int32_t *, int32_t *, int32_t *);
 #else
 typedef void (*fptr_patch_dsp_process_t)(int32_t *, int32_t *);

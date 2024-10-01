@@ -1054,7 +1054,7 @@ void aduInitiateTransmitI(USBDriver *usbp)
     pTxLocation = (aduTxRingBuffer + TX_RING_BUFFER_FULL_SIZE) - USE_TRANSFER_SIZE_SAMPLES;
 
     // wait for unflow buffer to be filled and synced
-    uint16_t uRxSamplesRequired = USE_TRANSFER_SIZE_SAMPLES;
+    uint16_t uRxSamplesRequired = USE_TRANSFER_SIZE_SAMPLES*2;
     if((aduState.txRingBufferUsedSize == TX_RING_BUFFER_NORMAL_SIZE) && (aduState.rxRingBufferUsedSize >= uRxSamplesRequired))
     {
       // adjust the size of the RX buffer so we are in sync, we want USE_TRANSFER_SIZE_SAMPLES samples
