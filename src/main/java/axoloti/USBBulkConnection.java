@@ -75,9 +75,11 @@ public class USBBulkConnection extends Connection {
     private final short bulkVID = (short) 0x16C0;
     private final short bulkPIDAxoloti = (short) 0x0442;
     private final short bulkPIDKsoloti = (short) 0x0444;
-    private final int interfaceNumber = 2;
+    private final int interfaceNumber = 2; 
+	private final int interfaceNumberUsbAudio = 4;
+    private int usingInterfaceNumber;
 
-    protected USBBulkConnection() {
+	protected USBBulkConnection() {
         this.sync = new Sync();
         this.readsync = new Sync();
         this.patch = null;
@@ -149,7 +151,7 @@ public class USBBulkConnection extends Connection {
                 }
             }
             
-            int result = LibUsb.releaseInterface(handle, interfaceNumber);
+            int result = LibUsb.releaseInterface(handle, usingInterfaceNumber);
             if (result != LibUsb.SUCCESS) {
                 throw new LibUsbException("Unable to release interface", result);
             }
@@ -301,10 +303,16 @@ public class USBBulkConnection extends Connection {
         try {
             // devicePath = Usb.DeviceToPath(device);
 
-            int result = LibUsb.claimInterface(handle, interfaceNumber);
+            int result = LibUsb.claimInterface(handle, interfaceNumberUsbAudio);
             if (result != LibUsb.SUCCESS) {
-                throw new LibUsbException("Unable to claim interface", result);
+                result = LibUsb.claimInterface(handle, interfaceNumber);
+                if (result != LibUsb.SUCCESS) {
+                    throw new LibUsbException("Unable to claim interface", result);
+                }
+                usingInterfaceNumber = interfaceNumber;
             }
+            else
+                usingInterfaceNumber = interfaceNumberUsbAudio;
 
             GoIdleState();
             // LOGGER.log(Level.INFO, "Creating rx and tx thread...");
