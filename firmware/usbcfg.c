@@ -20,13 +20,14 @@
 #include "hal.h"
 #include "usbcfg.h"
 
-
 /*
  * Serial over USB Driver structure.
  */
-MidiUSBDriver MDU1;
-BulkUSBDriver BDU1;
-
+MidiUSBDriver  MDU1;
+BulkUSBDriver  BDU1;
+#if ENABLE_USB_AUDIO
+AudioUSBDriver ADU1;
+#endif
 /*
  * USB Device Descriptor.
  */
@@ -57,11 +58,175 @@ static const USBDescriptor vcom_device_descriptor = {
   vcom_device_descriptor_data
 };
 
+
+
+
+#if ENABLE_USB_AUDIO
+//#define DESC_SIZE 140 + USBD_AUDIO_HEADSET_STEREO_DESC_LEN
+#define DESC_SIZE 426
+#define NUM_INTERFACE 0x05
 static const uint8_t vcom_configuration_descriptor_data[]=
 {
  /* Configuration Descriptor.*/
- USB_DESC_CONFIGURATION(140,            /* wTotalLength.                    */
-                        0x03,          /* bNumInterfaces.                  */
+ USB_DESC_CONFIGURATION(DESC_SIZE,     /* wTotalLength.                    */
+                        NUM_INTERFACE, /* bNumInterfaces.                  */
+                        0x01,          /* bConfigurationValue.             */
+                        5,             /* iConfiguration.                  */
+                        0xC0,          /* bmAttributes (self powered).     */
+                        50),           /* bMaxPower (100mA).               */
+
+ /* Interface Association Descriptor. group has control, audio and midi    */
+ USB_DESC_INTERFACE_ASSOCIATION(0x00, /* bFirstInterface.                  */
+                                0x04, /* bInterfaceCount.                  */
+                                0x01, /* bFunctionClass (Audio).           */
+                                0x00, /* bFunctionSubClass.                */
+                                0x20, /* bFunctionProcotol                 */
+                                0),   /* iInterface.                       */
+
+  // interface 0 - Standard AudioConrol Interface Descriptor(4.7.1) 
+  USBD_AUDIO_DESC_STD_AC(ITF_NUM_AUDIO_STREAMING_CONTROL, 0, 0), // interface 0, 0 endpoints, no string index
+  
+  // interface 0 Class-Specific AudioControl Interface Header Descriptor(4.7.2) 
+  USBD_AUDIO_DESC_CS_AC(0x0200, AUDIO_FUNC_HEADSET,  USBD_AUDIO_DESC_CS_AC_LEN_CONTENT_LEN, AUDIO_CS_AS_INTERFACE_CTRL_LATENCY_POS),
+  
+    // Clock Source Descriptor(4.7.2.1) - Clock Source
+    USBD_AUDIO_DESC_CLK_SRC(UAC2_ENTITY_CLOCK, 3, 7, 0x00, 0x00), 
+
+    // Input Terminal Descriptor(4.7.2.4) - Input Terminal USB Streaming
+    USBD_AUDIO_DESC_INPUT_TERM(UAC2_ENTITY_SPK_INPUT_TERMINAL, AUDIO_TERM_TYPE_USB_STREAMING, 0x00, UAC2_ENTITY_CLOCK, 0x02, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00, 0 * (AUDIO_CTRL_R << AUDIO_IN_TERM_CTRL_CONNECTOR_POS), 0x00),\
+
+    // Feature Unit Descriptor(4.7.2.8) - Feature Unit (Mute & volume)
+    USBD_AUDIO_DESC_FEATURE_UNIT_TWO_CHANNEL(UAC2_ENTITY_SPK_FEATURE_UNIT, UAC2_ENTITY_SPK_INPUT_TERMINAL, (AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_MUTE_POS | AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_VOLUME_POS), /*_ctrlch1*/ (AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_MUTE_POS | AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_VOLUME_POS), (AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_MUTE_POS | AUDIO_CTRL_RW << AUDIO_FEATURE_UNIT_CTRL_VOLUME_POS), 0x00),
+
+    // Output Terminal Descriptor(4.7.2.5) - Output Terminal Headphones
+    USBD_AUDIO_DESC_OUTPUT_TERM(UAC2_ENTITY_SPK_OUTPUT_TERMINAL, AUDIO_TERM_TYPE_OUT_HEADPHONES, 0x00, UAC2_ENTITY_SPK_FEATURE_UNIT, UAC2_ENTITY_CLOCK, 0x0000, 0x00),
+
+    // Input Terminal Descriptor(4.7.2.4) - Input terminal Microphone
+    USBD_AUDIO_DESC_INPUT_TERM(UAC2_ENTITY_MIC_INPUT_TERMINAL, AUDIO_TERM_TYPE_IN_GENERIC_MIC, 0x00, UAC2_ENTITY_CLOCK, 0x02, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00, 0 * (AUDIO_CTRL_R << AUDIO_IN_TERM_CTRL_CONNECTOR_POS), 0x00),
+
+    // Output Terminal Descriptor(4.7.2.5) - Output Terminal USB Streaming
+    USBD_AUDIO_DESC_OUTPUT_TERM(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_TERM_TYPE_USB_STREAMING, 0x00, UAC2_ENTITY_MIC_INPUT_TERMINAL, UAC2_ENTITY_CLOCK, 0x0000, 0x00),
+
+  // interface 1 - Audio Speaker (PC -> Ksoloti)
+  // Standard AS Interface Descriptor(4.9.1)
+  // Interface 1, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x00, 0x00, 0x00),
+
+  // Interface 1, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x01, 0x01, 0x00),
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_SPK_INPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 16 bit
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX),\
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1)  - Adaptive data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_OUT, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ADAPTIVE | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX), 0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint, delay of 1ms
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
+
+  // Interface 1, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_SPEAKER), 0x02, 0x01, 0x00),\
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Speaker Terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_SPK_INPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 24 bits
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX),
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Adaptive data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_OUT, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ADAPTIVE | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_RX),  0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint, delay of 1ms
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_MILLISEC, 0x0001),
+
+
+  // interface 2 - Audio Microphone (Ksoloti -> PC)
+  // Standard AS Interface Descriptor(4.9.1) 
+  // Interface 2, Alternate 0 - default alternate setting with 0 bandwidth and 0 endpoints
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x00, 0x00, 0x0),
+
+  // Interface 2, Alternate 1 - alternate interface for data streaming with one endpoint at 16 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x01, 0x01, 0x00),
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+
+		// Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 16 bit
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX),\
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Async data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_IN, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ASYNCHRONOUS | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX), 0x01),\
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint no delay
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
+
+
+  // Interface 2, Alternate 2 - alternate interface for data streaming with one endpoint at 24 bits
+  USBD_AUDIO_DESC_STD_AS_INT((uint8_t)(ITF_NUM_AUDIO_STREAMING_MICROPHONE), 0x02, 0x01, 0x00),
+
+		// Class-Specific AS Interface Descriptor(4.9.2) - Microphone terminal PCM 2 channels
+    USBD_AUDIO_DESC_CS_AS_INT(UAC2_ENTITY_MIC_OUTPUT_TERMINAL, AUDIO_CTRL_NONE, AUDIO_FORMAT_TYPE_I, AUDIO_DATA_FORMAT_TYPE_I_PCM, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX, AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, 0x00),
+		
+    // Type I Format Type Descriptor(2.3.1.6 - Audio Formats) - FORMAT_TYPE 24 bit
+    USBD_AUDIO_DESC_TYPE_I_FORMAT(CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX),
+
+		// Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) - Async data iso endpoint 3
+    USBD_AUDIO_DESC_STD_AS_ISO_EP(AUDIO_ENDPPOINT_IN, (uint8_t) (USBD_XFER_ISOCHRONOUS | USBD_ISO_EP_ATT_ASYNCHRONOUS | USBD_ISO_EP_ATT_DATA), USBD_AUDIO_EP_SIZE(CFG_USBD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_USBD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_USBD_AUDIO_FUNC_1_N_CHANNELS_TX), 0x01),
+
+		// Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) - Audio streaming endpoint no delay
+    USBD_AUDIO_DESC_CS_AS_ISO_EP(AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, AUDIO_CTRL_NONE, AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0x0000),
+
+  // interface 3 - midi - endpoint 1
+  0x09, 0x04, 0x03, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 3             INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
+  0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
+  0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
+  0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
+  0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x06, //   OUT Jack 3 (emb)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
+  0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01, 0x02, //   OUT Jack 4 (ext)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
+  0x09, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint OUT             ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+  0x05, 0x25, 0x01, 0x01, 0x01,                         //   CS EP IN  Jack         CLASS SPECIFIC MS BULK DATA EP DESC
+  0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+  0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
+
+  // interface 4 - Bulk - Endpoint 2
+  /* Interface Association Descriptor. group for bulk */
+  USB_DESC_INTERFACE_ASSOCIATION(0x04, /* bFirstInterface.                  */
+                              0x01, /* bInterfaceCount.                  */
+                              0xFF, /* bFunctionClass (Vendor Specific).  */
+                              0x00, /* bFunctionSubClass.                */
+                              0x00, /* bFunctionProcotol                 */
+                              4),   /* iInterface.                       */
+  /* Interface Descriptor.*/
+  USB_DESC_INTERFACE    (0x04,          /* bInterfaceNumber.                */
+                         0x00,          /* bAlternateSetting.               */
+                         0x02,          /* bNumEndpoints.                   */
+                         0xFF,          /* bInterfaceClass (Vendor Specific). */
+                         0x00,
+                         0x00,
+                         4),         /* iInterface.                      */
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
+                         0x02,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x00),         /* bInterval.                       */
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
+                         0x02,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x00),         /* bInterval.                       */
+};
+
+#else
+  #define DESC_SIZE 140
+  #define NUM_INTERFACE 0x03
+static const uint8_t vcom_configuration_descriptor_data[]=
+{
+ /* Configuration Descriptor.*/
+ USB_DESC_CONFIGURATION(DESC_SIZE,     /* wTotalLength.                    */
+                        NUM_INTERFACE, /* bNumInterfaces.                  */
                         0x01,          /* bConfigurationValue.             */
                         5,             /* iConfiguration.                  */
                         0xC0,          /* bmAttributes (self powered).     */
@@ -73,8 +238,11 @@ static const uint8_t vcom_configuration_descriptor_data[]=
                                 0x03, /* bFunctionSubClass.                */
                                 0x00, /* bFunctionProcotol                 */
                                 0),   /* iInterface.                       */
+  // interface 0 - control
   0x09, 0x04, 0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00, // Interface 0              INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
   0x09, 0x24, 0x01, 0x00, 0x01, 0x09, 0x00, 0x01, 0x01, // CS Interface (audio)     CLASS SPECIFIC AC INTERFACE DESC
+  
+  // interface 1 - midi
   0x09, 0x04, 0x01, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00, // Interface 1              INTERFACE DESC (bLength bDescType bInterfaceNumber bAltSetting bNumEndpoints bInterfaceClass bInterfaceSubClass bInterfaceProtocol iInterface)
   0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00,             // CS Interface (midi)      CLASS SPECIFIC MS INTERFACE DESC
   0x06, 0x24, 0x02, 0x01, 0x01, 0x05,                   //   IN  Jack 1 (emb)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
@@ -86,6 +254,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
   0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
   0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
 
+  // interface 2 - Bulk
   /* Interface Association Descriptor.*/
   USB_DESC_INTERFACE_ASSOCIATION(0x02, /* bFirstInterface.                  */
                               0x01, /* bInterfaceCount.                  */
@@ -114,6 +283,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
 
 };
 
+#endif
 
 static const USBDescriptor vcom_configuration_descriptor = {
   sizeof vcom_configuration_descriptor_data,
@@ -370,16 +540,40 @@ static const USBEndpointConfig ep2config = {
   NULL
 };
 
+#if ENABLE_USB_AUDIO
+/**
+ * @brief   IN EP3 state.
+ */
+static USBInEndpointState ep3instate;
+
+/**
+ * @brief   OUT EP3 state.
+ */
+static USBOutEndpointState ep3outstate;
+
+/**
+ * @brief   EP3 initialization structure (both IN and OUT).
+ */
+static const USBEndpointConfig ep3config = {
+  USB_EP_MODE_TYPE_ISOC,
+  NULL,
+  aduDataTransmitted,
+  aduDataReceived,
+  192,
+  192,
+  &ep3instate,
+  &ep3outstate,
+  1,
+  NULL
+};
+#endif
+
 /*
  * Handles the USB driver global events.
  */
 static void usb_event(USBDriver *usbp, usbevent_t event) {
 
   switch (event) {
-  case USB_EVENT_RESET:
-    return;
-  case USB_EVENT_ADDRESS:
-    return;
   case USB_EVENT_CONFIGURED:
     chSysLockFromIsr();
 
@@ -388,20 +582,35 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
        must be used.*/
     usbInitEndpointI(usbp, USBD1_DATA_REQUEST_EP, &ep1config);
     usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep2config);
+#if ENABLE_USB_AUDIO    
+    usbInitEndpointI(usbp, AUDIO_ENDPPOINT_OUT, &ep3config);
+#endif
 
     /* Resetting the state of the Bulk driver subsystem.*/
     bduConfigureHookI(&BDU1);
     mduConfigureHookI(&MDU1);
+#if ENABLE_USB_AUDIO    
+    aduConfigureHookI(&ADU1);
+    // Notify USB state changes for AUDIO
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+#endif
 
     chSysUnlockFromIsr();
     return;
   case USB_EVENT_SUSPEND:
-    return;
   case USB_EVENT_WAKEUP:
-    return;
   case USB_EVENT_STALLED:
+  case USB_EVENT_RESET:
+  case USB_EVENT_ADDRESS:
+#if ENABLE_USB_AUDIO    
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+    chSysUnlockFromIsr();
+#endif
     return;
   }
+
   return;
 }
 
@@ -486,9 +695,63 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
     ) {
     usbSetupTransfer(usbp, (uint8_t *)&msdescriptor1, usbp->setup[6], NULL);
     return TRUE;
+  } 
+#if ENABLE_USB_AUDIO  
+  else 
+  {
+    // Audio stuff
+    if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) == (USB_RTYPE_TYPE_STD | USB_RTYPE_RECIPIENT_INTERFACE)) 
+    {
+      // Interface stuff
+      if (usbp->setup[1] == USB_REQ_SET_INTERFACE) 
+        return aduSwitchInterface(usbp, usbp->setup[4], usbp->setup[5], usbp->setup[1], (usbp->setup[3] << 8) | (usbp->setup[2]), (usbp->setup[7] << 8) | (usbp->setup[6]));
+    }
+    else
+    {
+      if ((usbp->setup[0] & USB_RTYPE_TYPE_MASK) == USB_RTYPE_TYPE_CLASS) 
+      {
+        // class stuff
+        switch(usbp->setup[0] & USB_RTYPE_RECIPIENT_MASK) 
+        {
+            case USB_RTYPE_RECIPIENT_INTERFACE:
+            {
+              return aduControl(usbp);
+              // return aduControl(usbp, usbp->setup[4], usbp->setup[5], usbp->setup[1], (usbp->setup[3] << 8) | (usbp->setup[2]), (usbp->setup[7] << 8) | (usbp->setup[6]));
+              break;
+            }
+
+            case USB_RTYPE_RECIPIENT_ENDPOINT:
+            {
+              break;
+            }
+
+            default:
+            {
+              break;
+            }
+        }
+      }
+    }
   }
+#endif
 
   return FALSE;
+}
+
+#if ENABLE_USB_AUDIO    
+static void sofHook(USBDriver *usbp) 
+{
+  (void)usbp;
+
+  osalSysLockFromISR();
+  aduSofHookI(&ADU1);
+  osalSysUnlockFromISR();
+}
+
+void InitUsbAudio(void)
+{
+  aduObjectInit(&ADU1);
+  aduStart(&ADU1, &audiousbcfg);
 }
 
 /*
@@ -498,9 +761,19 @@ const USBConfig usbcfg = {
   usb_event,
   get_descriptor,
   specialRequestsHook,
+  sofHook
+};
+#else
+/*
+ * USB driver configuration.
+ */
+const USBConfig usbcfg = {
+  usb_event,
+  get_descriptor,
+  specialRequestsHook,
   NULL
 };
-
+#endif
 /*
  * Midi USB driver configuration.
  */
@@ -518,3 +791,14 @@ const BulkUSBConfig bulkusbcfg = {
   USBD2_DATA_REQUEST_EP,
   USBD2_DATA_AVAILABLE_EP
 };
+
+#if ENABLE_USB_AUDIO
+/*
+ * Audio USB driver configuration.
+ */
+const AudioUSBConfig audiousbcfg = {
+  &USBD1,
+  AUDIO_ENDPPOINT_OUT,
+  AUDIO_ENDPPOINT_OUT
+};
+#endif

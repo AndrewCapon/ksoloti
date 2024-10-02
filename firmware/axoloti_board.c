@@ -21,7 +21,7 @@
 #include "axoloti_defines.h"
 #include "axoloti_board.h"
 
-//#define ENABLE_SERIAL_DEBUG
+//#define ENABLE_SERIAL_DEBUG 1
 
 #if defined(BOARD_KSOLOTI_CORE)
 uint8_t adc3_ch = 8; /* We start with the conversion of channel 8 (voltage supervisor) */

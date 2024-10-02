@@ -31,6 +31,8 @@
 #include "spilink_lld.h"
 #endif
 
+#include "analyse.h"
+
 #define ADAU1961_I2C_ADDR 0x70 /* (0x38<<1) */
 #define TIMEOUT 1000000
 
@@ -382,7 +384,17 @@ void codec_ADAU1961_hw_init(uint16_t samplerate, bool_t isMaster) {
     }
 
 #else
+
+#if USB_CODEC_TESTING == 1
+    // USB Underrun
+    uint8_t pllreg[6] = {0x00, 127, 0x00, 0x12, 0x31, 0x01};
+#elif USB_CODEC_TESTING==2
+    // USB Overrun
+    uint8_t pllreg[6] = {0x00, 123, 0x00, 0x12, 0x31, 0x01};
+#else
     uint8_t pllreg[6] = {0x00, 0x7D, 0x00, 0x12, 0x31, 0x01};
+#endif
+
     /* reg setting 0x007D 0012 3101
      * pllreg[0] = 0x00;
      * pllreg[1] = 0x7D; PLL denominator M = 125

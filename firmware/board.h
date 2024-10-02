@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013, 2014 Johannes Taelman
  * Edited 2023 - 2024 by Ksoloti
  *
@@ -18,6 +18,8 @@
  */
 #ifndef _BOARD_H_
 #define _BOARD_H_
+
+#include "migration_v3.h"
 
 /*
  * Board oscillators-related settings.

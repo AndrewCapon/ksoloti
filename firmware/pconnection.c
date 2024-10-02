@@ -501,6 +501,30 @@ void ReplySpilinkSynced(void) {
   chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )(&reply[0]), 5);
 }
 
+typedef struct _PCDebug
+{
+  uint8_t c;
+  int state;
+} PCDebug;
+
+#define PC_DBG_COUNT (0)
+#if PC_DBG_COUNT
+PCDebug dbg_received[PC_DBG_COUNT]  __attribute__ ((section (".sram3")));;
+uint16_t uCount = 0;
+
+void AddPCDebug(uint8_t c, int state)
+{
+  dbg_received[uCount].c = c;
+  dbg_received[uCount].state = state;
+  uCount++;
+  if(uCount==PC_DBG_COUNT)
+    uCount = 0;
+}
+#else
+  #define AddPCDebug(a,b)
+#endif
+
+
 
 void PExReceiveByte(unsigned char c) {
   static char header = 0;
@@ -513,6 +537,8 @@ void PExReceiveByte(unsigned char c) {
   static int a;
   static int b;
   static uint32_t patchid;
+
+  AddPCDebug(c, state);
 
   if (!header) {
     switch (state) {

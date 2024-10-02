@@ -31,6 +31,8 @@
 #ifdef FW_SPILINK
 #include "spilink.h"
 #endif
+#include "analyse.h"
+#include "audio_usb.h"
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -48,6 +50,12 @@ static const char* index_fn = "/index.axb";
 
 static int32_t inbuf[32];
 static int32_t* outbuf;
+
+#if ENABLE_USB_AUDIO
+static int32_t inbufUsb[32];
+static int32_t outbufUsb[32];
+#endif
+
 
 static int16_t nThreadsBeforePatch;
 static WORKING_AREA(waThreadDSP, 7200) __attribute__ ((section (".ccmramend")));
@@ -224,12 +232,17 @@ static int StartPatch1(void) {
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
             static uint32_t tStart;
+            Analyse(GPIOB, 9, 1); 
             tStart = hal_lld_get_counter_value();
             watchdog_feed();
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
+#if ENABLE_USB_AUDIO             
+                (patchMeta.fptr_dsp_process)(inbuf, outbuf, inbufUsb, outbufUsb);
+#else
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
+#endif
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -248,6 +261,11 @@ static int StartPatch1(void) {
             if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
+
+#if ENABLE_USB_AUDIO
+                // reset USB audio
+                aduReset();
+#endif
                 // LogTextMessage("DSP overrun");
 
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
@@ -420,6 +438,8 @@ void start_dsp_thread(void) {
         pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
 }
 
+// usb test hack
+extern void aduCodecData (int32_t *in, int32_t *out);
 
 void computebufI(int32_t* inp, int32_t* outp) {
     uint8_t i; for (i = 0; i < 32; i++) {
@@ -427,6 +447,10 @@ void computebufI(int32_t* inp, int32_t* outp) {
     }
 
     outbuf = outp;
+
+#if ENABLE_USB_AUDIO     
+    aduCodecData(inbufUsb, outbufUsb);
+#endif    
 
     chSysLockFromIsr();
     chEvtSignalI(pThreadDSP, (eventmask_t)1);
