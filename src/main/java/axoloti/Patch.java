@@ -1646,9 +1646,9 @@ public class Patch {
           + I+I + "for (i = 0; i < BUFSIZE; i++) {\n"
           + I+I+I + "AudioOutputLeft[i] = 0;\n"
           + I+I+I + "AudioOutputRight[i] = 0;\n"
-          + "#if USE_USB_AUDIO_BUFFERS\n"
-          + I+I + "for (i=0; i<BUFSIZE; i++) UsbOutputLeft[i] = 0;\n"
-          + I+I + "for (i=0; i<BUFSIZE; i++) UsbOutputRight[i] = 0;\n"
+          + "#if ENABLE_USB_AUDIO\n"
+          + I+I + "UsbOutputLeft[i] = 0;\n"
+          + I+I + "UsbOutputRight[i] = 0;\n"
           + "#endif\n"
   
           + I+I + "}\n";
