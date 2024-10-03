@@ -123,7 +123,7 @@ static void InsertHandler(eventid_t id) {
   if (sdcConnect(&SDCD1))
     return;
 
-  err = f_mount(&SDC_FS, "", 0); // TODO_CH16 probably broken
+  err = f_mount(&SDC_FS, "", 0); 
   if (err != FR_OK) {
     sdcDisconnect(&SDCD1);
     return;
