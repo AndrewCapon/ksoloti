@@ -1640,18 +1640,21 @@ public class Patch {
 
     String GenerateDSPCodePlusPlus(String ClassName) {
         String c = "\n";
-        c = I + "/* Patch k-rate */\n"
+        c = I + "void __attribute__((optimize(\"O2\"))) clearTest(void) {\n"
+        + I+I + "uint8_t i;\n"
+        + I+I + "for (i = 0; i < BUFSIZE; i++) {\n"
+        + I+I+I + "AudioOutputLeft[i] = 0;\n"
+        + I+I+I + "AudioOutputRight[i] = 0;\n"
+        + "#if ENABLE_USB_AUDIO\n"
+        + I+I+I + "UsbOutputLeft[i] = 0;\n"
+        + I+I+I + "UsbOutputRight[i] = 0;\n"
+        + "#endif\n"
+        + I+I + "}\n"
+        + I + "}\n"
+        + I + "/* Patch k-rate */\n"
           + I + "void dsp(void) {\n"
-          + I+I + "uint8_t i;\n"
-          + I+I + "for (i = 0; i < BUFSIZE; i++) {\n"
-          + I+I+I + "AudioOutputLeft[i] = 0;\n"
-          + I+I+I + "AudioOutputRight[i] = 0;\n"
-          + "#if ENABLE_USB_AUDIO\n"
-          + I+I + "UsbOutputLeft[i] = 0;\n"
-          + I+I + "UsbOutputRight[i] = 0;\n"
-          + "#endif\n"
-  
-          + I+I + "}\n";
+          + I+I + "clearTest();\n\n";
+ 
         c += GenerateDSPCodePlusPlusSub(ClassName);
         c += I + "}\n\n";
         return c;
