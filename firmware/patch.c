@@ -34,6 +34,7 @@
 #include "analyse.h"
 #include "audio_usb.h"
 
+
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
 
@@ -79,6 +80,12 @@ void InitPatch0(void) {
     patchMeta.patchID = 0;
 }
 
+#define USE_MOVING_AVERAGE 1
+
+#if USE_MOVING_AVERAGE
+#include "moving_average.h"
+static moving_average_data ma;
+#endif
 
 static int16_t GetNumberOfThreads(void) {
 #ifdef CH_USE_REGISTRY
@@ -217,6 +224,7 @@ static int StartPatch1(void) {
 
  __attribute__((__noreturn__)) static msg_t ThreadDSP(void* arg) {
     (void)(arg);
+
 #if CH_USE_REGISTRY
     chRegSetThreadName("dsp");
 #endif
@@ -257,14 +265,19 @@ static int StartPatch1(void) {
             adc_convert();
 
             DspTime = RTT2US(hal_lld_get_counter_value() - tStart);
+#if USE_MOVING_AVERAGE
+            ma_add(&ma, DspTime);
+#endif
+
             dspLoad200 = (2000 * DspTime) / 3333;
+            Analyse(GPIOB, 9, 0); 
             if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
 
 #if ENABLE_USB_AUDIO
                 // reset USB audio
-                aduReset();
+                //aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
 
@@ -434,6 +447,9 @@ int StartPatch(void) {
 
 
 void start_dsp_thread(void) {
+#if USE_MOVING_AVERAGE
+    ma_init(&ma, false);
+#endif
     if (!pThreadDSP)
         pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
 }
