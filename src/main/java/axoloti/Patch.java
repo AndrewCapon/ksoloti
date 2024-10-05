@@ -1654,6 +1654,7 @@ public class Patch {
 
         + I + "/* Patch k-rate */\n"
         + I + "void dsp(void) {\n"
+        + I+I + "uint8_t i;\n"
         + I+I + "clearBuffers();\n";
  
         c += GenerateDSPCodePlusPlusSub(ClassName);
