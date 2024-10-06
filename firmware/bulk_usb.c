@@ -28,8 +28,7 @@
 
 //#pragma GCC optimize ("O0")
 
-#define USE_BLOCKED_TX 0
-#define USE_BLOCKED_RX 0
+#define USE_BLOCKED_TX 1
 
 #include "ch.h"
 #include "hal.h"
@@ -145,22 +144,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 }
 
 static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
-#if USE_BLOCKED_RX
-  BulkUSBDriver *bdup = (BulkUSBDriver *)ip;
-  USBDriver *usbp = bdup->config->usbp;
-
-  if ((usbGetDriverStateI(bdup->config->usbp) != USB_ACTIVE) ||
-      (bdup->state != BDU_READY))
-    return 0;
-
-  bduAddLog(blBlockedRX, n);
-
-  msg_t r = usbReceive(usbp, bdup->config->bulk_out, bp, n);
-
-  return r;
-#else
   return chIQReadTimeout(&((BulkUSBDriver *)ip)->iqueue, bp, n, time);
-#endif
 }
 
 static const struct BulkUSBDriverVMT vmt = {
@@ -370,13 +354,8 @@ void bduConfigureHookI(BulkUSBDriver *bdup) {
   chnAddFlagsI(bdup, CHN_CONNECTED);
 
   /* Starts the first OUT transaction immediately.*/
-  //CH16 usbPrepareQueuedReceive(usbp, bdup->config->bulk_out, &bdup->iqueue,
-  //                        usbp->epc[bdup->config->bulk_out]->out_maxsize);
-  //usbStartReceiveI(usbp, bdup->config->bulk_out);
-#if !USE_BLOCKED_RX  
   bduAddLog(blConfigure, usbp->epc[bdup->config->bulk_out]->out_maxsize);
   bduInitiateReceiveI(bdup, usbp->epc[bdup->config->bulk_out]->out_maxsize);
-#endif
 }
 
 /**
@@ -471,9 +450,6 @@ void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
  */
 void bduDataReceived(USBDriver *usbp, usbep_t ep) {
 
-#if USE_BLOCKED_RX  
-  return;
-#endif
   //Analyse(GPIOC, 7, 1);
 
   size_t uQueueRemainingSize, maxsize;
@@ -482,9 +458,6 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
   if (bdup == NULL)
     return;
 
-  // CH16 we need to transfer data from our buffer to the queue
-  // this all needs a rewrite to get rid of the queues and
-  // use buffers instead.
   USBOutEndpointState *pEpState = usbp->epc[ep]->out_state;
   volatile uint32_t uReceivedCount = pEpState->rxcnt;
 

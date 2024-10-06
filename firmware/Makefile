@@ -15,7 +15,7 @@ ifeq ($(USE_OPT),)
     -Wno-return-type \
     -Wno-unused-function \
     -Wno-unused-parameter \
-    -Og \
+    -O2 \
     -falign-functions=16 \
     -fno-math-errno \
     -fomit-frame-pointer \
@@ -467,7 +467,7 @@ UDEFS = \
     -D__FPU_PRESENT \
     -DSTM32F429xx \
     -DCRT1_AREAS_NUMBER=0 \
-    -DENABLE_USB_AUDIO=0
+    -DENABLE_USB_AUDIO=1
 
 # Define ASM defines here
 UADEFS =

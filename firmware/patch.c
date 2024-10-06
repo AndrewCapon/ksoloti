@@ -55,6 +55,12 @@ static int32_t* outbuf;
 #if ENABLE_USB_AUDIO
 static int32_t inbufUsb[32];
 static int32_t outbufUsb[32];
+void usb_clearbuffer(void)
+{
+    uint_fast8_t i; for(i=0; i<32; i++) {
+        outbufUsb[i] = 0;
+    }
+}
 #endif
 
 
@@ -80,11 +86,19 @@ void InitPatch0(void) {
     patchMeta.patchID = 0;
 }
 
-#define USE_MOVING_AVERAGE 1
+#define USE_MOVING_AVERAGE 0
+#define USE_DSPTIME_SMOOTHING_MS 1
 
 #if USE_MOVING_AVERAGE
 #include "moving_average.h"
+float madata[100];
 static moving_average_data ma;
+#endif
+
+#if USE_DSPTIME_SMOOTHING_MS
+#include "moving_average.h"
+float dsptimeSmoothingData[3 * USE_DSPTIME_SMOOTHING_MS];
+static moving_average_data dsptimeSmoothing;
 #endif
 
 static int16_t GetNumberOfThreads(void) {
@@ -229,6 +243,9 @@ static int StartPatch1(void) {
     chRegSetThreadName("dsp");
 #endif
     codec_clearbuffer();
+    #if ENABLE_USB_AUDIO
+        usb_clearbuffer();
+    #endif
 
     while (1) {
 
@@ -254,22 +271,35 @@ static int StartPatch1(void) {
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
+                #if ENABLE_USB_AUDIO
+                  usb_clearbuffer();
+                #endif
+
                 StopPatch1();
                 patchStatus = STOPPED;
                 codec_clearbuffer();
             }
             else if (patchStatus == STOPPED) {
                 codec_clearbuffer();
+                #if ENABLE_USB_AUDIO
+                  usb_clearbuffer();
+                #endif
             }
 
             adc_convert();
 
             DspTime = RTT2US(hal_lld_get_counter_value() - tStart);
+
 #if USE_MOVING_AVERAGE
             ma_add(&ma, DspTime);
 #endif
 
+#if USE_DSPTIME_SMOOTHING_MS
+            ma_add(&dsptimeSmoothing, DspTime);
+            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / 3333;
+#else
             dspLoad200 = (2000 * DspTime) / 3333;
+#endif
             Analyse(GPIOB, 9, 0); 
             if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
                 /* Overload: clear output buffers and give other processes a chance */
@@ -284,10 +314,18 @@ static int StartPatch1(void) {
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);
             }
+#if USE_EXTERNAL_USB_FIFO_PUMP            
+            usb_lld_external_pump();
+            //dspLoad200+=18;
+#endif
         }
         else if (evt == 2) {
             /* load patch event */
             codec_clearbuffer();
+            #if ENABLE_USB_AUDIO
+                usb_clearbuffer();
+            #endif
+
             StopPatch1();
             patchStatus = STOPPED;
 
@@ -401,6 +439,9 @@ static int StartPatch1(void) {
         else if (evt == 4) {
             /* Start patch */
             codec_clearbuffer();
+            #if ENABLE_USB_AUDIO
+                usb_clearbuffer();
+            #endif
             StartPatch1();
         }
 
@@ -448,13 +489,19 @@ int StartPatch(void) {
 
 void start_dsp_thread(void) {
 #if USE_MOVING_AVERAGE
-    ma_init(&ma, false);
+    ma_init(&ma, madata, sizeof(madata) / sizeof(float), false);
 #endif
+
+#if USE_DSPTIME_SMOOTHING_MS
+    ma_init(&dsptimeSmoothing, dsptimeSmoothingData, sizeof(dsptimeSmoothingData) / sizeof(float), false);
+#endif
+
     if (!pThreadDSP)
         pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
 }
 
 // usb test hack
+// TODO move to thread dsp?
 extern void aduCodecData (int32_t *in, int32_t *out);
 
 void computebufI(int32_t* inp, int32_t* outp) {

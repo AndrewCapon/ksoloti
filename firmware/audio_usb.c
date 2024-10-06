@@ -15,7 +15,7 @@
 
 
 // do not set higher than -O1
-#pragma GCC optimize ("O1")
+#pragma GCC optimize ("O2")
 #define FORCE_INLINE __attribute__((always_inline)) inline 
 //#define FORCE_INLINE
 #define NEW_CODE_TX 1
@@ -89,6 +89,9 @@ AduState aduState;
 
 void aduReset(void)
 {
+  Analyse(GPIOA, 9, 1);
+  Analyse(GPIOA, 9, 0);
+
   AddOverunLog(ltUSBReset_______);
   aduState.state = asNeedsReset;
 }
@@ -101,7 +104,7 @@ void HandleError(void)
   AddOverunLog(ltErrorBefore____);
 
   // ok we are all out of sync, try to recover
-  aduReset();
+  aduState.state = asNeedsReset;
 }
 
 // Set the sample rate
@@ -732,7 +735,6 @@ void aduCodecData (int32_t *in, int32_t *out)
     uint16_t uFeedbackLen = uLen;
     uint_fast16_t u;
 
-
     /////////////////////////////////
     // codec -> USB
     /////////////////////////////////
@@ -1122,6 +1124,8 @@ void aduInitiateTransmitI(USBDriver *usbp)
     {
       bOk = false;
       //AnalyseError();
+      Analyse(GPIOG, 10, 1);
+      Analyse(GPIOG, 10, 0);
     }
   }
 
