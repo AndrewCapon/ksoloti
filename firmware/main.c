@@ -292,7 +292,7 @@ int main(void) {
         chThdSleepMilliseconds(1);
     }
 
-    // MY_USBH_Init(); this needs recoding
+    MY_USBH_Init(); 
 
     if (!exception_check()) {
         /* Only try mounting SD and booting a patch when no exception is reported */
