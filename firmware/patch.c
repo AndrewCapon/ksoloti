@@ -38,9 +38,6 @@
 extern void aduDataExchange (int32_t *in, int32_t *out);
 #endif
 
-#if USE_EXTERNAL_USB_FIFO_PUMP
-extern void usb_lld_external_pump(void);
-#endif
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -322,13 +319,8 @@ static int StartPatch1(void) {
                 chThdSleepMilliseconds(1);
             }
 
-#if USE_EXTERNAL_USB_FIFO_PUMP
-            // when this functions blocks, we dont get events
-            // and the USB audio goes out of sync.
-            // need somewhere else to run this :(
-            // maybe enable disable normal fifo thread
-            usb_lld_external_pump();            
-            // dspLoad200+=18;
+#if ENABLE_USB_AUDIO
+            dspLoad200+=18;
 #endif
         }
         else if (evt == 2) {

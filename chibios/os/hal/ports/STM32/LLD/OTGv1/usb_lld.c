@@ -905,7 +905,6 @@ void usb_lld_start(USBDriver *usbp) {
     otgp->GINTSTS  = 0xFFFFFFFF;
 
 #if defined(_CHIBIOS_RT_)
-#if !USE_EXTERNAL_USB_FIFO_PUMP
     /* Creates the data pump thread. Note, it is created only once.*/
     if (usbp->tr == NULL) {
       usbp->tr = chThdCreateI(usbp->wa_pump, sizeof usbp->wa_pump,
@@ -914,7 +913,6 @@ void usb_lld_start(USBDriver *usbp) {
       chThdStartI(usbp->tr);
       chSchRescheduleS();
   }
-#endif
 #endif
 
     /* Global interrupts enable.*/
@@ -1318,66 +1316,6 @@ void usb_lld_clear_in(USBDriver *usbp, usbep_t ep) {
 
   usbp->otg->ie[ep].DIEPCTL &= ~DIEPCTL_STALL;
 }
-
-#if USE_EXTERNAL_USB_FIFO_PUMP
-void usb_lld_external_pump(void)
-{
-
-  USBDriver *usbp = &USBD1;
-  stm32_otg_t *otgp = usbp->otg;
-
-  osalSysLock();
-
-  usbep_t ep;
-  uint32_t epmask;
-
-  /* Nothing to do, going to sleep.*/
-  if ((usbp->state == USB_STOP) ||
-      ((usbp->txpending == 0) && !(otgp->GINTSTS & GINTSTS_RXFLVL))) 
-  {
-    otgp->GINTMSK |= GINTMSK_RXFLVLM;
-    osalSysUnlock();
-    return;
-  }
-  osalSysUnlock();
-  
-  palWritePad(GPIOB, 8, 1);
-  /* Checks if there are TXFIFOs to be filled.*/
-  for (ep = 0; ep <= usbp->otgparams->num_endpoints; ep++) {
-
-    /* Empties the RX FIFO.*/
-    while (otgp->GINTSTS & GINTSTS_RXFLVL) {
-      otg_rxfifo_handler(usbp);
-    }
-
-    epmask = (1 << ep);
-    if (usbp->txpending & epmask) {
-      bool done;
-
-      osalSysLock();
-      /* USB interrupts are globally *suspended* because the peripheral
-          does not allow any interference during the TX FIFO filling
-          operation.
-          Synopsys document: DesignWare Cores USB 2.0 Hi-Speed On-The-Go (OTG)
-            "The application has to finish writing one complete packet before
-            switching to a different channel/endpoint FIFO. Violating this
-            rule results in an error.".*/
-      otgp->GAHBCFG &= ~GAHBCFG_GINTMSK;
-      usbp->txpending &= ~epmask;
-      osalSysUnlock();
-
-      done = otg_txfifo_handler(usbp, ep);
-
-      osalSysLock();
-      otgp->GAHBCFG |= GAHBCFG_GINTMSK;
-      if (!done)
-        otgp->DIEPEMPMSK |= epmask;
-      osalSysUnlock();
-    }
-  }
-  palWritePad(GPIOB, 8, 0);
-}
-#endif 
 
 /**
  * @brief   USB data transfer loop.
