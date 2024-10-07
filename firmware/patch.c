@@ -34,6 +34,13 @@
 #include "analyse.h"
 #include "audio_usb.h"
 
+#if ENABLE_USB_AUDIO     
+extern void aduDataExchange (int32_t *in, int32_t *out);
+#endif
+
+#if USE_EXTERNAL_USB_FIFO_PUMP
+extern void usb_lld_external_pump(void);
+#endif
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -314,9 +321,14 @@ static int StartPatch1(void) {
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);
             }
-#if USE_EXTERNAL_USB_FIFO_PUMP            
-            usb_lld_external_pump();
-            //dspLoad200+=18;
+
+#if USE_EXTERNAL_USB_FIFO_PUMP
+            // when this functions blocks, we dont get events
+            // and the USB audio goes out of sync.
+            // need somewhere else to run this :(
+            // maybe enable disable normal fifo thread
+            usb_lld_external_pump();            
+            // dspLoad200+=18;
 #endif
         }
         else if (evt == 2) {
@@ -500,9 +512,6 @@ void start_dsp_thread(void) {
         pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
 }
 
-// usb test hack
-// TODO move to thread dsp?
-extern void aduCodecData (int32_t *in, int32_t *out);
 
 void computebufI(int32_t* inp, int32_t* outp) {
     uint8_t i; for (i = 0; i < 32; i++) {
@@ -512,7 +521,7 @@ void computebufI(int32_t* inp, int32_t* outp) {
     outbuf = outp;
 
 #if ENABLE_USB_AUDIO     
-    aduCodecData(inbufUsb, outbufUsb);
+    aduDataExchange(inbufUsb, outbufUsb);
 #endif    
 
     chSysLockFromIsr();

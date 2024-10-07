@@ -315,7 +315,7 @@ int main(void) {
         }
     }
 
-    TestMemset();
+    //TestMemset();
 
 #if ENABLE_USB_AUDIO
     EventListener audioEventListener;
@@ -326,10 +326,18 @@ int main(void) {
         chEvtWaitOne(AUDIO_EVENT);
         uint32_t  evt = chEvtGetAndClearFlags(&audioEventListener);
 
-        chprintf((BaseSequentialStream * )&SD2,"Audio Event\r\n");
-
-        if(evt & AUDIO_EVENT_USB_STATE)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB State changed.\r\n");
+        if(evt & AUDIO_EVENT_USB_CONGIGURED)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Configured.\r\n");
+        else if(evt & AUDIO_EVENT_USB_SUSPEND)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Suspend\r\n");
+        else if(evt & AUDIO_EVENT_USB_WAKEUP)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Wakeup.\r\n");
+        else if(evt & AUDIO_EVENT_USB_STALLED)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Stalled.\r\n");
+        else if(evt & AUDIO_EVENT_USB_RESET)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Reset.\r\n");
+        else if(evt & AUDIO_EVENT_USB_ENABLE)
+            chprintf((BaseSequentialStream * )&SD2,"Audio USB Enable.\r\n");
         else if(evt & AUDIO_EVENT_MUTE)
             chprintf((BaseSequentialStream * )&SD2,"Audio mute changed.\r\n");
         else if(evt & AUDIO_EVENT_VOLUME)

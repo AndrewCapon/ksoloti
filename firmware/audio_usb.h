@@ -902,9 +902,14 @@ typedef struct __attribute__ ((packed))
 #define AUDIO_EVENT_INPUT           EVENT_MASK(2)
 #define AUDIO_EVENT_MUTE            EVENT_MASK(3)
 #define AUDIO_EVENT_VOLUME          EVENT_MASK(4)
-#define AUDIO_EVENT_USB_STATE       EVENT_MASK(5)
-#define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
-#define AUDIO_EVENT_FORMAT          EVENT_MASK(6)
+#define AUDIO_EVENT_USB_CONGIGURED  EVENT_MASK(5)
+#define AUDIO_EVENT_USB_SUSPEND     EVENT_MASK(6)
+#define AUDIO_EVENT_USB_WAKEUP      EVENT_MASK(7)
+#define AUDIO_EVENT_USB_STALLED     EVENT_MASK(8)
+#define AUDIO_EVENT_USB_RESET       EVENT_MASK(9)
+#define AUDIO_EVENT_USB_ENABLE      EVENT_MASK(10)
+#define AUDIO_EVENT_FORMAT          EVENT_MASK(11)
+#define AUDIO_EVENT_FORMAT          EVENT_MASK(12)
 
 
 // samples to try to keep in buffer
@@ -1100,6 +1105,7 @@ void aduInitiateReceiveI(USBDriver *usbp);
 void aduInitiateTransmitI(USBDriver *usbp);
 void aduResetBuffers(void);
 void aduReset(void);
+
 
 #ifdef __cplusplus
 extern "C" {

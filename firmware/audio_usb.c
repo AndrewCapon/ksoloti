@@ -725,7 +725,7 @@ static FORCE_INLINE void aduMoveDataFromRX(int32_t *pData, uint_fast16_t uLen)
  * @param[in] out   pointer to out data -> USB
  */
 
-void aduCodecData (int32_t *in, int32_t *out)
+void aduDataExchange (int32_t *in, int32_t *out)
 {
   if(aduState.isOutputActive)
   {

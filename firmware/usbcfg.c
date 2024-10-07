@@ -592,20 +592,48 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 #if ENABLE_USB_AUDIO    
     aduConfigureHookI(&ADU1);
     // Notify USB state changes for AUDIO
-    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_CONGIGURED);
 #endif
 
     chSysUnlockFromIsr();
     return;
   case USB_EVENT_SUSPEND:
+#if ENABLE_USB_AUDIO    
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_SUSPEND);
+    chSysUnlockFromIsr();
+#endif
+    return;
   case USB_EVENT_WAKEUP:
+#if ENABLE_USB_AUDIO    
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_WAKEUP);
+    chSysUnlockFromIsr();
+#endif
+    return;
   case USB_EVENT_STALLED:
+#if ENABLE_USB_AUDIO    
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STALLED);
+    chSysUnlockFromIsr();
+#endif
+    return;
   case USB_EVENT_RESET:
+#if ENABLE_USB_AUDIO    
+    // Notify USB state changes for AUDIO
+    chSysUnlockFromIsr();
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_RESET);
+    chSysUnlockFromIsr();
+#endif
+    return;
   case USB_EVENT_ADDRESS:
 #if ENABLE_USB_AUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
-    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STATE);
+    chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_ENABLE);
     chSysUnlockFromIsr();
 #endif
     return;
