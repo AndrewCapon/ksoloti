@@ -340,8 +340,8 @@ static int StartPatch1(void) {
             dspLoad200 = (2000 * DspTime) / 3333;
 #endif
 
-#if ENABLE_USB_AUDIO
-            //dspLoad200+=10;
+#if USE_EXTERNAL_USB_FIFO_PUMP
+            dspLoad200+=10;
 #endif
 
             Analyse(GPIOB, 9, 0); 
