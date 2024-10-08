@@ -339,6 +339,11 @@ static int StartPatch1(void) {
 #else
             dspLoad200 = (2000 * DspTime) / 3333;
 #endif
+
+#if ENABLE_USB_AUDIO
+            //dspLoad200+=10;
+#endif
+
             Analyse(GPIOB, 9, 0); 
             if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
                 /* Overload: clear output buffers and give other processes a chance */
@@ -346,7 +351,7 @@ static int StartPatch1(void) {
 
 #if ENABLE_USB_AUDIO
                 // reset USB audio
-                aduReset();
+                //aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
 

@@ -5,7 +5,42 @@
     "projectName": "ksoloti",
     "configurations": [
         {
-            "name": "Ksoloti launch",
+            "type": "java",
+            "name": "Launch Java Program",
+            "request": "launch",
+            "mainClass": "axoloti.Axoloti"
+        },
+        {
+            "name": "USB launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "./firmware/build/ksoloti.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "stlink",
+            "device": "STM32F429ZG",
+            "interface": "swd",
+            //"runToEntryPoint": "main",
+            "preLaunchTask": "Build all",
+            "svdFile": "./debug/STM32F429.svd",
+            "swoConfig": {},
+            "serverArgs": ["-i 0030001B3532510F31333430", "--frequency 24000"]
+        },
+        {
+            "name": "USB attach",
+            "cwd": "${workspaceRoot}",
+            "executable": "./firmware/build/ksoloti.elf",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "stlink",
+            "device": "STM32F429ZG",
+            "interface": "swd",
+            //"runToEntryPoint": "main",
+            "svdFile": "./debug/STM32F429.svd",
+            "swoConfig": {},
+            "serverArgs": ["-i 0030001B3532510F31333430", "--frequency 24000"]
+        },
+        {
+            "name": "Gills launch",
             "cwd": "${workspaceRoot}",
             "executable": "./firmware/build/ksoloti.elf",
             "request": "launch",
@@ -14,12 +49,13 @@
             "device": "STM32F429ZG",
             "interface": "swd",
             "runToEntryPoint": "main",
-            //"preLaunchTask": "Build all",
+            "preLaunchTask": "Build all",
             "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
+            "swoConfig": {},
+            "serverArgs": ["-i 56FF6F067878545210450567", "--frequency 24000"]
         },
         {
-            "name": "Ksoloti attach",
+            "name": "Gills attach",
             "cwd": "${workspaceRoot}",
             "executable": "./firmware/build/ksoloti.elf",
             "request": "attach",
@@ -29,88 +65,9 @@
             "interface": "swd",
             "runToEntryPoint": "main",
             "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
+            "swoConfig": {},
+            "serverArgs": ["-i 56FF6F067878545210450567", "--frequency 24000"]
         },
-        {
-            "name": "Axoloti launch",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/axoloti.elf",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            //"preLaunchTask": "Build all",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        },
-        {
-            "name": "Axoloti attach",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/axoloti.elf",
-            "request": "attach",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        },
-        {
-            "name": "Ksoloti SPILink launch",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/ksoloti_spilink.elf",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            //"preLaunchTask": "Build all",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        },
-        {
-            "name": "Ksoloti SPILink attach",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/ksoloti_spilink.elf",
-            "request": "attach",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        },
-        {
-            "name": "Axoloti SPILink launch",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/axoloti_spilink.elf",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            //"preLaunchTask": "Build all",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        },
-        {
-            "name": "Axoloti SPILink attach",
-            "cwd": "${workspaceRoot}",
-            "executable": "./firmware/build/axoloti_spilink.elf",
-            "request": "attach",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32F429ZG",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            "svdFile": "./debug/STM32F429.svd",
-            "swoConfig": {}
-        }
+
        ]
 }

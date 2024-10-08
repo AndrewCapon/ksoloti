@@ -103,7 +103,7 @@ void InitPConnection(void) {
     usbStart(midiusbcfg.usbp, &usbcfg);
     usbConnectBus(midiusbcfg.usbp);
 
-    chThdCreateStatic(waThreadUSBDMidi, sizeof(waThreadUSBDMidi), NORMALPRIO, ThreadUSBDMidi, NULL);
+    chThdCreateStatic(waThreadUSBDMidi, sizeof(waThreadUSBDMidi), MIDI_USB_PRIO, ThreadUSBDMidi, NULL);
 }
 
 
