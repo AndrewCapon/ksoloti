@@ -74,8 +74,10 @@ __attribute__((noreturn)) static msg_t ThreadUSBDMidi(void *arg) {
 
     while (1) {
         chnReadTimeout(&MDU1, &r[0], 4, TIME_INFINITE);
+        palWritePad(GPIOA, 9, 1);
         MidiInMsgHandler(MIDI_DEVICE_USB_DEVICE, ((r[0] & 0xF0) >> 4) + 1, r[1],
                          r[2], r[3]);
+        palWritePad(GPIOA, 9, 0);
     }
 }
 

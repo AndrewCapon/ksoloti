@@ -127,6 +127,8 @@ static const stm32_otg_params_t hsparams = {
 };
 #endif
 
+static bool use_external_pump = false;
+
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -394,7 +396,8 @@ static void otg_epin_handler(USBDriver *usbp, usbep_t ep) {
     osalSysLockFromISR();
     usbp->txpending |= (1 << ep);
     otgp->DIEPEMPMSK &= ~(1 << ep);
-    osalThreadResumeI(&usbp->wait, MSG_OK);
+    if(!use_external_pump)
+      osalThreadResumeI(&usbp->wait, MSG_OK);
     osalSysUnlockFromISR();
   }
 }
@@ -487,7 +490,8 @@ static void otg_isoc_in_failed_handler(USBDriver *usbp) {
       osalSysLockFromISR();
       otgp->DIEPEMPMSK &= ~(1 << ep);
       usbp->txpending |= (1 << ep);
-      osalThreadResumeI(&usbp->wait, MSG_OK);
+      if(!use_external_pump)
+        osalThreadResumeI(&usbp->wait, MSG_OK);
       osalSysUnlockFromISR();
     }
   }
@@ -606,7 +610,8 @@ static void usb_lld_serve_interrupt(USBDriver *usbp) {
        be triggered again.*/
     osalSysLockFromISR();
     otgp->GINTMSK &= ~GINTMSK_RXFLVLM;
-    osalThreadResumeI(&usbp->wait, MSG_OK);
+    if(!use_external_pump)
+      osalThreadResumeI(&usbp->wait, MSG_OK);
     osalSysUnlockFromISR();
   }
 
@@ -1317,6 +1322,70 @@ void usb_lld_clear_in(USBDriver *usbp, usbep_t ep) {
   usbp->otg->ie[ep].DIEPCTL &= ~DIEPCTL_STALL;
 }
 
+#if USE_EXTERNAL_USB_FIFO_PUMP
+void usb_lld_use_external_pummp(bool use)
+{
+  use_external_pump = use;
+}
+
+void usb_lld_external_pump(void)
+{
+  USBDriver *usbp = &USBD1;
+  stm32_otg_t *otgp = usbp->otg;
+
+  osalSysLock();
+
+  usbep_t ep;
+  uint32_t epmask;
+
+  /* Nothing to do, going to sleep.*/
+  if ((usbp->state == USB_STOP) ||
+      ((usbp->txpending == 0) && !(otgp->GINTSTS & GINTSTS_RXFLVL))) 
+  {
+    otgp->GINTMSK |= GINTMSK_RXFLVLM;
+    osalSysUnlock();
+    return;
+  }
+  osalSysUnlock();
+  
+  palWritePad(GPIOB, 8, 1);
+  /* Checks if there are TXFIFOs to be filled.*/
+  for (ep = 0; ep <= usbp->otgparams->num_endpoints; ep++) {
+
+    /* Empties the RX FIFO.*/
+    while (otgp->GINTSTS & GINTSTS_RXFLVL) {
+      otg_rxfifo_handler(usbp);
+    }
+
+    epmask = (1 << ep);
+    if (usbp->txpending & epmask) {
+      bool done;
+
+      osalSysLock();
+      /* USB interrupts are globally *suspended* because the peripheral
+          does not allow any interference during the TX FIFO filling
+          operation.
+          Synopsys document: DesignWare Cores USB 2.0 Hi-Speed On-The-Go (OTG)
+            "The application has to finish writing one complete packet before
+            switching to a different channel/endpoint FIFO. Violating this
+            rule results in an error.".*/
+      otgp->GAHBCFG &= ~GAHBCFG_GINTMSK;
+      usbp->txpending &= ~epmask;
+      osalSysUnlock();
+
+      done = otg_txfifo_handler(usbp, ep);
+
+      osalSysLock();
+      otgp->GAHBCFG |= GAHBCFG_GINTMSK;
+      if (!done)
+        otgp->DIEPEMPMSK |= epmask;
+      osalSysUnlock();
+    }
+  }
+  palWritePad(GPIOB, 8, 0);
+}
+#endif 
+
 /**
  * @brief   USB data transfer loop.
  * @details This function must be executed by a system thread in order to
@@ -1342,7 +1411,8 @@ void usb_lld_pump(void *p) {
     uint32_t epmask;
 
     /* Nothing to do, going to sleep.*/
-    if ((usbp->state == USB_STOP) ||
+    if ((use_external_pump) ||
+        (usbp->state == USB_STOP) ||
         ((usbp->txpending == 0) && !(otgp->GINTSTS & GINTSTS_RXFLVL))) {
       otgp->GINTMSK |= GINTMSK_RXFLVLM;
       osalThreadSuspendS(&usbp->wait);

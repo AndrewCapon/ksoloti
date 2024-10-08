@@ -34,10 +34,17 @@
 #include "analyse.h"
 #include "audio_usb.h"
 
+#define PATCH_DSP_PRIORITY    HIGHPRIO-1
+#define PATCH_NORMAL_PRIORITY NORMALPRIO
+
 #if ENABLE_USB_AUDIO     
 extern void aduDataExchange (int32_t *in, int32_t *out);
 #endif
 
+#if USE_EXTERNAL_USB_FIFO_PUMP
+extern void usb_lld_external_pump(void);
+void usb_lld_use_external_pummp(bool use);
+#endif 
 
 #define STACKSPACE_MARGIN 32
 // #define DEBUG_PATCH_INT_ON_GPIO 1
@@ -72,9 +79,38 @@ static int16_t nThreadsBeforePatch;
 static WORKING_AREA(waThreadDSP, 7200) __attribute__ ((section (".ccmramend")));
 static Thread* pThreadDSP = 0;
 
+static void SetPatchStatus(patchStatus_t status)
+{
+    if(patchStatus != status)
+    {
+        if(status == RUNNING)
+        {
+            // DSP priority
+            chThdSetPriority(PATCH_DSP_PRIORITY);
+#if USE_EXTERNAL_USB_FIFO_PUMP
+            // Switch to external fifo pump
+            usb_lld_use_external_pummp(true);
+#endif
+        }
+        else
+        {
+            // Normal priority
+            chThdSetPriority(PATCH_NORMAL_PRIORITY);
+
+#if USE_EXTERNAL_USB_FIFO_PUMP
+            if(patchStatus == RUNNING)
+            {
+                // switch to fifo pump thread.
+                usb_lld_use_external_pummp(false);
+            }
+#endif
+        }
+    }
+    patchStatus = status;    
+}
 
 void InitPatch0(void) {
-    patchStatus = STOPPED;
+    SetPatchStatus(STOPPED);
     patchMeta.fptr_patch_init = 0;
     patchMeta.fptr_patch_dispose = 0;
     patchMeta.fptr_dsp_process = 0;
@@ -91,7 +127,6 @@ void InitPatch0(void) {
 }
 
 #define USE_MOVING_AVERAGE 0
-#define USE_DSPTIME_SMOOTHING_MS 1
 
 #if USE_MOVING_AVERAGE
 #include "moving_average.h"
@@ -99,9 +134,9 @@ float madata[100];
 static moving_average_data ma;
 #endif
 
-#if USE_DSPTIME_SMOOTHING_MS
+#if USE_PATCH_DSPTIME_SMOOTHING_MS
 #include "moving_average.h"
-float dsptimeSmoothingData[3 * USE_DSPTIME_SMOOTHING_MS];
+float dsptimeSmoothingData[3 * USE_PATCH_DSPTIME_SMOOTHING_MS];
 static moving_average_data dsptimeSmoothing;
 #endif
 
@@ -222,20 +257,20 @@ static int StartPatch1(void) {
 
     if (patchMeta.fptr_dsp_process == 0) {
         report_patchLoadFail((const char*) &loadFName[0]);
-        patchStatus = STARTFAILED;
+        SetPatchStatus(STARTFAILED);
         return -1;
     }
 
     int32_t sdrem = sdram_get_free();
     if (sdrem < 0) {
         StopPatch1();
-        patchStatus = STARTFAILED;
+        SetPatchStatus(STARTFAILED);
         patchMeta.patchID = 0;
         report_patchLoadSDRamOverflow((const char*) &loadFName[0], -sdrem);
         return -1;
     }
 
-    patchStatus = RUNNING;
+    SetPatchStatus(RUNNING);
     return 0;
 }
 
@@ -280,7 +315,7 @@ static int StartPatch1(void) {
                 #endif
 
                 StopPatch1();
-                patchStatus = STOPPED;
+                SetPatchStatus(STOPPED);
                 codec_clearbuffer();
             }
             else if (patchStatus == STOPPED) {
@@ -298,7 +333,7 @@ static int StartPatch1(void) {
             ma_add(&ma, DspTime);
 #endif
 
-#if USE_DSPTIME_SMOOTHING_MS
+#if USE_PATCH_DSPTIME_SMOOTHING_MS
             ma_add(&dsptimeSmoothing, DspTime);
             dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / 3333;
 #else
@@ -311,16 +346,15 @@ static int StartPatch1(void) {
 
 #if ENABLE_USB_AUDIO
                 // reset USB audio
-                //aduReset();
+                aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
 
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);
             }
-
-#if ENABLE_USB_AUDIO
-            dspLoad200+=18;
+#if USE_EXTERNAL_USB_FIFO_PUMP            
+            usb_lld_external_pump();
 #endif
         }
         else if (evt == 2) {
@@ -331,7 +365,7 @@ static int StartPatch1(void) {
             #endif
 
             StopPatch1();
-            patchStatus = STOPPED;
+            SetPatchStatus(STOPPED);
 
             if (loadFName[0]) {
                 int res = sdcard_loadPatch1(loadFName);
@@ -460,7 +494,7 @@ static int StartPatch1(void) {
 
 void StopPatch(void) {
     if (!patchStatus) {
-        patchStatus = STOPPING;
+        SetPatchStatus(STOPPING);
 
         while (1) {
           chThdSleepMilliseconds(1);
@@ -470,7 +504,7 @@ void StopPatch(void) {
         }
 
         StopPatch1();
-        patchStatus = STOPPED;
+        SetPatchStatus(STOPPED);
     }
 }
 
@@ -483,7 +517,7 @@ int StartPatch(void) {
     }
 
     if (patchStatus == STARTFAILED) {
-        patchStatus = STOPPED;
+        SetPatchStatus(STOPPED);
         LogTextMessage("Patch start failed", patchStatus);
     }
 
@@ -496,12 +530,12 @@ void start_dsp_thread(void) {
     ma_init(&ma, madata, sizeof(madata) / sizeof(float), false);
 #endif
 
-#if USE_DSPTIME_SMOOTHING_MS
+#if USE_PATCH_DSPTIME_SMOOTHING_MS
     ma_init(&dsptimeSmoothing, dsptimeSmoothingData, sizeof(dsptimeSmoothingData) / sizeof(float), false);
 #endif
 
     if (!pThreadDSP)
-        pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), HIGHPRIO - 1, ThreadDSP, NULL);
+        pThreadDSP = chThdCreateStatic(waThreadDSP, sizeof(waThreadDSP), PATCH_DSP_PRIORITY, ThreadDSP, NULL);
 }
 
 

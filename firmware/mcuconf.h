@@ -271,10 +271,20 @@
 #define STM32_USB_OTG2_IRQ_PRIORITY         14
 #define STM32_USB_OTG1_RX_FIFO_SIZE         512
 #define STM32_USB_OTG2_RX_FIFO_SIZE         1024
-#define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
-#define USB_USE_WAIT                        1
+#if ENABLE_USB_AUDIO
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
+  #define USE_BLOCKED_BULK_TX                 1
+  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
+#else
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO-2
+  #define USE_BLOCKED_BULK_TX                 0
+  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
+#endif
 
 /*
  * SDC settings
@@ -509,11 +519,19 @@
 #define STM32_USB_OTG2_IRQ_PRIORITY         14
 #define STM32_USB_OTG1_RX_FIFO_SIZE         512
 #define STM32_USB_OTG2_RX_FIFO_SIZE         1024
-#define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
 #define BOARD_OTG_NOVBUSSENS
-#define USB_USE_WAIT                        1
+#if ENABLE_USB_AUDIO
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
+  #define USE_BLOCKED_BULK_TX                 1
+  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
+#else
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO-2
+  #define USE_BLOCKED_BULK_TX                 0
+  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+#endif
 
 /*
  * SDC settings

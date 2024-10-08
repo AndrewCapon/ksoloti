@@ -909,7 +909,6 @@ typedef struct __attribute__ ((packed))
 #define AUDIO_EVENT_USB_RESET       EVENT_MASK(9)
 #define AUDIO_EVENT_USB_ENABLE      EVENT_MASK(10)
 #define AUDIO_EVENT_FORMAT          EVENT_MASK(11)
-#define AUDIO_EVENT_FORMAT          EVENT_MASK(12)
 
 
 // samples to try to keep in buffer

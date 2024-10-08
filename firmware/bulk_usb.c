@@ -28,7 +28,7 @@
 
 //#pragma GCC optimize ("O0")
 
-#define USE_BLOCKED_TX 1
+#define USE_BLOCKED_BULK_TX 1
 
 #include "ch.h"
 #include "hal.h"
@@ -93,7 +93,7 @@ uint8_t bduTransmitBuffer[BULK_USB_BUFFERS_SIZE];
  */
 
 static size_t write(void *ip, const uint8_t *bp, size_t n) {
-#if USE_BLOCKED_TX  
+#if USE_BLOCKED_BULK_TX  
   BulkUSBDriver *bdup = (BulkUSBDriver *)ip;
   USBDriver *usbp = bdup->config->usbp;
 
@@ -388,7 +388,7 @@ bool_t bduRequestsHook(USBDriver *usbp) {
  * @param[in] ep        endpoint number
  */
 void bduDataTransmitted(USBDriver *usbp, usbep_t ep) {
-#if USE_BLOCKED_TX    
+#if USE_BLOCKED_BULK_TX    
   return;
 #else
   size_t n;
