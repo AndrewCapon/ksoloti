@@ -349,7 +349,7 @@ static int StartPatch1(void) {
 
 #if ENABLE_USB_AUDIO
                 // reset USB audio
-                //aduReset();
+                aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
 
