@@ -34,8 +34,6 @@
 #include "analyse.h"
 #include "audio_usb.h"
 
-#define PATCH_DSP_PRIORITY    HIGHPRIO-1
-#define PATCH_NORMAL_PRIORITY NORMALPRIO
 
 #if ENABLE_USB_AUDIO     
 extern void aduDataExchange (int32_t *in, int32_t *out);
@@ -341,7 +339,7 @@ static int StartPatch1(void) {
 #endif
 
 #if USE_EXTERNAL_USB_FIFO_PUMP
-            dspLoad200+=10;
+            dspLoad200+=16;
 #endif
 
             Analyse(GPIOB, 9, 0); 
