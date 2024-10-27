@@ -467,7 +467,7 @@ UDEFS = \
     -D__FPU_PRESENT \
     -DSTM32F429xx \
     -DCRT1_AREAS_NUMBER=0 \
-    -DENABLE_USB_AUDIO=0
+    -DENABLE_USB_AUDIO=1
 
 # Define ASM defines here
 UADEFS =

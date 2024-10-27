@@ -339,7 +339,7 @@ static int StartPatch1(void) {
 #endif
 
 #if USE_EXTERNAL_USB_FIFO_PUMP
-            dspLoad200+=16;
+            //dspLoad200+=16;
 #endif
 
             Analyse(GPIOB, 9, 0); 

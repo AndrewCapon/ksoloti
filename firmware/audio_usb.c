@@ -741,14 +741,14 @@ void aduDataExchange (int32_t *in, int32_t *out)
     if(aduState.state == asCodecRemove)
     {
       // remove two samples
-      Analyse(GPIOB, 3, 1);
+      //Analyse(GPIOB, 3, 1);
       uLen -= 2;
-      Analyse(GPIOB, 3, 0);
+      //Analyse(GPIOB, 3, 0);
     } 
     else if(aduState.state == asCodecDuplicate)
     {
       // add two samples 
-      Analyse(GPIOC, 7, 1);
+      //Analyse(GPIOC, 7, 1);
 
       #if CHECK_USB_DATA
         aduAddedTxSamplesStart = aduState.txRingBufferWriteOffset;
@@ -766,7 +766,7 @@ void aduDataExchange (int32_t *in, int32_t *out)
       }
       aduState.txRingBufferUsedSize+=2;
 #endif
-      Analyse(GPIOC, 7, 0);
+      //Analyse(GPIOC, 7, 0);
     }
 
 #if NEW_CODE_TX
@@ -1197,6 +1197,7 @@ void aduInitiateReceiveI(USBDriver *usbp)
 
   usbStartReceiveI(usbp, 3, (uint8_t *)pRxLocation, USE_TRANSFER_SIZE_BYTES);
   aduAddTransferLog(blStartReceive, USE_TRANSFER_SIZE_BYTES);
+
   Analyse(GPIOG, 11, 0);
 
   chSysUnlockFromIsr();

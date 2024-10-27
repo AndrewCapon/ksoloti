@@ -29,6 +29,7 @@
 #include "axoloti_board.h"
 #include "ff.h"
 #include <string.h>
+#include "Analyse.h"
 
 // Btn_Nav_States_struct Btn_Nav_CurStates;
 // Btn_Nav_States_struct Btn_Nav_PrevStates;
@@ -285,8 +286,14 @@ static WORKING_AREA(waThreadUI, 1172);
     chRegSetThreadName("ui");
 #endif
     while (1) {
+        Analyse(GPIOC, 7, 1);
         PExTransmit();
+        Analyse(GPIOC, 7, 0);
+
+        Analyse(GPIOB, 4, 1);
         PExReceive();
+        Analyse(GPIOB, 4, 0);
+
         chThdSleepMilliseconds(2);
     }
     return (msg_t)0;
