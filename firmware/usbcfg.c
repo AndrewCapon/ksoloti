@@ -272,9 +272,17 @@ static const uint8_t vcom_configuration_descriptor_data[]=
   0x06, 0x24, 0x02, 0x02, 0x02, 0x06,                   //   IN  Jack 2 (ext)       MIDI IN JACK DESC (bLength bDescType bDescSubType bJackType bJackID iJack)
   0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x06, //   OUT Jack 3 (emb)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
   0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01, 0x02, //   OUT Jack 4 (ext)       MIDI OUT JACK DESC (bLength bDescType bDescSubType bJackType bJackID bNrInputPins baSourceID(1) baSourceID(1) iJack)
+#if USE_INT_EP_MIDI  
+  0x09, 0x05, 0x01, 0x03, 0x40, 0x00, 0x01, 0x00, 0x00, // Endpoint OUT             test with interupt endpoint ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+#else
   0x09, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint OUT             ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+#endif
   0x05, 0x25, 0x01, 0x01, 0x01,                         //   CS EP IN  Jack         CLASS SPECIFIC MS BULK DATA EP DESC
+#if USE_INT_EP_MIDI  
+  0x09, 0x05, 0x81, 0x03, 0x40, 0x00, 0x01, 0x00, 0x00, // Endpoint IN              test with interupt endpoint ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+#else
   0x09, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, // Endpoint IN              ENDPOINT DESC  (bLength bDescType bEndpointAddr bmAttr wMaxPacketSize(2 bytes)  bInterval bRefresh bSyncAddress)
+#endif
   0x05, 0x25, 0x01, 0x01, 0x03,                         //   CS EP OUT Jack          CLASS SPECIFIC MS BULK DATA EP DESC
 
   // interface 2 - Bulk
@@ -293,6 +301,19 @@ static const uint8_t vcom_configuration_descriptor_data[]=
                          0x00,
                          0x00,
                          4),         /* iInterface.                      */
+ #if USE_INT_EP_BULK 
+
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
+                         0x03,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x01),         /* bInterval.                       */
+  /* Endpoint 2 Descriptor.*/
+  USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
+                         0x03,          /* bmAttributes (Bulk).             */
+                         0x0040,        /* wMaxPacketSize.                  */
+                         0x01)          /* bInterval.                       */
+#else
   /* Endpoint 2 Descriptor.*/
   USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
                          0x02,          /* bmAttributes (Bulk).             */
@@ -303,7 +324,7 @@ static const uint8_t vcom_configuration_descriptor_data[]=
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
                          0x00)          /* bInterval.                       */
-
+#endif
 };
 
 #endif

@@ -280,9 +280,9 @@ static int StartPatch1(void) {
     chRegSetThreadName("dsp");
 #endif
     codec_clearbuffer();
-    #if ENABLE_USB_AUDIO
-        usb_clearbuffer();
-    #endif
+#if ENABLE_USB_AUDIO
+    usb_clearbuffer();
+#endif
 
     while (1) {
 
@@ -333,17 +333,14 @@ static int StartPatch1(void) {
 
 #if USE_PATCH_DSPTIME_SMOOTHING_MS
             ma_add(&dsptimeSmoothing, DspTime);
-            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / 3333;
+            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / DSP_TIMESLICE;
 #else
-            dspLoad200 = (2000 * DspTime) / 3333;
+            dspLoad200 = (2000 * DspTime) / DSP_TIMESLICE;
 #endif
 
-#if USE_EXTERNAL_USB_FIFO_PUMP
-            //dspLoad200+=16;
-#endif
 
             Analyse(GPIOB, 9, 0); 
-            if (dspLoad200 > 194) { /* 194=2*97, corresponds to 97% */
+            if (dspLoad200 > DSP_LIMIT200) {
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
 

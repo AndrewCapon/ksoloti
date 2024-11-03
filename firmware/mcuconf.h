@@ -273,8 +273,19 @@
 #define STM32_USB_OTG2_RX_FIFO_SIZE         1024
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
-#define USE_INT_EP_MIDI                     1
-#define USE_INT_EP_BULK                     1
+#define USE_INT_EP_MIDI                     0
+#define USE_INT_EP_BULK                     0
+#define USE_NEW_CPU_PERCENTAGE              1
+
+#if USE_NEW_CPU_PERCENTAGE
+  #define DSP_TIMESLICE                     3160    // Safe
+//#define DSP_TIMESLICE                     3210    // Slightly Dodgy
+//#define DSP_TIMESLICE                     3260    // Very Dodgy
+  #define DSP_LIMIT200                      200
+#else
+  #define DSP_TIMESLICE                     3333
+  #define DSP_LIMIT200                      194
+#endif
 
 #if ENABLE_USB_AUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
@@ -284,8 +295,8 @@
   #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
-  #define MIDI_USB_PRIO                       HIGHPRIO-1
-  #define UI_USB_PRIO                         HIGHPRIO-1
+  #define MIDI_USB_PRIO                       HIGHPRIO-2
+  #define UI_USB_PRIO                         HIGHPRIO-2
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
@@ -536,8 +547,9 @@
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
 #define BOARD_OTG_NOVBUSSENS
-#define USE_INT_EP_MIDI                     1
-#define USE_INT_EP_BULK                     1
+#define USE_INT_EP_MIDI                     0
+#define USE_INT_EP_BULK                     0
+#define USE_NEW_CPU_PERCENTAGE              1
 
 #if ENABLE_USB_AUDIO
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
