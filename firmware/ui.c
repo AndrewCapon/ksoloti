@@ -286,14 +286,11 @@ static WORKING_AREA(waThreadUI, 1172);
     chRegSetThreadName("ui");
 #endif
     while (1) {
-        Analyse(GPIOC, 7, 1);
+        Analyse(GPIOG, 10, 1);
         PExTransmit();
-        Analyse(GPIOC, 7, 0);
-
-        Analyse(GPIOB, 4, 1);
         PExReceive();
-        Analyse(GPIOB, 4, 0);
-
+        Analyse(GPIOG, 10, 0);
+        
         chThdSleepMilliseconds(2);
     }
     return (msg_t)0;

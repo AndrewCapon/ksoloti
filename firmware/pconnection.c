@@ -43,6 +43,7 @@
 #ifdef FW_SPILINK
 #include "spilink.h"
 #endif
+#include "analyse.h"
 
 //#define DEBUG_SERIAL 1
 
@@ -74,10 +75,10 @@ __attribute__((noreturn)) static msg_t ThreadUSBDMidi(void *arg) {
 
     while (1) {
         chnReadTimeout(&MDU1, &r[0], 4, TIME_INFINITE);
-        palWritePad(GPIOB, 3, 1);
+        //palWritePad(GPIOB, 3, 1);
         MidiInMsgHandler(MIDI_DEVICE_USB_DEVICE, ((r[0] & 0xF0) >> 4) + 1, r[1],
                          r[2], r[3]);
-        palWritePad(GPIOB, 3, 0);
+        //palWritePad(GPIOB, 3, 0);
     }
 }
 
@@ -140,7 +141,7 @@ void LogTextMessage(const char* format, ...) {
     }
 }
 
-put some analyser stuff here to check times
+// TODO put some analyser stuff here to check times
 void PExTransmit(void) {
     if (!chOQIsEmptyI(&BDU1.oqueue)) {
         chThdSleepMilliseconds(1);
@@ -148,6 +149,7 @@ void PExTransmit(void) {
     }
     else {
         if (AckPending) {
+            Analyse(GPIOC, 7, 1);
             uint32_t ack[7];
             ack[0] = 0x416F7841; /* "AxoA" */
             ack[1] = 0; /* reserved */
@@ -174,6 +176,7 @@ void PExTransmit(void) {
             connected = 1;
             exception_checkandreport();
             AckPending = 0;
+            Analyse(GPIOC, 7, 0);
         }
         if (!patchStatus) {
             uint16_t i;
@@ -186,7 +189,9 @@ void PExTransmit(void) {
                     msg.patchID = patchMeta.patchID;
                     msg.index = i;
                     msg.value = v;
+                    Analyse(GPIOC, 7, 1);
                     chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )&msg, sizeof(msg));
+                    Analyse(GPIOC, 7, 0);
                 }
             }
         }
@@ -1139,7 +1144,9 @@ void PExReceive(void) {
   if (!AckPending) {
     unsigned char received;
     while (chnReadTimeout(&BDU1, &received, 1, TIME_IMMEDIATE)) {
+      Analyse(GPIOB, 3, 1);
       PExReceiveByte(received);
+      Analyse(GPIOB, 3, 0);
     }
   }
 }

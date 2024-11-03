@@ -65,7 +65,8 @@
         "variant": "cpp",
         "moving_average.h": "c",
         "cstring": "c",
-        "audio_usb.h": "c"
+        "audio_usb.h": "c",
+        "mcuconf.h": "c"
     },
     "C_Cpp.default.compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
     "C_Cpp.default.cppStandard": "c++11",

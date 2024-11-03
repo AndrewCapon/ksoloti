@@ -28,7 +28,6 @@
 
 //#pragma GCC optimize ("O0")
 
-#define USE_BLOCKED_BULK_TX 1
 
 #include "ch.h"
 #include "hal.h"

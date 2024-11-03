@@ -273,6 +273,9 @@
 #define STM32_USB_OTG2_RX_FIFO_SIZE         1024
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
+#define USE_INT_EP_MIDI                     1
+#define USE_INT_EP_BULK                     1
+
 #if ENABLE_USB_AUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
@@ -286,9 +289,9 @@
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
-  #define USE_EXTERNAL_USB_FIFO_PUMP          0
+  #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO-2
-  #define USE_BLOCKED_BULK_TX                 1
+  #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
   #define MIDI_USB_PRIO                       HIGHPRIO-2
@@ -533,6 +536,9 @@
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
 #define BOARD_OTG_NOVBUSSENS
+#define USE_INT_EP_MIDI                     1
+#define USE_INT_EP_BULK                     1
+
 #if ENABLE_USB_AUDIO
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
