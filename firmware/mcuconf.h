@@ -277,10 +277,10 @@
 #define USE_INT_EP_BULK                     0
 #define USE_NEW_CPU_PERCENTAGE              1
 
+#define DSP_ACTIVE_USB_AUDIO_COST           250
+
 #if USE_NEW_CPU_PERCENTAGE
-  #define DSP_TIMESLICE                     3160    // Safe
-//#define DSP_TIMESLICE                     3210    // Slightly Dodgy
-//#define DSP_TIMESLICE                     3260    // Very Dodgy
+  #define DSP_TIMESLICE                     3160    // Safe, 3210 : Slightly Dodgy, 3260 : Very Dodgy
   #define DSP_LIMIT200                      200
 #else
   #define DSP_TIMESLICE                     3333
@@ -297,16 +297,19 @@
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
+  #define DSP_USB_AUDIO_ADJUST                (aduIsUsbInUse() ? DSP_ACTIVE_USB_AUDIO_COST : 0)
+
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
-  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO-2
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
+  #define DSP_USB_AUDIO_ADJUST                0
 #endif
 
 // pump = 86

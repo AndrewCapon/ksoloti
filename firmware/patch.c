@@ -333,9 +333,9 @@ static int StartPatch1(void) {
 
 #if USE_PATCH_DSPTIME_SMOOTHING_MS
             ma_add(&dsptimeSmoothing, DspTime);
-            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / DSP_TIMESLICE;
+            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / (DSP_TIMESLICE - DSP_USB_AUDIO_ADJUST);
 #else
-            dspLoad200 = (2000 * DspTime) / DSP_TIMESLICE;
+            dspLoad200 = (2000 * DspTime) / (DSP_TIMESLICE - DSP_USB_AUDIO_ADJUST);
 #endif
 
 

@@ -1120,6 +1120,8 @@ extern "C" {
 
   bool   aduControl(USBDriver *usbp);
   bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
+
+  bool   aduIsUsbInUse(void);
 #ifdef __cplusplus
 }
 

@@ -1248,6 +1248,10 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
   chSysUnlockFromIsr();
 }
 
+FORCE_INLINE bool aduIsUsbInUse(void)
+{
+  return (aduState.isInputActive && aduState.isOutputActive);
+}
 #endif
 
 
