@@ -91,6 +91,14 @@ public class Preferences {
     Boolean MouseDoNotRecenterWhenAdjustingControls;
     @Element(required = false)
     Boolean ExpertMode;
+    @Element(required = false)
+    Integer UiMidiThreadCost;
+    @Element(required = false)
+    Integer UsbAudioFirmwareCost;
+    @Element(required = false)
+    Integer UsbAudioStreamingCost;
+    @Element(required = false)
+    Integer DspLimitPercent;
     @ElementList(required = false)
     ArrayList<String> recentFiles = new ArrayList<String>();
 
@@ -234,6 +242,18 @@ public class Preferences {
         if (libraries == null) {
             libraries = new ArrayList<AxolotiLibrary>();
         }
+        if(UiMidiThreadCost == null) {
+            UiMidiThreadCost = 0;
+        }
+        if(UsbAudioFirmwareCost == null) {
+            UsbAudioFirmwareCost = 0;
+        }
+        if(UsbAudioStreamingCost == null) {
+            UsbAudioStreamingCost = 0;
+        }
+        if(DspLimitPercent == null) {
+            DspLimitPercent = 97;
+        }
     }
 
     @Persist
@@ -323,6 +343,42 @@ public class Preferences {
             i = minimumPollInterval;
         }
         PollInterval = i;
+        SetDirty();
+    }
+
+    public int getUiMidiThreadCost() {
+        return UiMidiThreadCost;
+    }
+
+    public void setUiMidiThreadCost(int i) {
+        UiMidiThreadCost = i;
+        SetDirty();
+    }
+
+    public int getUsbAudioFirmwareCost() {
+        return UsbAudioFirmwareCost;
+    }
+
+    public void setUsbAudioFirmwareCost(int i) {
+        UsbAudioFirmwareCost = i;
+        SetDirty();
+    }
+
+    public int getUsbAudioStreamingCost() {
+        return UsbAudioStreamingCost;
+    }
+
+    public void setUsbAudioStreamingCost(int i) {
+        UsbAudioStreamingCost = i;
+        SetDirty();
+    }
+
+    public int getDspLimitPercent() {
+        return DspLimitPercent;
+    }
+
+    public void setDspLimitPercent(int i) {
+        DspLimitPercent = i;
         SetDirty();
     }
 

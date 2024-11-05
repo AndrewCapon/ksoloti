@@ -88,6 +88,11 @@ public class PreferencesFrame extends JFrame {
 
         jTextFieldPollInterval.setText(Integer.toString(prefs.getPollInterval()));
 
+        jTextFieldUsbAudioFirmwareCost.setText(Integer.toString(prefs.getUsbAudioFirmwareCost()));
+        jTextFieldUsbAudioStreamingCost.setText(Integer.toString(prefs.getUsbAudioStreamingCost()));
+        jTextFieldUiMidiCost.setText(Integer.toString(prefs.getUiMidiThreadCost()));
+        jTextFieldDspLimit.setText(Integer.toString(prefs.getDspLimitPercent()));
+
         jTextFieldCodeFontSize.setText(Integer.toString(prefs.getCodeFontSize()));
 
         jTextFieldFavDir.setText(prefs.getFavouriteDir());
@@ -135,6 +140,11 @@ public class PreferencesFrame extends JFrame {
         // Preferences prefs = Preferences.LoadPreferences();
 
         prefs.setPollInterval(Integer.parseInt(jTextFieldPollInterval.getText()));
+        prefs.setUiMidiThreadCost(Integer.parseInt(jTextFieldUiMidiCost.getText()));
+        prefs.setUsbAudioFirmwareCost(Integer.parseInt(jTextFieldUsbAudioFirmwareCost.getText()));
+        prefs.setUsbAudioStreamingCost(Integer.parseInt(jTextFieldUsbAudioStreamingCost.getText()));
+        prefs.setDspLimitPercent(Integer.parseInt(jTextFieldDspLimit.getText()));
+        
         prefs.setCodeFontSize(Integer.parseInt(jTextFieldCodeFontSize.getText()));
         Constants.FONT_MONO = Constants.FONT_MONO.deriveFont((float)prefs.getCodeFontSize());
         MainFrame.mainframe.updateConsoleFont();
@@ -178,9 +188,19 @@ public class PreferencesFrame extends JFrame {
     private void initComponents() {
 
         jTextFieldPollInterval = new JTextField();
+        jTextFieldUiMidiCost = new JTextField();;
+        jTextFieldUsbAudioFirmwareCost = new JTextField();;
+        jTextFieldUsbAudioStreamingCost = new JTextField();;
+        jTextFieldDspLimit = new JTextField();;
+    
         jTextFieldCodeFontSize = new JTextField();
         jLabelLibraries = new JLabel();
         jLabelPollInterval = new JLabel();
+        jLabelUiMidiCost = new JLabel();;
+        jLabelUsbAudioFirmwareCost = new JLabel();;
+        jLabelUsbAudioStreamingCost = new JLabel();;
+        jLabelDspLimit = new JLabel();;
+    
         jLabelCodeFontSize = new JLabel();
         jButtonSave = new JButton();
         jLabelDialMouseBehaviour = new JLabel();
@@ -222,6 +242,34 @@ public class PreferencesFrame extends JFrame {
 
         jLabelPollInterval.setText("Poll Interval (milliseconds)");
         jLabelPollInterval.setToolTipText(jTextFieldPollInterval.getToolTipText());
+
+        jTextFieldUiMidiCost.setText("jTempTextField1");
+        jTextFieldUiMidiCost.setToolTipText("Cost of UI thread and Midi thread in us.");
+        jTextFieldUiMidiCost.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+
+        jLabelUiMidiCost.setText("UI/Midi Thread cost (us)");
+        jLabelUiMidiCost.setToolTipText(jTextFieldUiMidiCost.getToolTipText());
+
+        jTextFieldUsbAudioFirmwareCost.setText("jTempTextField2");
+        jTextFieldUsbAudioFirmwareCost.setToolTipText("Cost of USB Audio frimware in us.");
+        jTextFieldUsbAudioFirmwareCost.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+
+        jLabelUsbAudioFirmwareCost.setText("USB Audio firmware cost (us)");
+        jLabelUsbAudioFirmwareCost.setToolTipText(jTextFieldUsbAudioFirmwareCost.getToolTipText());
+
+        jTextFieldUsbAudioStreamingCost.setText("jTempTextField3");
+        jTextFieldUsbAudioStreamingCost.setToolTipText("Cost of USB Audio streaming in us.");
+        jTextFieldUsbAudioStreamingCost.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+
+        jLabelUsbAudioStreamingCost.setText("USB Audio streaming cost (us)");
+        jLabelUsbAudioStreamingCost.setToolTipText(jTextFieldUsbAudioStreamingCost.getToolTipText());
+        
+        jTextFieldDspLimit.setText("jTempTextField4");
+        jTextFieldDspLimit.setToolTipText("Maximum DSP % before error");
+        jTextFieldDspLimit.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+
+        jLabelDspLimit.setText("Maximum DSP %");
+        jLabelDspLimit.setToolTipText(jTextFieldDspLimit.getToolTipText());
 
         jTextFieldCodeFontSize.setText("jTextField2");
         jTextFieldCodeFontSize.setToolTipText("Changes font size for all code text windows (object editor), patch notes, and the main window console.");
@@ -527,6 +575,30 @@ public class PreferencesFrame extends JFrame {
                             )
 
                             .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabelUiMidiCost, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldUiMidiCost, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+                            )
+
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabelUsbAudioFirmwareCost, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldUsbAudioFirmwareCost, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+                            )
+
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabelUsbAudioStreamingCost, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldUsbAudioStreamingCost, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+                            )
+
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabelDspLimit, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldDspLimit, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+                            )
+                            
+                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabelCodeFontSize, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldCodeFontSize, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
@@ -605,6 +677,30 @@ public class PreferencesFrame extends JFrame {
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                             .addComponent(jLabelPollInterval)
                             .addComponent(jTextFieldPollInterval, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        )
+                        .addGap(5, 5, 5)
+
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(jLabelUiMidiCost)
+                            .addComponent(jTextFieldUiMidiCost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        )
+                        .addGap(5, 5, 5)
+
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(jLabelUsbAudioFirmwareCost)
+                            .addComponent(jTextFieldUsbAudioFirmwareCost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        )
+                        .addGap(5, 5, 5)
+                        
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(jLabelUsbAudioStreamingCost)
+                            .addComponent(jTextFieldUsbAudioStreamingCost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        )
+                        .addGap(5, 5, 5)
+
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(jLabelDspLimit)
+                            .addComponent(jTextFieldDspLimit, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         )
                         .addGap(5, 5, 5)
 
@@ -806,6 +902,10 @@ public class PreferencesFrame extends JFrame {
     private JButton jEditLib;
     private JLabel jLabelLibraries;
     private JLabel jLabelPollInterval;
+    private JLabel jLabelUiMidiCost;
+    private JLabel jLabelUsbAudioFirmwareCost;
+    private JLabel jLabelUsbAudioStreamingCost;
+    private JLabel jLabelDspLimit;
     private JLabel jLabelCodeFontSize;
     private JLabel jLabelDialMouseBehaviour;
     private JLabel jLabelFirmwareMode;
@@ -825,6 +925,10 @@ public class PreferencesFrame extends JFrame {
     private ScrollPaneComponent jScrollPaneLibraryTable;
     private JTextField jTextFieldController;
     private JTextField jTextFieldPollInterval;
+    private JTextField jTextFieldUiMidiCost;
+    private JTextField jTextFieldUsbAudioFirmwareCost;
+    private JTextField jTextFieldUsbAudioStreamingCost;
+    private JTextField jTextFieldDspLimit;
     private JTextField jTextFieldCodeFontSize;
     private JTextField jTextFieldFavDir;
 

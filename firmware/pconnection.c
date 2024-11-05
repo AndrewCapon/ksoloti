@@ -722,8 +722,8 @@ void PExReceiveByte(unsigned char c) {
   }
   else if (header == 'U') {
     static uint16_t uUIMidiCost = 0;
-    static uint16_t uInactiveUsbAudioCost = 0;
-    static uint16_t uActiveUsbAudioCost = 0;
+    static uint16_t uUsbAudioFirmwareCost = 0;
+    static uint16_t uUsbAudioStreamingCost = 0;
     static uint8_t  uDspLimit200 = 0;
     
     switch (state) {
@@ -736,25 +736,25 @@ void PExReceiveByte(unsigned char c) {
       state++;
       break;
     case 6:
-      uInactiveUsbAudioCost = c;
+      uUsbAudioFirmwareCost = c;
       state++;
       break;
     case 7:
-      uInactiveUsbAudioCost += c << 8;
+      uUsbAudioFirmwareCost += c << 8;
       state++;
       break;
     case 8:
-      uActiveUsbAudioCost = c;
+      uUsbAudioStreamingCost = c;
       state++;
       break;
     case 9:
-      uActiveUsbAudioCost += c << 8;
+      uUsbAudioStreamingCost += c << 8;
       state++;
       break;
     case 10:
       uDspLimit200 = c;
 
-      SetPatchSafety(uUIMidiCost, uInactiveUsbAudioCost, uActiveUsbAudioCost, uDspLimit200);
+      SetPatchSafety(uUIMidiCost, uUsbAudioFirmwareCost, uUsbAudioStreamingCost, uDspLimit200);
 
       // we have our values now so ack
       header = 0;
