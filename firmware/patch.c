@@ -79,6 +79,19 @@ static int16_t nThreadsBeforePatch;
 static WORKING_AREA(waThreadDSP, 7200) __attribute__ ((section (".ccmramend")));
 static Thread* pThreadDSP = 0;
 
+uint16_t uPatchUIMidiCost = DSP_UI_MIDI_COST;
+uint16_t uPatchInactiveUsbAudioCost = DSP_INACTIVE_USB_AUDIO_COST;
+uint16_t uPatchActiveUsbAudioCost = DSP_ACTIVE_USB_AUDIO_COST;
+uint8_t  uPatchUsbLimit200 = DSP_LIMIT200;
+
+void SetPatchSafety(uint16_t uUIMidiCost, uint16_t uInactiveUsbAudioCost, uint16_t uActiveUsbAudioCost, uint8_t uDspLimit200)
+{
+    uPatchUIMidiCost = uUIMidiCost;
+    uPatchInactiveUsbAudioCost = uInactiveUsbAudioCost;
+    uPatchActiveUsbAudioCost = uActiveUsbAudioCost;
+    uPatchUsbLimit200 = uDspLimit200;
+}
+
 static void SetPatchStatus(patchStatus_t status)
 {
     if(patchStatus != status)
@@ -126,6 +139,9 @@ void InitPatch0(void) {
     patchMeta.patchID = 0;
 
     patchFlags.value = 0;
+#if ENABLE_USB_AUDIO
+    patchFlags.usbBuild = 1;
+#endif
 }
 
 #define USE_MOVING_AVERAGE 0
@@ -298,6 +314,13 @@ static int StartPatch1(void) {
         /* Codec DSP cycle */
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
+#if ENABLE_USB_AUDIO             
+            uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost - uPatchInactiveUsbAudioCost;;
+            if(aduIsUsbInUse())
+                uDspTimeslice -= uPatchActiveUsbAudioCost;
+#else
+            uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost;
+#endif
             static uint32_t tStart;
             Analyse(GPIOB, 9, 1); 
             tStart = hal_lld_get_counter_value();
@@ -338,14 +361,14 @@ static int StartPatch1(void) {
 
 #if USE_PATCH_DSPTIME_SMOOTHING_MS
             ma_add(&dsptimeSmoothing, DspTime);
-            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / (DSP_TIMESLICE - DSP_USB_AUDIO_ADJUST);
+            dspLoad200 = (2000 * ma_average(&dsptimeSmoothing)) / uDspTimeslice;
 #else
-            dspLoad200 = (2000 * DspTime) / (DSP_TIMESLICE - DSP_USB_AUDIO_ADJUST);
+            dspLoad200 = (2000 * DspTime) / uDspTimeslice;
 #endif
 
 
             Analyse(GPIOB, 9, 0); 
-            if (dspLoad200 > DSP_LIMIT200) {
+            if (dspLoad200 > uPatchUsbLimit200) {
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
 

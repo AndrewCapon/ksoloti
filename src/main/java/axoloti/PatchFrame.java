@@ -375,6 +375,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0));
         jLabelDSPLoad = new javax.swing.JLabel();
         jProgressBarDSPLoad = new javax.swing.JProgressBar();
+        jUsbAudioIndicator = new javax.swing.JLabel(" USB");
         jScrollPane1 = new ScrollPaneComponent();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenuP = new axoloti.menus.FileMenu();
@@ -478,6 +479,9 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         jProgressBarDSPLoad.setMaximum(200);
         jProgressBarDSPLoad.setStringPainted(true);
         jToolbarPanel.add(jProgressBarDSPLoad);
+
+        jUsbAudioIndicator.setVisible(false);
+        jToolbarPanel.add(jUsbAudioIndicator);
 
         filler2.setAlignmentX(LEFT_ALIGNMENT);
         jToolbarPanel.add(filler2);
@@ -1245,6 +1249,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
     private javax.swing.JMenuItem jMenuUploadCode;
     private javax.swing.JMenu jMenuView;
     private javax.swing.JProgressBar jProgressBarDSPLoad;
+    private javax.swing.JLabel jUsbAudioIndicator;
     private ScrollPaneComponent jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -1256,6 +1261,8 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
     private javax.swing.JMenuItem redoItem;
     private javax.swing.JMenuItem undoItem;
     private axoloti.menus.WindowMenu windowMenu1;
+
+    private int previousPatchFlags;
 
     void ShowDSPLoad(int val200) {
         int pv = jProgressBarDSPLoad.getValue();
@@ -1272,36 +1279,49 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
 
     void ShowPatchFlags(int patchFlags) {
         // no nice bitfields in Java, need to implement properly
-        // typedef  union{
-        //     struct {
-        //       bool dspOverload : 1;
-        //       bool usbBuild    : 1;
-        //       bool usbActive   : 1;
-        //       bool usbUnder    : 1;
-        //       bool usbOver     : 1;
-        //       bool usbError    : 1;
-        //     };
-        //     unsigned int value;
-        // } patchflags_t;
 
-        // Initial just do overload flag
+        boolean dspOverload = 0 != (patchFlags & 1);
+        boolean usbBuild    = 0 != (patchFlags & 2);
+        boolean usbActive   = 0 != (patchFlags & 4);
+        //boolean usbUnder    = 0 != (patchFlags & 8);
+        //boolean usbOver     = 0 != (patchFlags & 16);
+        boolean usbError    = 0 != (patchFlags & 32);
+
+        boolean previousDspOverload = 0 != (previousPatchFlags & 1);
+        boolean previousUsbBuild    = 0 != (previousPatchFlags & 2);
+        boolean previousUsbActive   = 0 != (previousPatchFlags & 4);
+        //boolean previousUsbUnder    = 0 != (previousPatchFlags & 8);
+        //boolean previousUsbOver     = 0 != (previousPatchFlags & 16);
+        boolean previousUsbError    = 0 != (previousPatchFlags & 32);
+
+        previousPatchFlags = patchFlags;
+
         // set the cpu gauge to red if we have had an overflow
-        Color pc = jProgressBarDSPLoad.getForeground();
-        Color c;
-        if((patchFlags & 1) == 1) {
-            c =  Color.red;
-        } else {
-            c = null;
+        if(previousDspOverload != dspOverload) {
+            if(dspOverload) {
+                jProgressBarDSPLoad.setForeground(Color.red); 
+            } else {
+                jProgressBarDSPLoad.setForeground(null); 
+            }
         }
 
-        if (c == pc) {
-            return;
+        // Set the USB Indicator
+        if(previousUsbBuild != usbBuild) {
+            jUsbAudioIndicator.setVisible(usbBuild);
         }
-        if (patch.IsLocked()) {
-            jProgressBarDSPLoad.setForeground(c);
-        }
-        else if (pc != null) {
-            jProgressBarDSPLoad.setForeground(null);
+
+        if((previousUsbActive != usbActive) || (previousUsbError != usbError)) {
+            if(usbActive) {
+                if(usbError) {
+                    jUsbAudioIndicator.setForeground(Color.red);
+                }
+                else {
+                    jUsbAudioIndicator.setForeground(Color.green);
+                } 
+            } else 
+            {
+                jUsbAudioIndicator.setForeground(null); 
+            }
         }
     }
 

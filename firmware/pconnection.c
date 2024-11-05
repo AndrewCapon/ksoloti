@@ -603,6 +603,9 @@ void PExReceiveByte(unsigned char c) {
       else if (c == 'y') { /* generic read */
         state = 4;
       }
+      else if (c == 'U') { /* Set cpU safety*/
+        state = 4;
+      }
       else if (c == 'S') { /* stop patch */
         state = 0;
         header = 0;
@@ -715,6 +718,54 @@ void PExReceiveByte(unsigned char c) {
     default:
       state = 0;
       header = 0;
+    }
+  }
+  else if (header == 'U') {
+    static uint16_t uUIMidiCost = 0;
+    static uint16_t uInactiveUsbAudioCost = 0;
+    static uint16_t uActiveUsbAudioCost = 0;
+    static uint8_t  uDspLimit200 = 0;
+    
+    switch (state) {
+    case 4:
+      uUIMidiCost = c;
+      state++;
+      break;
+    case 5:
+      uUIMidiCost += c << 8;
+      state++;
+      break;
+    case 6:
+      uInactiveUsbAudioCost = c;
+      state++;
+      break;
+    case 7:
+      uInactiveUsbAudioCost += c << 8;
+      state++;
+      break;
+    case 8:
+      uActiveUsbAudioCost = c;
+      state++;
+      break;
+    case 9:
+      uActiveUsbAudioCost += c << 8;
+      state++;
+      break;
+    case 10:
+      uDspLimit200 = c;
+
+      SetPatchSafety(uUIMidiCost, uInactiveUsbAudioCost, uActiveUsbAudioCost, uDspLimit200);
+
+      // we have our values now so ack
+      header = 0;
+      state = 0;
+      AckPending = 1;
+      break;
+    default:
+      header = 0;
+      state = 0;
+      AckPending = 1;
+      break;
     }
   }
   else if (header == 'W') {
