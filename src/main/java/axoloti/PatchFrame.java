@@ -1263,15 +1263,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
             return;
         }
         if (patch.IsLocked()) {
-            if(val200 > 200) {
-                //jProgressBarDSPLoad.setString("Overload");
-                jProgressBarDSPLoad.setForeground(Color.red);
-                jProgressBarDSPLoad.setValue((pv+val200)/2);
-            } else {
-                //jProgressBarDSPLoad.setString(null);
-                jProgressBarDSPLoad.setForeground(null);
-                jProgressBarDSPLoad.setValue((pv+val200)/2);
-            }
+            jProgressBarDSPLoad.setValue((pv+val200)/2);
         }
         else if (pv != 0) {
             jProgressBarDSPLoad.setValue(0);
