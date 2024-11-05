@@ -32,6 +32,7 @@ public abstract class Connection {
     abstract public void TransmitCloseFile();
     abstract public void TransmitMemoryRead(int addr, int length);
     abstract public void TransmitMemoryRead1Word(int addr);    
+    abstract public void TransmitCosts();
     abstract public void SendUpdatedPreset(byte[] b);
     abstract public void SendMidi(int m0, int m1, int m2);
     abstract public boolean AppendToQueue(QCmdSerialTask cmd);

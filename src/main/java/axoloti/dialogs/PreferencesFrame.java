@@ -140,10 +140,10 @@ public class PreferencesFrame extends JFrame {
         // Preferences prefs = Preferences.LoadPreferences();
 
         prefs.setPollInterval(Integer.parseInt(jTextFieldPollInterval.getText()));
-        prefs.setUiMidiThreadCost(Integer.parseInt(jTextFieldUiMidiCost.getText()));
-        prefs.setUsbAudioFirmwareCost(Integer.parseInt(jTextFieldUsbAudioFirmwareCost.getText()));
-        prefs.setUsbAudioStreamingCost(Integer.parseInt(jTextFieldUsbAudioStreamingCost.getText()));
-        prefs.setDspLimitPercent(Integer.parseInt(jTextFieldDspLimit.getText()));
+        prefs.setUiMidiThreadCost(Short.parseShort(jTextFieldUiMidiCost.getText()));
+        prefs.setUsbAudioFirmwareCost(Short.parseShort(jTextFieldUsbAudioFirmwareCost.getText()));
+        prefs.setUsbAudioStreamingCost(Short.parseShort(jTextFieldUsbAudioStreamingCost.getText()));
+        prefs.setDspLimitPercent(Byte.parseByte(jTextFieldDspLimit.getText()));
         
         prefs.setCodeFontSize(Integer.parseInt(jTextFieldCodeFontSize.getText()));
         Constants.FONT_MONO = Constants.FONT_MONO.deriveFont((float)prefs.getCodeFontSize());

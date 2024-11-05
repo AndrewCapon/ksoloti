@@ -92,13 +92,13 @@ public class Preferences {
     @Element(required = false)
     Boolean ExpertMode;
     @Element(required = false)
-    Integer UiMidiThreadCost;
+    Short UiMidiThreadCost;
     @Element(required = false)
-    Integer UsbAudioFirmwareCost;
+    Short UsbAudioFirmwareCost;
     @Element(required = false)
-    Integer UsbAudioStreamingCost;
+    Short UsbAudioStreamingCost;
     @Element(required = false)
-    Integer DspLimitPercent;
+    Byte DspLimitPercent;
     @ElementList(required = false)
     ArrayList<String> recentFiles = new ArrayList<String>();
 
@@ -346,38 +346,41 @@ public class Preferences {
         SetDirty();
     }
 
-    public int getUiMidiThreadCost() {
-        return UiMidiThreadCost;
+    public short getUiMidiThreadCost() {
+        return UiMidiThreadCost.shortValue();
     }
 
-    public void setUiMidiThreadCost(int i) {
+    public void setUiMidiThreadCost(short i) {
         UiMidiThreadCost = i;
         SetDirty();
     }
 
-    public int getUsbAudioFirmwareCost() {
-        return UsbAudioFirmwareCost;
+    public short getUsbAudioFirmwareCost() {
+        return UsbAudioFirmwareCost.shortValue();
     }
 
-    public void setUsbAudioFirmwareCost(int i) {
+    public void setUsbAudioFirmwareCost(short i) {
         UsbAudioFirmwareCost = i;
         SetDirty();
     }
 
-    public int getUsbAudioStreamingCost() {
+    public short getUsbAudioStreamingCost() {
         return UsbAudioStreamingCost;
     }
 
-    public void setUsbAudioStreamingCost(int i) {
+    public void setUsbAudioStreamingCost(short i) {
         UsbAudioStreamingCost = i;
         SetDirty();
     }
 
-    public int getDspLimitPercent() {
-        return DspLimitPercent;
+    public byte getDspLimitPercent() {
+        return DspLimitPercent.byteValue();
     }
 
-    public void setDspLimitPercent(int i) {
+    public void setDspLimitPercent(Byte i) {
+        if(i > 100) {
+            i = 100;
+        }
         DspLimitPercent = i;
         SetDirty();
     }
