@@ -1033,7 +1033,7 @@ public class USBBulkConnection extends Connection {
     int CpuId2 = 0;
     int fwcrc = -1;
 
-    void Acknowledge(final int DSPLoad, final int PatchID, final int Voltages, final int patchIndex, final int sdcardPresent) {
+    void Acknowledge(final int PatchFlags, final int DSPLoad, final int PatchID, final int Voltages, final int patchIndex, final int sdcardPresent) {
         synchronized (sync) {
             sync.Acked = true;
             sync.notifyAll();
@@ -1047,6 +1047,7 @@ public class USBBulkConnection extends Connection {
                     }
                     else {
                         patch.UpdateDSPLoad(DSPLoad);
+                        patch.UpdatePatchFlags(PatchFlags);
                     }
                 }
                 MainFrame.mainframe.showPatchIndex(patchIndex);
@@ -1349,7 +1350,7 @@ public class USBBulkConnection extends Connection {
                 }
                 if (dataIndex == dataLength) {
                     // System.out.println("ack packet complete");
-                    Acknowledge(packetData[1], packetData[2], packetData[3], packetData[4], packetData[5]);
+                    Acknowledge(packetData[0], packetData[1], packetData[2], packetData[3], packetData[4], packetData[5]);
                     GoIdleState();
                 }
                 break;

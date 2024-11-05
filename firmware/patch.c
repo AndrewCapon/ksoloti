@@ -51,7 +51,9 @@ patchMeta_t patchMeta;
 
 volatile patchStatus_t patchStatus;
 
-uint32_t dspLoad200; // DSP load: Values 0-200 correspond to 0-100%
+uint32_t     dspLoad200; // DSP load: Values 0-200 correspond to 0-100%
+patchflags_t patchFlags; // flags for patch feedback on USB audio and overload
+
 uint32_t DspTime;
 
 char loadFName[64] = "";
@@ -122,6 +124,8 @@ void InitPatch0(void) {
     patchMeta.npreset_entries = 0;
     patchMeta.pPresets = 0;
     patchMeta.patchID = 0;
+
+    patchFlags.value = 0;
 }
 
 #define USE_MOVING_AVERAGE 0
@@ -280,6 +284,7 @@ static int StartPatch1(void) {
     chRegSetThreadName("dsp");
 #endif
     codec_clearbuffer();
+
 #if ENABLE_USB_AUDIO
     usb_clearbuffer();
 #endif
@@ -349,6 +354,7 @@ static int StartPatch1(void) {
                 aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
+                patchFlags.dspOverload = true;
 
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);

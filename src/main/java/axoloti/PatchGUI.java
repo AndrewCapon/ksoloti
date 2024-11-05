@@ -1029,6 +1029,11 @@ public class PatchGUI extends Patch {
         patchframe.ShowDSPLoad(val200);
     }
 
+    @Override
+    void UpdatePatchFlags(int patchFlags) {
+        patchframe.ShowPatchFlags(patchFlags);
+    }
+
     Dimension GetInitialSize() {
         int mx = 480; // min size
         int my = 320;

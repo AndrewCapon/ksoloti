@@ -152,7 +152,7 @@ void PExTransmit(void) {
             Analyse(GPIOC, 7, 1);
             uint32_t ack[7];
             ack[0] = 0x416F7841; /* "AxoA" */
-            ack[1] = 0; /* reserved */
+            ack[1] = patchFlags.value; // flags for overload, USB audio etc
             ack[2] = dspLoad200;
             ack[3] = patchMeta.patchID;
             ack[4] = sysmon_getVoltage10() + (sysmon_getVoltage50()<<16);
@@ -164,6 +164,9 @@ void PExTransmit(void) {
             }
             ack[6] = fs_ready;
             chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )&ack[0], 7 * 4);
+
+            // clear overload flag
+            patchFlags.dspOverload = false;
 
 #ifdef DEBUG_SERIAL
             chprintf((BaseSequentialStream * )&SD2,"ack!\r\n");

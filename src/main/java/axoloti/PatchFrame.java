@@ -30,6 +30,7 @@ import static axoloti.MainFrame.fc;
 import static axoloti.MainFrame.mainframe;
 import static axoloti.MainFrame.prefs;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
@@ -1262,10 +1263,42 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
             return;
         }
         if (patch.IsLocked()) {
-            jProgressBarDSPLoad.setValue((pv+val200)/2);
+            if(val200 > 200) {
+                //jProgressBarDSPLoad.setString("Overload");
+                jProgressBarDSPLoad.setForeground(Color.red);
+                jProgressBarDSPLoad.setValue((pv+val200)/2);
+            } else {
+                //jProgressBarDSPLoad.setString(null);
+                jProgressBarDSPLoad.setForeground(null);
+                jProgressBarDSPLoad.setValue((pv+val200)/2);
+            }
         }
         else if (pv != 0) {
             jProgressBarDSPLoad.setValue(0);
+        }
+    }
+
+    void ShowPatchFlags(int patchFlags) {
+        // no nice bitfields in Java, need to implement properly
+
+        // Initial just do overload flag
+        // set the cpu gauge to red if we have had an overflow
+        Color pc = jProgressBarDSPLoad.getForeground();
+        Color c;
+        if((patchFlags & 1) == 1) {
+            c =  Color.red;
+        } else {
+            c = null;
+        }
+
+        if (c == pc) {
+            return;
+        }
+        if (patch.IsLocked()) {
+            jProgressBarDSPLoad.setForeground(c);
+        }
+        else if (pc != null) {
+            jProgressBarDSPLoad.setForeground(null);
         }
     }
 

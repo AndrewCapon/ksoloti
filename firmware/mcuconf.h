@@ -277,13 +277,21 @@
 #define USE_INT_EP_BULK                     0
 #define USE_NEW_CPU_PERCENTAGE              1
 
+#define DSP_CODEC_TIMESLICE                 3333
+#define DSP_UI_MIDI_COST                    170
+#define DSP_INACTIVE_USB_AUDIO_COST         50
 #define DSP_ACTIVE_USB_AUDIO_COST           250
 
 #if USE_NEW_CPU_PERCENTAGE
-  #define DSP_TIMESLICE                     3160    // Safe, 3210 : Slightly Dodgy, 3260 : Very Dodgy
-  #define DSP_LIMIT200                      200
+  #if ENABLE_USB_AUDIO
+    #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST - DSP_INACTIVE_USB_AUDIO_COST)   
+    #define DSP_LIMIT200                    200
+  #else
+    #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST)   
+    #define DSP_LIMIT200                    200
+  #endif
 #else
-  #define DSP_TIMESLICE                     3333
+  #define DSP_TIMESLICE                     DSP_CODEC_TIMESLICE
   #define DSP_LIMIT200                      194
 #endif
 

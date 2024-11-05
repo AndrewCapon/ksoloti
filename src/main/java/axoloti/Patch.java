@@ -2794,6 +2794,9 @@ public class Patch {
     void UpdateDSPLoad(int val200) {
     }
 
+    void UpdatePatchFlags(int patchFlags) {
+    }
+
     public void repaint() {
     }
 
