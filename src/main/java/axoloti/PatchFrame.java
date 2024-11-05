@@ -1272,6 +1272,17 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
 
     void ShowPatchFlags(int patchFlags) {
         // no nice bitfields in Java, need to implement properly
+        // typedef  union{
+        //     struct {
+        //       bool dspOverload : 1;
+        //       bool usbBuild    : 1;
+        //       bool usbActive   : 1;
+        //       bool usbUnder    : 1;
+        //       bool usbOver     : 1;
+        //       bool usbError    : 1;
+        //     };
+        //     unsigned int value;
+        // } patchflags_t;
 
         // Initial just do overload flag
         // set the cpu gauge to red if we have had an overflow
