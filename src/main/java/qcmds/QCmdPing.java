@@ -50,7 +50,8 @@ public class QCmdPing implements QCmdSerialTask {
     @Override
     public QCmd Do(Connection connection) {
         connection.ClearSync();
-        connection.TransmitPing();
+        //ARCFATAL for testing connection.TransmitPing();
+        connection.TransmitCosts();
         if (connection.WaitSync() || (noCauseDisconnect)) {
             return this;
         } else {

@@ -126,7 +126,7 @@ loadPatchIndex_t GetIndexOfCurrentPatch(void);
 
 void codec_clearbuffer(void);
 
-void SetPatchSafety(uint16_t uUIMidiCost, uint16_t uUsbAudioFirmwareCost, uint16_t uUsbAudioStreamingCost, uint8_t uDspLimit200);
+void SetPatchSafety(uint16_t uUIMidiCost, uint8_t uDspLimit200);
 
 
 int get_USBH_LL_GetURBState(void);

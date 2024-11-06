@@ -79,16 +79,13 @@ static int16_t nThreadsBeforePatch;
 static WORKING_AREA(waThreadDSP, 7200) __attribute__ ((section (".ccmramend")));
 static Thread* pThreadDSP = 0;
 
-uint16_t uPatchUIMidiCost = DSP_UI_MIDI_COST;
-uint16_t uPatchUsbAudioFirmwareCost = DSP_INACTIVE_USB_AUDIO_COST;
-uint16_t uPatchUsbAudioStreamingCost = DSP_ACTIVE_USB_AUDIO_COST;
+// Default valued for safety preset `Normal`
+uint16_t uPatchUIMidiCost  = DSP_UI_MIDI_COST;
 uint8_t  uPatchUsbLimit200 = DSP_LIMIT200;
 
-void SetPatchSafety(uint16_t uUIMidiCost, uint16_t uUsbAudioFirmwareCost, uint16_t uUsbAudioStreamingCost, uint8_t uDspLimit200)
+void SetPatchSafety(uint16_t uUIMidiCost, uint8_t uDspLimit200)
 {
     uPatchUIMidiCost = uUIMidiCost;
-    uPatchUsbAudioFirmwareCost = uUsbAudioFirmwareCost;
-    uPatchUsbAudioStreamingCost = uUsbAudioStreamingCost;
     uPatchUsbLimit200 = uDspLimit200;
 }
 
@@ -315,9 +312,9 @@ static int StartPatch1(void) {
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
 #if ENABLE_USB_AUDIO             
-            uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost - uPatchUsbAudioFirmwareCost;;
+            uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost - DSP_USB_AUDIO_FIRMWARE_COST;;
             if(aduIsUsbInUse())
-                uDspTimeslice -= uPatchUsbAudioStreamingCost;
+                uDspTimeslice -= DSP_USB_AUDIO_STREAMING_COST;
 #else
             uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost;
 #endif

@@ -275,25 +275,25 @@
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
 #define USE_INT_EP_MIDI                     0
 #define USE_INT_EP_BULK                     0
-#define USE_NEW_CPU_PERCENTAGE              1
 
 #define DSP_CODEC_TIMESLICE                 3333
-#define DSP_UI_MIDI_COST                    170
-#define DSP_INACTIVE_USB_AUDIO_COST         50
-#define DSP_ACTIVE_USB_AUDIO_COST           250
+#define DSP_UI_MIDI_COST                    100
+#define DSP_USB_AUDIO_FIRMWARE_COST         5
+#define DSP_USB_AUDIO_STREAMING_COST        65
+#define DSP_LIMIT200                        200
 
-#if USE_NEW_CPU_PERCENTAGE
-  #if ENABLE_USB_AUDIO
-    #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST - DSP_INACTIVE_USB_AUDIO_COST)   
-    #define DSP_LIMIT200                    200
-  #else
-    #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST)   
-    #define DSP_LIMIT200                    200
-  #endif
-#else
-  #define DSP_TIMESLICE                     DSP_CODEC_TIMESLICE
-  #define DSP_LIMIT200                      194
-#endif
+// #if USE_NEW_CPU_PERCENTAGE
+//   #if ENABLE_USB_AUDIO
+//     #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST - DSP_USB_AUDIO_FIRMWARECOST)   
+//     #define DSP_LIMIT200                    200
+//   #else
+//     #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST)   
+//     #define DSP_LIMIT200                    200
+//   #endif
+// #else
+//   #define DSP_TIMESLICE                     DSP_CODEC_TIMESLICE
+//   #define DSP_LIMIT200                      194
+// #endif
 
 #if ENABLE_USB_AUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
@@ -305,8 +305,6 @@
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
-  #define DSP_USB_AUDIO_ADJUST                (aduIsUsbInUse() ? DSP_ACTIVE_USB_AUDIO_COST : 0)
-
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
@@ -314,10 +312,9 @@
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
-  #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
-  #define DSP_USB_AUDIO_ADJUST                0
 #endif
 
 // pump = 86

@@ -94,10 +94,6 @@ public class Preferences {
     @Element(required = false)
     Short UiMidiThreadCost;
     @Element(required = false)
-    Short UsbAudioFirmwareCost;
-    @Element(required = false)
-    Short UsbAudioStreamingCost;
-    @Element(required = false)
     Byte DspLimitPercent;
     @ElementList(required = false)
     ArrayList<String> recentFiles = new ArrayList<String>();
@@ -243,16 +239,10 @@ public class Preferences {
             libraries = new ArrayList<AxolotiLibrary>();
         }
         if(UiMidiThreadCost == null) {
-            UiMidiThreadCost = 0;
-        }
-        if(UsbAudioFirmwareCost == null) {
-            UsbAudioFirmwareCost = 0;
-        }
-        if(UsbAudioStreamingCost == null) {
-            UsbAudioStreamingCost = 0;
+            UiMidiThreadCost = 100;
         }
         if(DspLimitPercent == null) {
-            DspLimitPercent = 97;
+            DspLimitPercent = 100;
         }
     }
 
@@ -352,24 +342,6 @@ public class Preferences {
 
     public void setUiMidiThreadCost(short i) {
         UiMidiThreadCost = i;
-        SetDirty();
-    }
-
-    public short getUsbAudioFirmwareCost() {
-        return UsbAudioFirmwareCost.shortValue();
-    }
-
-    public void setUsbAudioFirmwareCost(short i) {
-        UsbAudioFirmwareCost = i;
-        SetDirty();
-    }
-
-    public short getUsbAudioStreamingCost() {
-        return UsbAudioStreamingCost;
-    }
-
-    public void setUsbAudioStreamingCost(short i) {
-        UsbAudioStreamingCost = i;
         SetDirty();
     }
 

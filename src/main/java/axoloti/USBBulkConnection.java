@@ -963,22 +963,16 @@ public class USBBulkConnection extends Connection {
     @Override
     public void TransmitCosts() {
         short uUIMidiCost = prefs.getUiMidiThreadCost();
-        short uUsbAudioFirmwareCost = prefs.getUsbAudioFirmwareCost();
-        short uUsbAudioStreamingCost = prefs.getUsbAudioStreamingCost();
         byte  uDspLimit200 = (byte)(prefs.getDspLimitPercent()*2);
 
-        byte[] data = new byte[11];
+        byte[] data = new byte[7];
         data[0] = 'A';
         data[1] = 'x';
         data[2] = 'o';
         data[3] = 'U';
         data[4] = (byte) uUIMidiCost;
         data[5] = (byte) (uUIMidiCost >> 8);
-        data[6] = (byte) uUsbAudioFirmwareCost;
-        data[7] = (byte) (uUsbAudioFirmwareCost >> 8);
-        data[8] = (byte) uUsbAudioStreamingCost;
-        data[9] = (byte) (uUsbAudioStreamingCost >> 8);
-        data[10] = uDspLimit200;
+        data[6] = uDspLimit200;
         ClearSync();
         writeBytes(data);
         WaitSync();
