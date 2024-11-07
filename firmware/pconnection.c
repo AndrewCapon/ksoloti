@@ -732,6 +732,7 @@ void PExReceiveByte(unsigned char c) {
     case 5:
       uUIMidiCost += c << 8;
       state++;
+      break;
     case 6:
       uDspLimit200 = c;
 
