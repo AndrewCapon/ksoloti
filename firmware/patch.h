@@ -60,22 +60,10 @@ typedef struct {
   PresetParamChange_t *pPresets; // is a npreset array of npreset_entries of PresetParamChange_t
 } patchMeta_t;
 
-typedef  union{
-    struct {
-      bool dspOverload : 1;
-      bool usbBuild    : 1;
-      bool usbActive   : 1;
-      bool usbUnder    : 1;
-      bool usbOver     : 1;
-      bool usbError    : 1;
-    };
-    unsigned int value;
-} patchflags_t;
 
 extern patchMeta_t patchMeta;
 
 extern uint32_t     dspLoad200; // DSP load: Values 0-200 correspond to 0-100%
-extern patchflags_t patchFlags;
 
 extern bool     dspOverload;
 

@@ -52,7 +52,6 @@ patchMeta_t patchMeta;
 volatile patchStatus_t patchStatus;
 
 uint32_t     dspLoad200; // DSP load: Values 0-200 correspond to 0-100%
-patchflags_t patchFlags; // flags for patch feedback on USB audio and overload
 
 uint32_t DspTime;
 
@@ -87,6 +86,9 @@ void SetPatchSafety(uint16_t uUIMidiCost, uint8_t uDspLimit200)
 {
     uPatchUIMidiCost = uUIMidiCost;
     uPatchUsbLimit200 = uDspLimit200;
+
+    chprintf((BaseSequentialStream * )&SD2,"Patch Safety: UIMidiCost = %u, DspLimit = %u\r\n", uPatchUIMidiCost, uPatchUsbLimit200);
+
 }
 
 static void SetPatchStatus(patchStatus_t status)
@@ -134,11 +136,6 @@ void InitPatch0(void) {
     patchMeta.npreset_entries = 0;
     patchMeta.pPresets = 0;
     patchMeta.patchID = 0;
-
-    patchFlags.value = 0;
-#if ENABLE_USB_AUDIO
-    patchFlags.usbBuild = 1;
-#endif
 }
 
 #define USE_MOVING_AVERAGE 0
@@ -374,7 +371,7 @@ static int StartPatch1(void) {
                 aduReset();
 #endif
                 // LogTextMessage("DSP overrun");
-                patchFlags.dspOverload = true;
+                connectionFlags.dspOverload = true;
 
                 /* DSP overrun penalty, keeping cooperative with lower priority threads */
                 chThdSleepMilliseconds(1);

@@ -64,6 +64,8 @@ static int pFileSize;
 static WORKING_AREA(waThreadUSBDMidi, 256);
 
 
+connectionflags_t connectionFlags;
+
 __attribute__((noreturn)) static msg_t ThreadUSBDMidi(void *arg) {
     (void)arg;
 
@@ -103,6 +105,12 @@ void InitPConnection(void) {
     chThdSleepMilliseconds(1000);
     usbStart(midiusbcfg.usbp, &usbcfg);
     usbConnectBus(midiusbcfg.usbp);
+
+
+    connectionFlags.value = 0;
+#if ENABLE_USB_AUDIO
+    connectionFlags.usbBuild = 1;
+#endif
 
     chThdCreateStatic(waThreadUSBDMidi, sizeof(waThreadUSBDMidi), MIDI_USB_PRIO, ThreadUSBDMidi, NULL);
 }
@@ -152,7 +160,7 @@ void PExTransmit(void) {
             Analyse(GPIOC, 7, 1);
             uint32_t ack[7];
             ack[0] = 0x416F7841; /* "AxoA" */
-            ack[1] = patchFlags.value; // flags for overload, USB audio etc
+            ack[1] = connectionFlags.value; // flags for overload, USB audio etc
             ack[2] = dspLoad200;
             ack[3] = patchMeta.patchID;
             ack[4] = sysmon_getVoltage10() + (sysmon_getVoltage50()<<16);
@@ -166,7 +174,7 @@ void PExTransmit(void) {
             chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )&ack[0], 7 * 4);
 
             // clear overload flag
-            patchFlags.dspOverload = false;
+            connectionFlags.dspOverload = false;
 
 #ifdef DEBUG_SERIAL
             chprintf((BaseSequentialStream * )&SD2,"ack!\r\n");

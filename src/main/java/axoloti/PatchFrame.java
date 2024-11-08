@@ -1257,9 +1257,9 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
     private javax.swing.JMenuItem undoItem;
     private axoloti.menus.WindowMenu windowMenu1;
 
-    private int previousPatchFlags;
+    private boolean previousOverload;
 
-    void ShowDSPLoad(int val200) {
+    void ShowDSPLoad(int val200, boolean overload) {
         int pv = jProgressBarDSPLoad.getValue();
         if (val200 == pv) {
             return;
@@ -1270,54 +1270,15 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         else if (pv != 0) {
             jProgressBarDSPLoad.setValue(0);
         }
-    }
 
-    void ShowPatchFlags(int patchFlags) {
-        // no nice bitfields in Java, need to implement properly
-
-        boolean dspOverload = 0 != (patchFlags & 1);
-        boolean usbBuild    = 0 != (patchFlags & 2);
-        boolean usbActive   = 0 != (patchFlags & 4);
-        //boolean usbUnder    = 0 != (patchFlags & 8);
-        //boolean usbOver     = 0 != (patchFlags & 16);
-        boolean usbError    = 0 != (patchFlags & 32);
-
-        boolean previousDspOverload = 0 != (previousPatchFlags & 1);
-        boolean previousUsbBuild    = 0 != (previousPatchFlags & 2);
-        boolean previousUsbActive   = 0 != (previousPatchFlags & 4);
-        //boolean previousUsbUnder    = 0 != (previousPatchFlags & 8);
-        //boolean previousUsbOver     = 0 != (previousPatchFlags & 16);
-        boolean previousUsbError    = 0 != (previousPatchFlags & 32);
-
-        previousPatchFlags = patchFlags;
-
-        // set the cpu gauge to red if we have had an overflow
-        if(previousDspOverload != dspOverload) {
-            if(dspOverload) {
+        if(previousOverload != overload) {
+            if(overload) {
                 jProgressBarDSPLoad.setForeground(Color.red); 
             } else {
                 jProgressBarDSPLoad.setForeground(null); 
             }
         }
-
-        // Set the USB Indicator
-        if(previousUsbBuild != usbBuild) {
-            jUsbAudioIndicator.setVisible(usbBuild);
-        }
-
-        if((previousUsbActive != usbActive) || (previousUsbError != usbError)) {
-            if(usbActive) {
-                if(usbError) {
-                    jUsbAudioIndicator.setForeground(Color.red);
-                }
-                else {
-                    jUsbAudioIndicator.setForeground(Color.green);
-                } 
-            } else 
-            {
-                jUsbAudioIndicator.setForeground(null); 
-            }
-        }
+        previousOverload = overload;
     }
 
     @Override

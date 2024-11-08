@@ -109,6 +109,8 @@ public class PreferencesFrame extends JFrame {
 
         jComboBoxTheme.setSelectedItem(prefs.getTheme());
 
+        jComboBoxDspSafetyLimit.setSelectedIndex(prefs.getDspSafetyLimit());
+
         PopulateLibrary();
 
         setResizable(false);
@@ -136,44 +138,6 @@ public class PreferencesFrame extends JFrame {
 
         prefs.setPollInterval(Integer.parseInt(jTextFieldPollInterval.getText()));
 
-        switch(jComboBoxDspSafetyLimit.getSelectedIndex()) {
-            case 0: { // Original
-                prefs.setDspLimitPercent((byte)97);
-                prefs.setUiMidiThreadCost((short)0);
-                break;
-            }
-
-            case 1: { // Very Safe
-                prefs.setDspLimitPercent((byte)100);
-                prefs.setUiMidiThreadCost((short)280);
-                break;
-            }
-
-            case 2: { // Safe
-                prefs.setDspLimitPercent((byte)100);
-                prefs.setUiMidiThreadCost((short)150);
-                break;
-            }
-
-            case 3: { // Normal
-                prefs.setDspLimitPercent((byte)100);
-                prefs.setUiMidiThreadCost((short)100);
-                break;
-            }
-
-            case 4: { // Risky
-                prefs.setDspLimitPercent((byte)100);
-                prefs.setUiMidiThreadCost((short)80);
-                break;
-            }
-
-            case 5: { // Very Risky
-                prefs.setDspLimitPercent((byte)100);
-                prefs.setUiMidiThreadCost((short)60);
-                break;
-            }
-        }
-       
         prefs.setCodeFontSize(Integer.parseInt(jTextFieldCodeFontSize.getText()));
         Constants.FONT_MONO = Constants.FONT_MONO.deriveFont((float)prefs.getCodeFontSize());
         MainFrame.mainframe.updateConsoleFont();
@@ -189,6 +153,8 @@ public class PreferencesFrame extends JFrame {
         prefs.setControllerObject(jTextFieldController.getText().trim());
         prefs.setControllerEnabled(jControllerEnabled.isSelected());
         prefs.setTheme(jComboBoxTheme.getSelectedItem().toString());
+
+        prefs.setDspSafetyLimit(jComboBoxDspSafetyLimit.getSelectedIndex());
         prefs.applyTheme();
     }
 

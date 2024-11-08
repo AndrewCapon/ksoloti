@@ -92,9 +92,7 @@ public class Preferences {
     @Element(required = false)
     Boolean ExpertMode;
     @Element(required = false)
-    Short UiMidiThreadCost;
-    @Element(required = false)
-    Byte DspLimitPercent;
+    Integer DspSafetyLimit;
     @ElementList(required = false)
     ArrayList<String> recentFiles = new ArrayList<String>();
 
@@ -238,11 +236,8 @@ public class Preferences {
         if (libraries == null) {
             libraries = new ArrayList<AxolotiLibrary>();
         }
-        if(UiMidiThreadCost == null) {
-            UiMidiThreadCost = 100;
-        }
-        if(DspLimitPercent == null) {
-            DspLimitPercent = 100;
+        if(DspSafetyLimit == null) {
+            DspSafetyLimit = 3; // Normal setting
         }
     }
 
@@ -337,23 +332,25 @@ public class Preferences {
     }
 
     public short getUiMidiThreadCost() {
-        return UiMidiThreadCost.shortValue();
+        short costs[] = {0, 280, 150, 100, 80, 60};
+        return costs[DspSafetyLimit];
     }
 
-    public void setUiMidiThreadCost(short i) {
-        UiMidiThreadCost = i;
-        SetDirty();
-    }
 
     public byte getDspLimitPercent() {
-        return DspLimitPercent.byteValue();
+        if(DspSafetyLimit == 0) {
+            return 97;
+        } else {
+            return 100;
+        }
     }
 
-    public void setDspLimitPercent(Byte i) {
-        if(i > 100) {
-            i = 100;
-        }
-        DspLimitPercent = i;
+    public int getDspSafetyLimit() {
+        return DspSafetyLimit;
+    }
+
+    public void setDspSafetyLimit(int i) {
+        DspSafetyLimit = i;
         SetDirty();
     }
 

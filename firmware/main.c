@@ -227,8 +227,8 @@ int main(void) {
         else if(evt & AUDIO_EVENT_FORMAT)
             chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed = %u\r\n", aduState.currentSampleRate);
 
-        patchFlags.usbActive = aduIsUsbInUse();
-        chprintf((BaseSequentialStream * )&SD2,"patchFlags.usbActive = %u\r\n", patchFlags.usbActive );
+        connectionFlags.usbActive = aduIsUsbInUse();
+        chprintf((BaseSequentialStream * )&SD2,"connectionFlags.usbActive = %u\r\n", connectionFlags.usbActive );
     }
 #else
     while (1) {

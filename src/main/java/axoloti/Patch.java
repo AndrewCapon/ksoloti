@@ -2791,10 +2791,7 @@ public class Patch {
     void invalidate() {
     }
 
-    void UpdateDSPLoad(int val200) {
-    }
-
-    void UpdatePatchFlags(int patchFlags) {
+    void UpdateDSPLoad(int val200, boolean overload) {
     }
 
     public void repaint() {

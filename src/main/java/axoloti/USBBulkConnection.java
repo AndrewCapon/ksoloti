@@ -1052,7 +1052,7 @@ public class USBBulkConnection extends Connection {
     int CpuId2 = 0;
     int fwcrc = -1;
 
-    void Acknowledge(final int PatchFlags, final int DSPLoad, final int PatchID, final int Voltages, final int patchIndex, final int sdcardPresent) {
+    void Acknowledge(final int ConnectionFlags, final int DSPLoad, final int PatchID, final int Voltages, final int patchIndex, final int sdcardPresent) {
         synchronized (sync) {
             sync.Acked = true;
             sync.notifyAll();
@@ -1065,13 +1065,14 @@ public class USBBulkConnection extends Connection {
                         patch.Unlock();
                     }
                     else {
-                        patch.UpdateDSPLoad(DSPLoad);
-                        patch.UpdatePatchFlags(PatchFlags);
+                        boolean dspOverload = 0 != (ConnectionFlags & 1);
+                        patch.UpdateDSPLoad(DSPLoad, dspOverload);
                     }
                 }
                 MainFrame.mainframe.showPatchIndex(patchIndex);
                 targetProfile.setVoltages(Voltages);
                 SetSDCardPresent(sdcardPresent!=0);
+                // TODO USB INDICATOR
             }
         });
     }
