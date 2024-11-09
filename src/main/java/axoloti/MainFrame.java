@@ -398,6 +398,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                             tsuf += ", ";
                         }
                         tsuf += "USBAudio";
+                    } else {
+                        // remove USB Label
+                        jPanelColumn3.remove(jLabelFlags);
                     }
 
 
@@ -1356,6 +1359,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
             vdd00c = 0;
             patchIndex = -4;
             jLabelSDCardPresent.setText(" ");
+            jLabelFlags.setText("");
         }
     }
 
@@ -1580,12 +1584,12 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         StringBuilder flags = new StringBuilder();
 
         if(usbBuild) {
-            flags.append("USB Audio Firmware");
+            flags.append("USB Audio ");
             if(usbActive) {
+                flags.append("Active");
                 if(usbError) {
-                    flags.append(", Error");
+                    flags.append("(Error)");
                 } else {
-                    flags.append(", Streaming");
                     if(usbUnder) {
                         flags.append(", Underruns detected");
                     }
@@ -1593,10 +1597,10 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                         flags.append(", Overruns detected");
                     }
                 }
+            } else {
+                flags.append("Inactive");
             }
-        } else {
-            flags.append("Normal Firmware");
-        }
+        } 
 
         jLabelFlags.setText(flags.toString());
     }
