@@ -77,7 +77,7 @@ import qcmds.QCmdUploadPatch;
  *
  * @author Johannes Taelman
  */
-public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, ConnectionStatusListener, SDCardMountStatusListener {
+public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, ConnectionStatusListener, SDCardMountStatusListener, ConnectionFlagsListener, UnitNameListener {
 
     private static final Logger LOGGER = Logger.getLogger(PatchFrame.class.getName());
     /**
@@ -229,6 +229,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         createBufferStrategy(2);
         USBBulkConnection.GetConnection().addConnectionStatusListener(this);
         USBBulkConnection.GetConnection().addSDCardMountStatusListener(this);
+        mainframe.addUnitNameListener(this);
     }
     
     public void repositionIfOutsideScreen() {
@@ -370,7 +371,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0));
         jLabelDSPLoad = new javax.swing.JLabel();
         jProgressBarDSPLoad = new javax.swing.JProgressBar();
-        jUsbAudioIndicator = new javax.swing.JLabel(" USB");
+        jUnitNameIndicator = new javax.swing.JLabel(" USB");
         jScrollPane1 = new ScrollPaneComponent();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenuP = new axoloti.menus.FileMenu();
@@ -475,8 +476,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
         jProgressBarDSPLoad.setStringPainted(true);
         jToolbarPanel.add(jProgressBarDSPLoad);
 
-        jUsbAudioIndicator.setVisible(false);
-        jToolbarPanel.add(jUsbAudioIndicator);
+        jToolbarPanel.add(jUnitNameIndicator);
 
         filler2.setAlignmentX(LEFT_ALIGNMENT);
         jToolbarPanel.add(filler2);
@@ -1244,7 +1244,7 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
     private javax.swing.JMenuItem jMenuUploadCode;
     private javax.swing.JMenu jMenuView;
     private javax.swing.JProgressBar jProgressBarDSPLoad;
-    private javax.swing.JLabel jUsbAudioIndicator;
+    private javax.swing.JLabel jUnitNameIndicator;
     private ScrollPaneComponent jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -1346,5 +1346,14 @@ public class PatchFrame extends javax.swing.JFrame implements DocumentWindow, Co
     public void ShowSDCardUnmounted() {
         jMenuItemUploadSD.setEnabled(false);
         jMenuItemUploadSDStart.setEnabled(false);
+    }
+
+    @Override
+    public void ShowConnectionFlags(int connectionFlags) {
+    }
+
+    @Override
+    public void ShowUnitName(String unitName) {
+        jUnitNameIndicator.setText(" " + unitName);
     }
 }

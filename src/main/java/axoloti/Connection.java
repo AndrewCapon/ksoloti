@@ -50,7 +50,8 @@ public abstract class Connection {
     abstract public ByteBuffer getMemReadBuffer();
     abstract public int getMemRead1Word();
     abstract public boolean GetSDCardPresent();
-
+    abstract public int GetConnectionFlags();
+    
     private ArrayList<ConnectionStatusListener> csls = new ArrayList<ConnectionStatusListener>();
 
     public void addConnectionStatusListener(ConnectionStatusListener csl) {
@@ -102,6 +103,23 @@ public abstract class Connection {
     public void ShowSDCardUnmounted() {
         for (SDCardMountStatusListener sdcml : sdcmls) {
             sdcml.ShowSDCardUnmounted();
+        }
+    }
+
+    private ArrayList<ConnectionFlagsListener> cfcmls = new ArrayList<ConnectionFlagsListener>();
+
+    public void addConnectionFlagsListener(ConnectionFlagsListener cfcml) {
+        cfcml.ShowConnectionFlags(GetConnectionFlags());
+        cfcmls.add(cfcml);
+    }
+
+    public void removeConnectionFlagsListener(ConnectionFlagsListener cfcml) {
+        cfcmls.remove(cfcml);
+    }
+
+    public void ShowConnectionFlags(int connectionFlags) {
+        for (ConnectionFlagsListener cfcml : cfcmls) {
+            cfcml.ShowConnectionFlags(connectionFlags);
         }
     }
 

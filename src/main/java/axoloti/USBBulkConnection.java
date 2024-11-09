@@ -1047,6 +1047,20 @@ public class USBBulkConnection extends Connection {
         return isSDCardPresent;
     }
 
+    private int connectionFlags = 0;
+
+    public void SetConnectionFlags(int newConnectionFlags) {
+        if(newConnectionFlags != connectionFlags) {
+            connectionFlags = newConnectionFlags;
+            ShowConnectionFlags(connectionFlags);
+        }
+    }
+
+    @Override
+    public int GetConnectionFlags() {
+        return connectionFlags;
+    }
+
     int CpuId0 = 0;
     int CpuId1 = 0;
     int CpuId2 = 0;
@@ -1072,7 +1086,7 @@ public class USBBulkConnection extends Connection {
                 MainFrame.mainframe.showPatchIndex(patchIndex);
                 targetProfile.setVoltages(Voltages);
                 SetSDCardPresent(sdcardPresent!=0);
-                // TODO USB INDICATOR
+                SetConnectionFlags(ConnectionFlags);
             }
         });
     }

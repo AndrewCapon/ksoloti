@@ -64,6 +64,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -100,7 +101,7 @@ import qcmds.QCmdUploadPatch;
  *
  * @author Johannes Taelman
  */
-public final class MainFrame extends javax.swing.JFrame implements ActionListener, ConnectionStatusListener, SDCardMountStatusListener {
+public final class MainFrame extends javax.swing.JFrame implements ActionListener, ConnectionStatusListener, SDCardMountStatusListener , ConnectionFlagsListener{
 
     private static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
 
@@ -413,6 +414,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                     qcmdprocessorThread.start();
                     USBBulkConnection.GetConnection().addConnectionStatusListener(MainFrame.this);
                     USBBulkConnection.GetConnection().addSDCardMountStatusListener(MainFrame.this);
+                    USBBulkConnection.GetConnection().addConnectionFlagsListener(MainFrame.this);
 
                     ShowDisconnect();
                     // if (!Axoloti.isFailSafeMode()) {
@@ -592,6 +594,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         jButtonClear = new javax.swing.JButton();
         jToggleButtonConnect = new javax.swing.JToggleButton();
         jLabelCPUID = new javax.swing.JLabel();
+        jLabelFlags = new javax.swing.JLabel();
         jLabelFirmwareID = new javax.swing.JLabel();
         jLabelVoltages = new javax.swing.JLabel();
         jLabelPatch = new javax.swing.JLabel();
@@ -684,6 +687,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         jPanelColumn3.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 5, 3, 5));
         jPanelColumn3.setLayout(new javax.swing.BoxLayout(jPanelColumn3, javax.swing.BoxLayout.PAGE_AXIS));
 
+
         jLabelCPUID.setText("Board ID");
         jPanelColumn3.add(jLabelCPUID);
 
@@ -696,6 +700,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
 
         jLabelSDCardPresent.setText("No SD card");
         jPanelColumn3.add(jLabelSDCardPresent);
+
+        jLabelFlags.setText("Flags");
+        jPanelColumn3.add(jLabelFlags);
 
         jLabelPatch.setText("Patch");
         jPanelColumn3.add(jLabelPatch);
@@ -1253,6 +1260,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
     private javax.swing.JPopupMenu.Separator jDevSeparator;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelCPUID;
+    private javax.swing.JLabel jLabelFlags;
     private javax.swing.JLabel jLabelFirmwareID;
     private javax.swing.JLabel jLabelIcon;
     private javax.swing.JLabel jLabelPatch;
@@ -1368,6 +1376,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                 jLabelCPUID.setToolTipText("Showing the name defined in Board > Select Device... > Name");
             }
         }
+
+        // update listeners
+        ShowUnitName(jLabelCPUID.getText());
     }
 
     public void updateLinkFirmwareID() {
@@ -1535,5 +1546,55 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
     public void ShowSDCardUnmounted() {
         jLabelSDCardPresent.setText("No SD card");
         jMenuItemMount.setEnabled(false);
+    }
+
+    @Override
+    public void ShowConnectionFlags(int connectionFlags) {
+        //boolean dspOverload = 0 != (connectionFlags & 1);
+        boolean usbBuild    = 0 != (connectionFlags & 2);
+        boolean usbActive   = 0 != (connectionFlags & 4);
+        boolean usbUnder    = 0 != (connectionFlags & 8);
+        boolean usbOver     = 0 != (connectionFlags & 16);
+        boolean usbError    = 0 != (connectionFlags & 32);
+
+        StringBuilder flags = new StringBuilder();
+
+        if(usbBuild) {
+            flags.append("USB Audio Firmware");
+            if(usbActive) {
+                if(usbError) {
+                    flags.append(", Error");
+                } else {
+                    flags.append(", Connected");
+                    if(usbUnder) {
+                        flags.append(", Underruns detected");
+                    }
+                    if(usbOver) {
+                        flags.append(", Overruns detected");
+                    }
+                }
+            }
+        } else {
+            flags.append("Normal Firmware");
+        }
+
+        jLabelFlags.setText(flags.toString());
+    }
+
+    private ArrayList<UnitNameListener> uncmls = new ArrayList<UnitNameListener>();
+
+    public void addUnitNameListener(UnitNameListener uncml) {
+        uncmls.add(uncml);
+        uncml.ShowUnitName(jLabelCPUID.getText());
+    }
+
+    public void removeUnitNameListener(UnitNameListener uncml) {
+        uncmls.remove(uncml);
+    }
+
+    public void ShowUnitName(String unitName) {
+        for (UnitNameListener uncml : uncmls) {
+            uncml.ShowUnitName(unitName);
+        }
     }
 }
