@@ -135,7 +135,7 @@ int main(void) {
 
     InitPatch0();
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
     InitUsbAudio();
 #endif
 
@@ -195,7 +195,7 @@ int main(void) {
 
     //TestMemset();
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
     EventListener audioEventListener;
     chEvtRegisterMask(&ADU1.event, &audioEventListener, AUDIO_EVENT);
 

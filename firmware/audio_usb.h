@@ -1,4 +1,4 @@
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 
 #ifndef _AUDIO_USB_H_
 #define _AUDIO_USB_H_

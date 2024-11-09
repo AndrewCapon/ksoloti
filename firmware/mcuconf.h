@@ -283,7 +283,7 @@
 #define DSP_LIMIT200                        200
 
 // #if USE_NEW_CPU_PERCENTAGE
-//   #if ENABLE_USB_AUDIO
+//   #if FW_USBAUDIO
 //     #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST - DSP_USB_AUDIO_FIRMWARECOST)   
 //     #define DSP_LIMIT200                    200
 //   #else
@@ -295,7 +295,7 @@
 //   #define DSP_LIMIT200                      194
 // #endif
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
@@ -559,7 +559,7 @@
 #define USE_INT_EP_BULK                     0
 #define USE_NEW_CPU_PERCENTAGE              1
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX

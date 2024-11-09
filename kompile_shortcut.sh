@@ -41,8 +41,9 @@ case "$platform" in
         # create .lst files
         # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/flasher/flasher_build/ksoloti_flasher.elf > ./firmware/flasher/flasher_build/ksoloti_flasher.lst
         # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/mounter/mounter_build/ksoloti_mounter.elf > ./firmware/mounter/mounter_build/ksoloti_mounter.lst
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/ksoloti.elf > ./firmware/build/ksoloti.lst
-        #./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/ksoloti_spilink.elf > ./firmware/build/ksoloti_spilink.lst
+        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/normal/ksoloti.elf > ./firmware/build/normal/ksoloti.lst
+        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/spilink/ksoloti_spilink.elf > ./firmware/build/spilink/ksoloti_spilink.lst
+        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/usbaudio/ksoloti_usbaudio.elf > ./firmware/build/usbaudio/ksoloti_usbaudio.lst
         # sh ./qlean.sh
     ;;
     linux)

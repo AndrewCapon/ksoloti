@@ -108,7 +108,7 @@ void InitPConnection(void) {
 
 
     connectionFlags.value = 0;
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
     connectionFlags.usbBuild = 1;
 #endif
 

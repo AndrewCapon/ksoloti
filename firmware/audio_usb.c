@@ -1,5 +1,5 @@
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 
 #include <stdlib.h>
 #include <string.h>

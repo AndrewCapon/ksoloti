@@ -1,3 +1,3 @@
 #pragma once
 
-#define ENABLE_USB_AUDIO 1
+#define FW_USBAUDIO 1

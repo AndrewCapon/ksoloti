@@ -23,14 +23,14 @@
 #include "bulk_usb.h"
 #include "midi_usb.h"
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 #include "audio_usb.h"
 #endif
 
 /*
  * Endpoints to be used for USBD1.
  */
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 #define AUDIO_ENDPPOINT_OUT 0x03
 #define AUDIO_ENDPPOINT_IN  0x83
 #endif
@@ -45,14 +45,14 @@
 
 extern MidiUSBDriver  MDU1;
 extern BulkUSBDriver  BDU1;
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 extern AudioUSBDriver ADU1;
 #endif
 
 extern const USBConfig usbcfg;
 extern const MidiUSBConfig midiusbcfg;
 extern const BulkUSBConfig bulkusbcfg;
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 extern const AudioUSBConfig audiousbcfg;
 extern void InitUsbAudio(void);
 #endif

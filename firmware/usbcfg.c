@@ -27,7 +27,7 @@
  */
 MidiUSBDriver  MDU1;
 BulkUSBDriver  BDU1;
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 AudioUSBDriver ADU1;
 #endif
 /*
@@ -63,7 +63,7 @@ static const USBDescriptor vcom_device_descriptor = {
 
 
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 //#define DESC_SIZE 140 + USBD_AUDIO_HEADSET_STEREO_DESC_LEN
 #define DESC_SIZE 426
 #define NUM_INTERFACE 0x05
@@ -584,7 +584,7 @@ static const USBEndpointConfig ep2config = {
   NULL
 };
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 /**
  * @brief   IN EP3 state.
  */
@@ -626,14 +626,14 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
        must be used.*/
     usbInitEndpointI(usbp, USBD1_DATA_REQUEST_EP, &ep1config);
     usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep2config);
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     usbInitEndpointI(usbp, AUDIO_ENDPPOINT_OUT, &ep3config);
 #endif
 
     /* Resetting the state of the Bulk driver subsystem.*/
     bduConfigureHookI(&BDU1);
     mduConfigureHookI(&MDU1);
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     aduConfigureHookI(&ADU1);
     // Notify USB state changes for AUDIO
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_CONGIGURED);
@@ -642,7 +642,7 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
     chSysUnlockFromIsr();
     return;
   case USB_EVENT_SUSPEND:
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_SUSPEND);
@@ -650,7 +650,7 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 #endif
     return;
   case USB_EVENT_WAKEUP:
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_WAKEUP);
@@ -658,7 +658,7 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 #endif
     return;
   case USB_EVENT_STALLED:
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_STALLED);
@@ -666,7 +666,7 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 #endif
     return;
   case USB_EVENT_RESET:
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_RESET);
@@ -674,7 +674,7 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 #endif
     return;
   case USB_EVENT_ADDRESS:
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
     // Notify USB state changes for AUDIO
     chSysUnlockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_USB_ENABLE);
@@ -768,7 +768,7 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
     usbSetupTransfer(usbp, (uint8_t *)&msdescriptor1, usbp->setup[6], NULL);
     return TRUE;
   } 
-#if ENABLE_USB_AUDIO  
+#if FW_USBAUDIO  
   else 
   {
     // Audio stuff
@@ -810,7 +810,7 @@ static bool_t specialRequestsHook(USBDriver *usbp) {
   return FALSE;
 }
 
-#if ENABLE_USB_AUDIO    
+#if FW_USBAUDIO    
 static void sofHook(USBDriver *usbp) 
 {
   (void)usbp;
@@ -864,7 +864,7 @@ const BulkUSBConfig bulkusbcfg = {
   USBD2_DATA_AVAILABLE_EP
 };
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 /*
  * Audio USB driver configuration.
  */

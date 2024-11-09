@@ -102,6 +102,10 @@ ifeq ($(FWOPTIONDEF),FW_SPILINK)
   PROJECT := $(PROJECT)_spilink
 endif
 
+ifeq ($(FWOPTIONDEF),FW_USBAUDIO)
+  PROJECT := $(PROJECT)_usbaudio
+endif
+
 # Imported source files and paths
 axoloti_runtime ?= ..
 axoloti_release ?= ..
@@ -467,7 +471,6 @@ UDEFS = \
     -D__FPU_PRESENT \
     -DSTM32F429xx \
     -DCRT1_AREAS_NUMBER=0 \
-    -DENABLE_USB_AUDIO=1
 
 # Define ASM defines here
 UADEFS =

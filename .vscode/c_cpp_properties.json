@@ -19,7 +19,7 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "defines": ["HAL_USE_USB=1", "THUMB", "ENABLE_USB_AUDIO=1"],
+            "defines": ["HAL_USE_USB=1", "THUMB"],
             "macFrameworkPath": [],
             "cStandard": "c11",
             "cppStandard": "c++11",

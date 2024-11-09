@@ -35,7 +35,7 @@
 #include "audio_usb.h"
 
 
-#if ENABLE_USB_AUDIO     
+#if FW_USBAUDIO     
 extern void aduDataExchange (int32_t *in, int32_t *out);
 #endif
 
@@ -62,7 +62,7 @@ static const char* index_fn = "/index.axb";
 static int32_t inbuf[32];
 static int32_t* outbuf;
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
 static int32_t inbufUsb[32];
 static int32_t outbufUsb[32];
 void usb_clearbuffer(void)
@@ -295,7 +295,7 @@ static int StartPatch1(void) {
 #endif
     codec_clearbuffer();
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
     usb_clearbuffer();
 #endif
 
@@ -308,7 +308,7 @@ static int StartPatch1(void) {
         /* Codec DSP cycle */
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
-#if ENABLE_USB_AUDIO             
+#if FW_USBAUDIO             
             uint16_t uDspTimeslice = DSP_CODEC_TIMESLICE - uPatchUIMidiCost - DSP_USB_AUDIO_FIRMWARE_COST;;
             if(aduIsUsbInUse())
                 uDspTimeslice -= DSP_USB_AUDIO_STREAMING_COST;
@@ -322,7 +322,7 @@ static int StartPatch1(void) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
-#if ENABLE_USB_AUDIO             
+#if FW_USBAUDIO             
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf, inbufUsb, outbufUsb);
 #else
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
@@ -330,7 +330,7 @@ static int StartPatch1(void) {
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
-                #if ENABLE_USB_AUDIO
+                #if FW_USBAUDIO
                   usb_clearbuffer();
                 #endif
 
@@ -340,7 +340,7 @@ static int StartPatch1(void) {
             }
             else if (patchStatus == STOPPED) {
                 codec_clearbuffer();
-                #if ENABLE_USB_AUDIO
+                #if FW_USBAUDIO
                   usb_clearbuffer();
                 #endif
             }
@@ -366,7 +366,7 @@ static int StartPatch1(void) {
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();
 
-#if ENABLE_USB_AUDIO
+#if FW_USBAUDIO
                 // reset USB audio
                 aduReset();
 #endif
@@ -383,7 +383,7 @@ static int StartPatch1(void) {
         else if (evt == 2) {
             /* load patch event */
             codec_clearbuffer();
-            #if ENABLE_USB_AUDIO
+            #if FW_USBAUDIO
                 usb_clearbuffer();
             #endif
 
@@ -500,7 +500,7 @@ static int StartPatch1(void) {
         else if (evt == 4) {
             /* Start patch */
             codec_clearbuffer();
-            #if ENABLE_USB_AUDIO
+            #if FW_USBAUDIO
                 usb_clearbuffer();
             #endif
             StartPatch1();
@@ -569,7 +569,7 @@ void computebufI(int32_t* inp, int32_t* outp) {
 
     outbuf = outp;
 
-#if ENABLE_USB_AUDIO     
+#if FW_USBAUDIO     
     aduDataExchange(inbufUsb, outbufUsb);
 #endif    
 

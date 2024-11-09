@@ -59,6 +59,10 @@ ifeq ($(FWOPTIONDEF),FW_SPILINK)
   ELFNAME := $(ELFNAME)_spilink
 endif
 
+ifeq ($(FWOPTIONDEF),FW_USBAUDIO)
+  ELFNAME := $(ELFNAME)_usbaudio
+endif
+
 LDFLAGS = \
     $(RAMLINKOPT) \
     -Bsymbolic \

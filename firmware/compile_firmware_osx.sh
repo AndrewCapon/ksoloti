@@ -35,9 +35,10 @@ make BOARDDEF=$1 -f Makefile.patch.mk clean
 # cd ..
 
 echo "Compiling firmware... $1"
-# mkdir -p .dep
-# mkdir -p build/lst
-# mkdir -p build/obj
+export BUILDDIR=build/normal
+mkdir -p .dep
+mkdir -p $BUILDDIR/lst
+mkdir -p $BUILDDIR/obj
 # rm -f .dep/*
 # rm -f build/lst/*
 # rm -f build/obj/*
@@ -45,13 +46,26 @@ if ! make -j16 BOARDDEF=$1; then
     exit 1
 fi
 
-# echo "Compiling firmware... $1 FW_SPILINK"
-# mkdir -p .dep
-# mkdir -p build/lst
-# mkdir -p build/obj
+echo "Compiling firmware... $1 FW_SPILINK"
+export BUILDDIR=build/spilink
+mkdir -p .dep
+mkdir -p $BUILDDIR/lst
+mkdir -p $BUILDDIR/obj
 # rm -f .dep/*
 # rm -f build/lst/*
 # rm -f build/obj/*
-# if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_SPILINK; then
-#     exit 1
-# fi
+if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_SPILINK; then
+    exit 1
+fi
+
+echo "Compiling firmware... $1 FW_USBAUDIO"
+export BUILDDIR=build/usbaudio
+mkdir -p .dep
+mkdir -p $BUILDDIR/lst
+mkdir -p $BUILDDIR/obj
+# rm -f .dep/*
+# rm -f build/lst/*
+# rm -f build/obj/*
+if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_USBAUDIO; then
+    exit 1
+fi
