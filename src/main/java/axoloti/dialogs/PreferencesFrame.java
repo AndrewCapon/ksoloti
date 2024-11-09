@@ -267,7 +267,7 @@ public class PreferencesFrame extends JFrame {
             }
         });
 
-        jComboBoxFirmwareMode.setModel(new DefaultComboBoxModel<String>(new String[] { "Ksoloti Core", "Ksoloti Core + SPILink", "Axoloti Core", "Axoloti Core + SPILink" }));
+        jComboBoxFirmwareMode.setModel(new DefaultComboBoxModel<String>(new String[] { "Ksoloti Core", "Ksoloti Core + SPILink", "Ksoloti Core + USBAudio", "Axoloti Core", "Axoloti Core + SPILink", "Axoloti Core + USBAudio" }));
         jComboBoxFirmwareMode.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBoxFirmwareModeActionPerformed(evt);

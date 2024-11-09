@@ -45,6 +45,7 @@ mkdir -p $BUILDDIR/obj
 if ! make -j16 BOARDDEF=$1; then
     exit 1
 fi
+cp $BUILDDIR/ksoloti.bin build
 
 echo "Compiling firmware... $1 FW_SPILINK"
 export BUILDDIR=build/spilink
@@ -57,6 +58,8 @@ mkdir -p $BUILDDIR/obj
 if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_SPILINK; then
     exit 1
 fi
+cp $BUILDDIR/ksoloti_spilink.bin build
+
 
 echo "Compiling firmware... $1 FW_USBAUDIO"
 export BUILDDIR=build/usbaudio
@@ -69,3 +72,4 @@ mkdir -p $BUILDDIR/obj
 if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_USBAUDIO; then
     exit 1
 fi
+cp $BUILDDIR/ksoloti_usbaudio.bin build

@@ -393,6 +393,14 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                         tsuf += "SPILink";
                     }
 
+                    if (prefs.getFirmwareMode().contains("USBAudio")) {
+                        if (tsuf.length() > 0) {
+                            tsuf += ", ";
+                        }
+                        tsuf += "USBAudio";
+                    }
+
+
                     if (tsuf.length() > 0) {
                         MainFrame.this.setTitle(MainFrame.this.getTitle() + " (" + tsuf + ")");
                     }
@@ -404,6 +412,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                     }
                     if (prefs.getFirmwareMode().contains("SPILink")) {
                         LOGGER.log(Level.WARNING, ">>> SPILink-enabled firmware <<<\nPins PB3, PB4, PD5, PD6 are occupied by SPILink communication in this firmware mode!\n");
+                    }
+                    if (prefs.getFirmwareMode().contains("USBAudio")) {
+                        LOGGER.log(Level.WARNING, ">>> USBAudio-enabled firmware <<<\n");
                     }
 
                     updateLinkFirmwareID();
@@ -1168,6 +1179,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         if (prefs.getFirmwareMode().contains("SPILink")) {
             pname += "_spilink";
         }
+        if (prefs.getFirmwareMode().contains("USBAudio")) {
+            pname += "_usbaudio";
+        }
         pname += ".bin";
         flashUsingSDRam(fname, pname);
     }
@@ -1194,6 +1208,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         }
         if (prefs.getFirmwareMode().contains("SPILink")) {
             pname += "_spilink";
+        }
+        if (prefs.getFirmwareMode().contains("USBAudio")) {
+            pname += "_usbaudio";
         }
         pname += ".bin";
         flashUsingSDRam(fname, pname);
@@ -1486,6 +1503,9 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
             }
             if (prefs.getFirmwareMode().contains("SPILink")) {
                 pname += "_spilink";
+            }
+            if (prefs.getFirmwareMode().contains("USBAudio")) {
+                pname += "_usbaudio";
             }
             pname += ".bin";
             flashUsingSDRam(fname, pname);
