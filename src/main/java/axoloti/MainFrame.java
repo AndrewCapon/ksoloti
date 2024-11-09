@@ -718,7 +718,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
 
         getContentPane().add(jScrollPaneLog);
 
-        jPanelProgress.setMaximumSize(new java.awt.Dimension(605, 16));
+        jPanelProgress.setMaximumSize(new java.awt.Dimension(8000, 16));
         jPanelProgress.setLayout(new javax.swing.BoxLayout(jPanelProgress, javax.swing.BoxLayout.LINE_AXIS));
 
         jProgressBar1.setAlignmentX(LEFT_ALIGNMENT);
@@ -1565,7 +1565,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
                 if(usbError) {
                     flags.append(", Error");
                 } else {
-                    flags.append(", Connected");
+                    flags.append(", Streaming");
                     if(usbUnder) {
                         flags.append(", Underruns detected");
                     }

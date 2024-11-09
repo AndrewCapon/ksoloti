@@ -700,7 +700,7 @@ public class PreferencesFrame extends JFrame {
     private void jButtonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         Apply();
         prefs.SavePrefs();
-        // ARCFATAL Testing setVisible(false);
+        setVisible(false);
     }
 
     private void jComboBoxDialMouseBehaviourActionPerformed(java.awt.event.ActionEvent evt) {
