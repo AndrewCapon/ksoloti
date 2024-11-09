@@ -594,11 +594,10 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         jButtonClear = new javax.swing.JButton();
         jToggleButtonConnect = new javax.swing.JToggleButton();
         jLabelCPUID = new javax.swing.JLabel();
-        jLabelFlags = new javax.swing.JLabel();
         jLabelFirmwareID = new javax.swing.JLabel();
         jLabelVoltages = new javax.swing.JLabel();
         jLabelPatch = new javax.swing.JLabel();
-        jLabelSDCardPresent = new javax.swing.JLabel();
+        jLabelSDConnectionsInfo = new javax.swing.JLabel();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         jScrollPaneLog = new ScrollPaneComponent();
         jTextPaneLog = new javax.swing.JTextPane();
@@ -698,11 +697,8 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         jLabelVoltages.putClientProperty(FlatClientProperties.STYLE, "disabledForeground:#FF0000"); /* "disabledForeground" color here means voltage warning, red */
         jPanelColumn3.add(jLabelVoltages);
 
-        jLabelSDCardPresent.setText("No SD card");
-        jPanelColumn3.add(jLabelSDCardPresent);
-
-        jLabelFlags.setText("Flags");
-        jPanelColumn3.add(jLabelFlags);
+        jLabelSDConnectionsInfo.setText("No SD card");
+        jPanelColumn3.add(jLabelSDConnectionsInfo);
 
         jLabelPatch.setText("Patch");
         jPanelColumn3.add(jLabelPatch);
@@ -1260,12 +1256,11 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
     private javax.swing.JPopupMenu.Separator jDevSeparator;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelCPUID;
-    private javax.swing.JLabel jLabelFlags;
     private javax.swing.JLabel jLabelFirmwareID;
     private javax.swing.JLabel jLabelIcon;
     private javax.swing.JLabel jLabelPatch;
     private javax.swing.JLabel jLabelProgress;
-    private javax.swing.JLabel jLabelSDCardPresent;
+    private javax.swing.JLabel jLabelSDConnectionsInfo;
     private javax.swing.JLabel jLabelVoltages;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuBoard;
@@ -1293,6 +1288,8 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
     private ScrollPaneComponent jScrollPaneLog;
     private javax.swing.JTextPane jTextPaneLog;
     private axoloti.menus.WindowMenu windowMenu1;
+    private int connectionFlags = 0;
+    private boolean sdCardConnected = false;
 
     public void SetProgressValue(int i) {
         jProgressBar1.setValue(i);
@@ -1338,7 +1335,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
             v5000c = 0;
             vdd00c = 0;
             patchIndex = -4;
-            jLabelSDCardPresent.setText(" ");
+            jLabelSDConnectionsInfo.setText(" ");
         }
     }
 
@@ -1536,20 +1533,7 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         bGrabFocusOnSevereErrors = b;
     }
 
-    @Override
-    public void ShowSDCardMounted() {
-        jLabelSDCardPresent.setText("SD card connected");
-        jMenuItemMount.setEnabled(true);
-    }
-
-    @Override
-    public void ShowSDCardUnmounted() {
-        jLabelSDCardPresent.setText("No SD card");
-        jMenuItemMount.setEnabled(false);
-    }
-
-    @Override
-    public void ShowConnectionFlags(int connectionFlags) {
+    private void ShowSDConnectionsInfo() {
         //boolean dspOverload = 0 != (connectionFlags & 1);
         boolean usbBuild    = 0 != (connectionFlags & 2);
         boolean usbActive   = 0 != (connectionFlags & 4);
@@ -1557,28 +1541,61 @@ public final class MainFrame extends javax.swing.JFrame implements ActionListene
         boolean usbOver     = 0 != (connectionFlags & 16);
         boolean usbError    = 0 != (connectionFlags & 32);
 
-        StringBuilder flags = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
+        // first firmware type
         if(usbBuild) {
-            flags.append("USB Audio Firmware");
+            sb.append("USB Audio Firmware: ");
+        } else {
+            sb.append("Normal Firmware: ");
+        }
+
+        // Then sdcard
+        if(sdCardConnected) {
+            sb.append("SD card connected");
+        } else {
+            sb.append("No SD card");
+        }
+
+        // Now any USB Info
+        if(usbBuild) {
             if(usbActive) {
                 if(usbError) {
-                    flags.append(", Error");
+                    sb.append(", Audio Error");
                 } else {
-                    flags.append(", Connected");
+                    sb.append(", Audio Connected");
                     if(usbUnder) {
-                        flags.append(", Underruns detected");
+                        sb.append(", Audio Underruns detected");
                     }
                     if(usbOver) {
-                        flags.append(", Overruns detected");
+                        sb.append(", Audio Overruns detected");
                     }
                 }
             }
-        } else {
-            flags.append("Normal Firmware");
         }
 
-        jLabelFlags.setText(flags.toString());
+        jLabelSDConnectionsInfo.setText(sb.toString());
+
+    }
+
+    @Override
+    public void ShowSDCardMounted() {
+        jMenuItemMount.setEnabled(true);
+        sdCardConnected = true;
+        ShowSDConnectionsInfo();
+    }
+
+    @Override
+    public void ShowSDCardUnmounted() {
+        jMenuItemMount.setEnabled(false);
+        sdCardConnected = false;
+        ShowSDConnectionsInfo();
+    }
+
+    @Override
+    public void ShowConnectionFlags(int newConnectionFlags) {
+        connectionFlags = newConnectionFlags;
+        ShowSDConnectionsInfo();
     }
 
     private ArrayList<UnitNameListener> uncmls = new ArrayList<UnitNameListener>();

@@ -1,6 +1,6 @@
 #pragma once
 
-#define ANALYSE_ENABLE 0
+#define ANALYSE_ENABLE 1
 
 #if ANALYSE_ENABLE
 
