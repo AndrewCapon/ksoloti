@@ -47,18 +47,25 @@ if ! make -j16 BOARDDEF=$1; then
 fi
 cp $BUILDDIR/ksoloti.bin build
 
+echo "Compiling firmware... $1"
+export BUILDDIR=build/normal
+mkdir -p .dep
+mkdir -p $BUILDDIR/lst
+mkdir -p $BUILDDIR/obj
+if ! make -j16 BOARDDEF=$1; then
+    exit 1
+fi
+cp $BUILDDIR/ksoloti.* build
+
 echo "Compiling firmware... $1 FW_SPILINK"
 export BUILDDIR=build/spilink
 mkdir -p .dep
 mkdir -p $BUILDDIR/lst
 mkdir -p $BUILDDIR/obj
-# rm -f .dep/*
-# rm -f build/lst/*
-# rm -f build/obj/*
 if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_SPILINK; then
     exit 1
 fi
-cp $BUILDDIR/ksoloti_spilink.bin build
+cp $BUILDDIR/ksoloti_spilink.* build
 
 
 echo "Compiling firmware... $1 FW_USBAUDIO"
@@ -66,10 +73,7 @@ export BUILDDIR=build/usbaudio
 mkdir -p .dep
 mkdir -p $BUILDDIR/lst
 mkdir -p $BUILDDIR/obj
-# rm -f .dep/*
-# rm -f build/lst/*
-# rm -f build/obj/*
 if ! make -j16 BOARDDEF=$1 FWOPTIONDEF=FW_USBAUDIO; then
     exit 1
 fi
-cp $BUILDDIR/ksoloti_usbaudio.bin build
+cp $BUILDDIR/ksoloti_usbaudio.* build
