@@ -99,6 +99,8 @@ int main(void)
     watchdog_feed();
     halInit();
 
+    chprintf((BaseSequentialStream * )&SD2,"Flasher running \r\n");
+
     /* Float USB inputs, hope the host notices detach... */
     palSetPadMode(GPIOA, 11, PAL_MODE_INPUT);
     palSetPadMode(GPIOA, 12, PAL_MODE_INPUT);

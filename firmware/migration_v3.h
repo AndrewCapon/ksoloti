@@ -36,6 +36,10 @@
 #define chThdShouldTerminate 	chThdShouldTerminateX
 #define chRegGetThreadName chRegGetThreadNameX
 
+#define PACK_STRUCT_BEGIN
+#define PACK_STRUCT_STRUCT __attribute__((packed))
+#define PACK_STRUCT_END
+
 // V18 here down
 
 // #define CH_USE_REGISTRY CH_CFG_USE_REGISTRY

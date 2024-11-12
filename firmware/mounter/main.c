@@ -224,7 +224,10 @@ static const USBMassStorageConfig msdConfig = {
 
 int main(void) {
     /* system & hardware initialization */
+
     halInit();
+
+    chprintf((BaseSequentialStream * )&SD2,"Mounter running \r\n");
 
     /* float usb inputs, hope the host notices detach... */
     palSetPadMode(GPIOA, 11, PAL_MODE_INPUT);
