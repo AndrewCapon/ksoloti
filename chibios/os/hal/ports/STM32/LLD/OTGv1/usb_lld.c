@@ -1323,7 +1323,7 @@ void usb_lld_clear_in(USBDriver *usbp, usbep_t ep) {
 }
 
 #if USE_EXTERNAL_USB_FIFO_PUMP
-void usb_lld_use_external_pummp(bool use)
+void usb_lld_use_external_pump(bool use)
 {
   use_external_pump = use;
 }

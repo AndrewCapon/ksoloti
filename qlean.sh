@@ -1,14 +1,7 @@
 #!/bin/bash
 rm -f ./firmware/.dep/*.*
-rm -f ./firmware/build/normal/lst/*.*
-rm -f ./firmware/build/normal/obj/*.*
-rm -f ./firmware/build/spilink/lst/*.*
-rm -f ./firmware/build/spilink/obj/*.*
-rm -f ./firmware/build/usbaudio/lst/*.*
-rm -f ./firmware/build/usbaudio/obj/*.*
 rm -f ./firmware/flasher/.dep/*.*
-rm -f ./firmware/flasher/flasher_build/lst/*.*
-rm -f ./firmware/flasher/flasher_build/obj/*.*
 rm -f ./firmware/mounter/.dep/*.*
-rm -f ./firmware/mounter/mounter_build/lst/*.*
-rm -f ./firmware/mounter/mounter_build/obj/*.*
+rm -f -r ./firmware/build
+rm -r -f ./firmware/flasher/flasher_build 
+rm -r -f ./firmware/mounter/mounter_build 

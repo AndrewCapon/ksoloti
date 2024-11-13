@@ -41,7 +41,6 @@ extern void aduDataExchange (int32_t *in, int32_t *out);
 
 #if USE_EXTERNAL_USB_FIFO_PUMP
 extern void usb_lld_external_pump(void);
-void usb_lld_use_external_pummp(bool use);
 #endif 
 
 #define STACKSPACE_MARGIN 32
@@ -101,7 +100,7 @@ static void SetPatchStatus(patchStatus_t status)
             chThdSetPriority(PATCH_DSP_PRIORITY);
 #if USE_EXTERNAL_USB_FIFO_PUMP
             // Switch to external fifo pump
-            usb_lld_use_external_pummp(true);
+            usb_lld_use_external_pump(true);
 #endif
         }
         else
@@ -113,7 +112,7 @@ static void SetPatchStatus(patchStatus_t status)
             if(patchStatus == RUNNING)
             {
                 // switch to fifo pump thread.
-                usb_lld_use_external_pummp(false);
+                usb_lld_use_external_pump(false);
             }
 #endif
         }

@@ -282,19 +282,6 @@
 #define DSP_USB_AUDIO_STREAMING_COST        65
 #define DSP_LIMIT200                        200
 
-// #if USE_NEW_CPU_PERCENTAGE
-//   #if FW_USBAUDIO
-//     #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST - DSP_USB_AUDIO_FIRMWARECOST)   
-//     #define DSP_LIMIT200                    200
-//   #else
-//     #define DSP_TIMESLICE                   (DSP_CODEC_TIMESLICE - DSP_UI_MIDI_COST)   
-//     #define DSP_LIMIT200                    200
-//   #endif
-// #else
-//   #define DSP_TIMESLICE                     DSP_CODEC_TIMESLICE
-//   #define DSP_LIMIT200                      194
-// #endif
-
 #if FW_USBAUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
@@ -317,8 +304,6 @@
   #define UI_USB_PRIO                         HIGHPRIO-2
 #endif
 
-// pump = 86
-// thread = 86-88
 /*
  * SDC settings
  */
@@ -511,7 +496,7 @@
 #define STM32_SPI_SPI3_DMA_PRIORITY         3
 #define STM32_SPI_SPI3_IRQ_PRIORITY         3
 
-#define STM32_SPI_DMA_ERROR_HOOK(spip)      chSysHalt()
+#define STM32_SPI_DMA_ERROR_HOOK(spip)      chSysHalt("SPI_DMA_ERROR")
 
 /*
  * UART driver system settings.
@@ -557,17 +542,33 @@
 #define BOARD_OTG_NOVBUSSENS
 #define USE_INT_EP_MIDI                     0
 #define USE_INT_EP_BULK                     0
-#define USE_NEW_CPU_PERCENTAGE              1
+
+#define DSP_CODEC_TIMESLICE                 3333
+#define DSP_UI_MIDI_COST                    100
+#define DSP_USB_AUDIO_FIRMWARE_COST         5
+#define DSP_USB_AUDIO_STREAMING_COST        65
+#define DSP_LIMIT200                        200
 
 #if FW_USBAUDIO
+  #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
+  #define PATCH_NORMAL_PRIORITY               NORMALPRIO
+  #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
-  #define USE_BLOCKED_BULK_TX                 1
-  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
-  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
-#else
-  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO-2
   #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
+  #define MIDI_USB_PRIO                       HIGHPRIO-2
+  #define UI_USB_PRIO                         HIGHPRIO-2
+#else
+  #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
+  #define PATCH_NORMAL_PRIORITY               NORMALPRIO
+  #define USE_EXTERNAL_USB_FIFO_PUMP          1
+  #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
+  #define USE_BLOCKED_BULK_TX                 0
+  #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
+  #define MIDI_USB_PRIO                       HIGHPRIO-2
+  #define UI_USB_PRIO                         HIGHPRIO-2
 #endif
 
 /*
