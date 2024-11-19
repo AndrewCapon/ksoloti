@@ -6,6 +6,18 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Debug Patcher!",
+            "request": "launch",
+            "mainClass": "axoloti.Axoloti",
+        },
+        {
+            "type": "java",
+            "name": "Debug Patcher!",
+            "request": "launch",
+            "mainClass": "axoloti.Axoloti",
+        },
+        {
+            "type": "java",
             "name": "Launch Java Program",
             "request": "launch",
             "mainClass": "axoloti.Axoloti"

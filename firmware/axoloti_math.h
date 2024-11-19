@@ -83,6 +83,21 @@ __attribute__((always_inline)) __STATIC_INLINE int32_t ___SMMLS (int32_t op1, in
     return result;
 }
 
+
+__attribute__((always_inline)) __STATIC_INLINE float ___VMULF(float op1, float op2){
+    float result;
+    __ASM volatile ("vmul.f32 %0, %1, %2" : "=w" (result): "w" (op1), "w" (op2));
+    return result;
+}
+
+
+__attribute__((always_inline)) __STATIC_INLINE float ___VDIVF(float op1, float op2){
+    float result;
+    __ASM volatile ("vdiv.f32 %0, %1, %2" : "=w" (result): "w" (op1), "w" (op2));
+    return result;
+}
+
+
 __attribute__((always_inline)) __STATIC_INLINE float _VSQRTF(float op1){
     float result;
     __ASM volatile ("vsqrt.f32 %0, %1" : "=w" (result): "w" (op1));
@@ -156,14 +171,17 @@ __attribute__((always_inline)) __STATIC_INLINE int32_t float_to_q27(float fop1) 
 __attribute__((always_inline)) __STATIC_INLINE int32_t ConvertIntToFrac(int i) {
     return i << 21;
 }
+#define int_to_frac ConvertIntToFrac
 
 __attribute__((always_inline)) __STATIC_INLINE int32_t ConvertFracToInt(int i) {
     return i >> 21;
 }
+#define frac_to_int ConvertFracToInt
 
 __attribute__((always_inline)) __STATIC_INLINE int32_t ConvertFloatToFrac(float f) {
     return (int32_t) (f * (1 << 21) );
 }
+#define float_to_frac ConvertFloatToFrac
 
 __attribute__((always_inline)) __INLINE int32_t rand_s32(void) {
     // This function differs from the standard C rand()definition, standard C
@@ -173,7 +191,8 @@ __attribute__((always_inline)) __INLINE int32_t rand_s32(void) {
     // but rather than waiting for a new true random number,
     // we multiply/add the seed with the latest hardware-generated number.
     uint32_t randSeed = 22222;
-    return randSeed = (randSeed * 196314165) + RNG->DR;
+    return ___SMMLA(randSeed, 196314165, RNG->DR);
+    // return randSeed = (randSeed * 196314165) + RNG->DR;
 }
 
 /* If RAND_MAX was perviously defined, satisfy compiler by undefining it */
@@ -182,7 +201,7 @@ __attribute__((always_inline)) __INLINE int32_t rand_s32(void) {
 #endif
 #define RAND_MAX INT32_MAX
 
-/* Satisfy compiler by undefining standard C rand()and replacing it with below, bipolar version */
+/* Satisfy compiler by undefining standard C rand() and replacing it with below, bipolar version */
 #ifdef rand
 #undef rand
 #endif

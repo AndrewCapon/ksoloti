@@ -231,7 +231,7 @@ public class Preferences {
             Theme = "FlatLaf Light";
         }
         if (codeSyntaxTheme == null) {
-            codeSyntaxTheme = "monokai";
+            codeSyntaxTheme = "monokai-kso";
         }
         if (libraries == null) {
             libraries = new ArrayList<AxolotiLibrary>();
