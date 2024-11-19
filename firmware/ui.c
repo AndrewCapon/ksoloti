@@ -29,7 +29,7 @@
 #include "axoloti_board.h"
 #include "ff.h"
 #include <string.h>
-#include "Analyse.h"
+#include "analyse.h"
 
 // Btn_Nav_States_struct Btn_Nav_CurStates;
 // Btn_Nav_States_struct Btn_Nav_PrevStates;

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export PATH=${axoloti_runtime}/platform_osx/bin:$PATH
+export PATH=${axoloti_runtime}/platform_win/bin:$PATH
 
 cd "${axoloti_firmware}"
 make BOARDDEF=$1 -f Makefile.patch.mk clean
