@@ -46,6 +46,11 @@ DEFS = \
     -DTHUMB_PRESENT \
     -D__FPU_PRESENT 
 
+ifneq ($(FWOPTIONDEF),)
+  DEFS := $(DEFS) -D$(FWOPTIONDEF)
+endif
+
+
 ELFNAME=
 ifeq ($(BOARDDEF),BOARD_KSOLOTI_CORE)
   RAMLINKOPT = -Tramlink_ksoloti.ld
