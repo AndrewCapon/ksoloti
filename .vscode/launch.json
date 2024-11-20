@@ -11,18 +11,6 @@
             "mainClass": "axoloti.Axoloti",
         },
         {
-            "type": "java",
-            "name": "Debug Patcher!",
-            "request": "launch",
-            "mainClass": "axoloti.Axoloti",
-        },
-        {
-            "type": "java",
-            "name": "Launch Java Program",
-            "request": "launch",
-            "mainClass": "axoloti.Axoloti"
-        },
-        {
             "name": "Testbed launch",
             "cwd": "${workspaceRoot}",
             "executable": "./firmware/build/ksoloti.elf",

@@ -103,7 +103,7 @@ case "$platform" in
         # sh ./qlean.sh
 
         # compile board mode and firmware options
-        sh ./platform_win/compile_firmware.sh BOARD_AXOLOTI_CORE 2>&1 | tee firmware.logB
+        sh ./platform_win/compile_firmware.sh BOARD_AXOLOTI_CORE 2>&1 | tee firmware.log
         # create .lst files
         ./platform_win/bin/arm-none-eabi-objdump.exe --source-comment --demangle --disassemble ./firmware/flasher/flasher_build/axoloti_flasher/axoloti_flasher.elf > ./firmware/flasher/flasher_build/axoloti_flasher.lst
         ./platform_win/bin/arm-none-eabi-objdump.exe --source-comment --demangle --disassemble ./firmware/mounter/mounter_build/axoloti_mounter/axoloti_mounter.elf > ./firmware/mounter/mounter_build/axoloti_mounter.lst 
