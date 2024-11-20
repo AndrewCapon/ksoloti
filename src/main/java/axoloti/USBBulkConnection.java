@@ -74,10 +74,10 @@ public class USBBulkConnection extends Connection {
     private DeviceHandle handle;
     private final short bulkVID = (short) 0x16C0;
     private final short bulkPIDAxoloti = (short) 0x0442;
+    private final short bulkPIDAxolotiUsbAudio = (short) 0x0447;
     private final short bulkPIDKsoloti = (short) 0x0444;
-    private final int interfaceNumber = 2; 
-	private final int interfaceNumberUsbAudio = 4;
-    private int usingInterfaceNumber;
+    private final short bulkPIDKsolotiUsbAudio = (short) 0x0446;
+    private int useBulkInterfaceNumber = 2;
 
 	protected USBBulkConnection() {
         this.sync = new Sync();
@@ -151,7 +151,7 @@ public class USBBulkConnection extends Connection {
                 }
             }
             
-            int result = LibUsb.releaseInterface(handle, usingInterfaceNumber);
+            int result = LibUsb.releaseInterface(handle, useBulkInterfaceNumber);
             if (result != LibUsb.SUCCESS) {
                 throw new LibUsbException("Unable to release interface", result);
             }
@@ -182,8 +182,14 @@ public class USBBulkConnection extends Connection {
                 }
 
                 if (prefs.getFirmwareMode().contains("Ksoloti Core")) {
-                    if (descriptor.idVendor() == bulkVID && descriptor.idProduct() == bulkPIDKsoloti) {
-                        LOGGER.log(Level.INFO, "Ksoloti Core found.");
+                    if (descriptor.idVendor() == bulkVID && ((descriptor.idProduct() == bulkPIDKsoloti) || (descriptor.idProduct() == bulkPIDKsolotiUsbAudio))) {
+                        if(descriptor.idProduct() == bulkPIDKsoloti) {
+                            useBulkInterfaceNumber = 2;
+                            LOGGER.log(Level.INFO, "Ksloti Core found.");
+                        } else {
+                            useBulkInterfaceNumber = 4;
+                            LOGGER.log(Level.INFO, "Ksoloti Core USB Audio found.");
+                        }
                         DeviceHandle h = new DeviceHandle();
                         result = LibUsb.open(d, h);
                         if (result < 0) {
@@ -202,10 +208,16 @@ public class USBBulkConnection extends Connection {
                             LibUsb.close(h);
                         }
                     }
-                }
+                    }
                 else if (prefs.getFirmwareMode().contains("Axoloti Core")) {
-                    if (descriptor.idVendor() == bulkVID && descriptor.idProduct() == bulkPIDAxoloti) {
-                        LOGGER.log(Level.INFO, "Axoloti Core found.");
+                    if (descriptor.idVendor() == bulkVID && ((descriptor.idProduct() == bulkPIDAxoloti) || (descriptor.idProduct() == bulkPIDAxolotiUsbAudio))) {
+                        if(descriptor.idProduct() == bulkPIDAxoloti) {
+                            useBulkInterfaceNumber = 2;
+                            LOGGER.log(Level.INFO, "Axoloti Core found.");
+                        } else {
+                            useBulkInterfaceNumber = 4;
+                            LOGGER.log(Level.INFO, "Axoloti Core USB Audio found.");
+                        }
                         DeviceHandle h = new DeviceHandle();
                         result = LibUsb.open(d, h);
                         if (result < 0) {
@@ -303,16 +315,10 @@ public class USBBulkConnection extends Connection {
         try {
             // devicePath = Usb.DeviceToPath(device);
 
-            int result = LibUsb.claimInterface(handle, interfaceNumberUsbAudio);
+            int result = LibUsb.claimInterface(handle, useBulkInterfaceNumber);
             if (result != LibUsb.SUCCESS) {
-                result = LibUsb.claimInterface(handle, interfaceNumber);
-                if (result != LibUsb.SUCCESS) {
-                    throw new LibUsbException("Unable to claim interface", result);
-                }
-                usingInterfaceNumber = interfaceNumber;
+                throw new LibUsbException("Unable to claim interface", result);
             }
-            else
-                usingInterfaceNumber = interfaceNumberUsbAudio;
 
             GoIdleState();
             // LOGGER.log(Level.INFO, "Creating rx and tx thread...");

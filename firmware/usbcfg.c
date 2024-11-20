@@ -41,9 +41,17 @@ static const uint8_t vcom_device_descriptor_data[18] = {
                          0x40,          /* bMaxPacketSize.                  */
                          0x16C0,        /* idVendor (Voti).                 */
 #if defined(BOARD_KSOLOTI_CORE)
-                         0x0444,        /* idProduct.(Axoloti would be 0x0442)*/
+  #if FW_USBAUDIO
+                         0x0446,        /* idProduct.(Axoloti would be 0x0442/0x0447)*/
+  #else
+                         0x0444,        
+  #endif
 #elif defined(BOARD_AXOLOTI_CORE)
-                         0x0442,        /* idProduct.(Ksoloti would be 0x0444)*/
+  #if FW_USBAUDIO
+                         0x0447,        /* idProduct.(Ksoloti would be 0x0444/0x0446)*/
+  #else
+                         0x0442,        
+  #endif
 #endif
                          0x0200,        /* bcdDevice.                       */
                          1,             /* iManufacturer.                   */
