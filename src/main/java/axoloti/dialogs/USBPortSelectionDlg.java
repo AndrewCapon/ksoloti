@@ -98,11 +98,11 @@ public class USBPortSelectionDlg extends javax.swing.JDialog {
                 int r = jTable1.getSelectedRow();
                 if (r >= 0) {
                     String devName = (String) model.getValueAt(r, 1);
-                    if (prefs.getFirmwareMode().contains("Ksoloti Core") && devName.equals(sKsolotiCore)) {
+                    if (prefs.getFirmwareMode().contains("Ksoloti Core") && (devName.equals(sKsolotiCore) || devName.equals(sKsolotiCoreUsbAudio))) {
                         jButtonOK.setEnabled(true);
                         cpuid = (String) model.getValueAt(r, 3);
                     }
-                    else if (prefs.getFirmwareMode().contains("Axoloti Core") && devName.equals(sAxolotiCore)) {
+                    else if (prefs.getFirmwareMode().contains("Axoloti Core") && (devName.equals(sAxolotiCore) || devName.equals(sAxolotiCoreUsbAudio))) {
                         jButtonOK.setEnabled(true);
                         cpuid = (String) model.getValueAt(r, 3);
                     } else {
