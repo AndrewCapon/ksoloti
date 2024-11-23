@@ -541,7 +541,7 @@ void __attribute__((optimize("O0"))) aduResetBuffers(void)
 
 void __attribute__((optimize("O0"))) aduEnable(USBDriver *usbp)
 {
-  if(aduState.isInputActive && aduState.isOutputActive)
+  if(aduIsUsbInUse())
   {
     aduInitiateReceiveI(usbp);
     aduInitiateTransmitI(usbp);
@@ -561,10 +561,6 @@ void __attribute__((optimize("O0"))) aduEnableInput(USBDriver *usbp, bool bEnabl
     chSysLockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
     aduEnable(usbp);
-    // if(bEnable)
-    //   aduInitiateTransmitI(usbp);
-    // else
-    //   aduResetBuffers();
     chSysUnlockFromIsr();
   }
 }
@@ -578,11 +574,6 @@ void __attribute__((optimize("O0"))) aduEnableOutput(USBDriver *usbp, bool bEnab
     chSysLockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
     aduEnable(usbp);
-    // if(bEnable)
-    //   aduInitiateReceiveI(usbp);
-    // else
-    //   aduResetBuffers();
-
     chSysUnlockFromIsr();
   }
 }
@@ -727,7 +718,7 @@ static FORCE_INLINE void aduMoveDataFromRX(int32_t *pData, uint_fast16_t uLen)
 
 void aduDataExchange (int32_t *in, int32_t *out)
 {
-  if(aduState.isOutputActive)
+  if(aduIsUsbOutputEnabled())
   {
     Analyse(GPIOB, 7, 1);
 
@@ -1168,7 +1159,7 @@ void aduDataTransmitted(USBDriver *usbp, usbep_t ep)
   aduAddTransferLog(blEndTransmit, uTransmittedCount);
 #endif
 
-  if(aduState.isOutputActive)
+  if(aduIsUsbOutputEnabled())
   {
     chSysLockFromIsr();
     aduInitiateTransmitI(usbp);
@@ -1240,7 +1231,7 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 
   AddOverunLog(ltAfterRXAdjust__);
 
-  if(aduState.isOutputActive)
+  if(aduIsUsbOutputEnabled())
     aduInitiateReceiveI(usbp);
   else
     aduResetBuffers();
@@ -1250,8 +1241,23 @@ void aduDataReceived(USBDriver *usbp, usbep_t ep)
 
 FORCE_INLINE bool aduIsUsbInUse(void)
 {
+#if DISREGARD_ACTIVE_PAIRING
+  return (aduState.isInputActive || aduState.isOutputActive);
+#else
   return (aduState.isInputActive && aduState.isOutputActive);
+#endif
 }
+
+FORCE_INLINE bool aduIsUsbOutputEnabled(void)
+{
+#if DISREGARD_ACTIVE_PAIRING
+  return (aduState.isInputActive || aduState.isOutputActive);
+#else
+  return aduState.isOutputActive);
+#endif
+}
+
+
 #endif
 
 

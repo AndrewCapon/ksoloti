@@ -700,6 +700,8 @@ typedef struct __attribute__ ((packed))
 
 
 
+// Bodge for Linux for testing
+#define DISREGARD_ACTIVE_PAIRING    1
 
 #define USB_DESC_DEVICE_LEN         9
 #define USB_DESC_CONFIGURATION_LEN  8
@@ -1122,6 +1124,7 @@ extern "C" {
   bool   aduSwitchInterface(USBDriver *usbp, uint8_t iface, uint8_t entity, uint8_t req, uint16_t wValue, uint16_t length);
 
   bool   aduIsUsbInUse(void);
+  bool   aduIsUsbOutputEnabled(void);
 #ifdef __cplusplus
 }
 
