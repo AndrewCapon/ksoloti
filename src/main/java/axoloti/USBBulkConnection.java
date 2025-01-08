@@ -996,6 +996,7 @@ public class USBBulkConnection extends Connection {
                 if (result != LibUsb.SUCCESS) {
                     // LOGGER.log(Level.INFO, "Receive: " + result);
                 }
+                else
                 {
                     int sz = transfered.get(0);
                     if (sz != 0) {

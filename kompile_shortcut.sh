@@ -32,14 +32,14 @@ case "$platform" in
         #rm -f ./firmware/build/*.*
         #sh ./qlean.sh
 
-        # compile board mode and firmware options
-        sh ./platform_osx/compile_firmware.sh BOARD_AXOLOTI_CORE 2>&1 | tee firmware.log
-        # # create .lst files
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/flasher/flasher_build/axoloti_flasher/axoloti_flasher.elf > ./firmware/flasher/flasher_build/axoloti_flasher.lst
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/mounter/mounter_build/axoloti_mounter/axoloti_mounter.elf > ./firmware/mounter/mounter_build/axoloti_mounter.lst 
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/normal/axoloti.elf > ./firmware/build/axoloti.lst
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/spilink/axoloti_spilink.elf > ./firmware/build/axoloti_spilink.lst
-        ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/usbaudio/axoloti_usbaudio.elf > ./firmware/build/axoloti_usbaudio.lst
+        # # compile board mode and firmware options
+        # sh ./platform_osx/compile_firmware.sh BOARD_AXOLOTI_CORE 2>&1 | tee firmware.log
+        # # # create .lst files
+        # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/flasher/flasher_build/axoloti_flasher/axoloti_flasher.elf > ./firmware/flasher/flasher_build/axoloti_flasher.lst
+        # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/mounter/mounter_build/axoloti_mounter/axoloti_mounter.elf > ./firmware/mounter/mounter_build/axoloti_mounter.lst 
+        # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/normal/axoloti.elf > ./firmware/build/axoloti.lst
+        # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/spilink/axoloti_spilink.elf > ./firmware/build/axoloti_spilink.lst
+        # ./platform_osx/bin/arm-none-eabi-objdump --source-comment --demangle --disassemble ./firmware/build/axoloti/usbaudio/axoloti_usbaudio.elf > ./firmware/build/axoloti_usbaudio.lst
 
         # compile board mode and firmware options
         sh ./platform_osx/compile_firmware.sh BOARD_KSOLOTI_CORE 2>&1 | tee -a firmware.log

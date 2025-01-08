@@ -172,6 +172,7 @@ int main(void) {
 
     MY_USBH_Init(); 
 
+
     if (!exception_check()) {
         /* Only try mounting SD and booting a patch when no exception is reported */
 
@@ -205,6 +206,29 @@ int main(void) {
         uint32_t  evt = chEvtGetAndClearFlags(&audioEventListener);
 
         if(evt & AUDIO_EVENT_USB_CONGIGURED)
+            LogTextMessage("Audio USB Configured.\r\n");
+        else if(evt & AUDIO_EVENT_USB_SUSPEND)
+            LogTextMessage("Audio USB Suspend\r\n");
+        else if(evt & AUDIO_EVENT_USB_WAKEUP)
+            LogTextMessage("Audio USB Wakeup.\r\n");
+        else if(evt & AUDIO_EVENT_USB_STALLED)
+            LogTextMessage("Audio USB Stalled.\r\n");
+        else if(evt & AUDIO_EVENT_USB_RESET)
+            LogTextMessage("Audio USB Reset.\r\n");
+        else if(evt & AUDIO_EVENT_USB_ENABLE)
+            LogTextMessage("Audio USB Enable.\r\n");
+        else if(evt & AUDIO_EVENT_MUTE)
+            LogTextMessage("Audio mute changed.\r\n");
+        else if(evt & AUDIO_EVENT_VOLUME)
+            LogTextMessage("Audio volume changed.\r\n");
+        else if(evt & AUDIO_EVENT_INPUT)
+            LogTextMessage("Audio input state changed = %u\r\n", aduState.isInputActive);
+        else if(evt & AUDIO_EVENT_OUTPUT)
+            LogTextMessage("Audio output state changed = %u\r\n", aduState.isOutputActive);
+        else if(evt & AUDIO_EVENT_FORMAT)
+            LogTextMessage("Audio Format type changed = %u\r\n", aduState.currentSampleRate);
+
+        if(evt & AUDIO_EVENT_USB_CONGIGURED)
             chprintf((BaseSequentialStream * )&SD2,"Audio USB Configured.\r\n");
         else if(evt & AUDIO_EVENT_USB_SUSPEND)
             chprintf((BaseSequentialStream * )&SD2,"Audio USB Suspend\r\n");
@@ -226,6 +250,7 @@ int main(void) {
             chprintf((BaseSequentialStream * )&SD2,"Audio output state changed = %u\r\n", aduState.isOutputActive);
         else if(evt & AUDIO_EVENT_FORMAT)
             chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed = %u\r\n", aduState.currentSampleRate);
+
 
         connectionFlags.usbActive = aduIsUsbInUse();
         chprintf((BaseSequentialStream * )&SD2,"connectionFlags.usbActive = %u\r\n", connectionFlags.usbActive );

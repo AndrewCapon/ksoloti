@@ -1347,8 +1347,9 @@ void usb_lld_external_pump(void)
     return;
   }
   osalSysUnlock();
-  
-  palWritePad(GPIOB, 8, 1);
+#ifdef ANALYSE_ENABLE  
+  Analyse(GPIOB, 8, 1);
+#endif  
   /* Checks if there are TXFIFOs to be filled.*/
   for (ep = 0; ep <= usbp->otgparams->num_endpoints; ep++) {
 
@@ -1382,7 +1383,9 @@ void usb_lld_external_pump(void)
       osalSysUnlock();
     }
   }
-  palWritePad(GPIOB, 8, 0);
+#ifdef ANALYSE_ENABLE  
+  Analyse(GPIOB, 8, 0);
+#endif
 }
 #endif 
 
