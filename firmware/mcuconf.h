@@ -292,6 +292,8 @@
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
+  // USB_AUDIO_CHANNELS must be 2 or 4
+  #define USB_AUDIO_CHANNELS                  2
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
@@ -559,6 +561,8 @@
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
+  // USB_AUDIO_CHANNELS must be 2 or 4
+  #define USB_AUDIO_CHANNELS                  2
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO

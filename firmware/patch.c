@@ -85,9 +85,6 @@ void SetPatchSafety(uint16_t uUIMidiCost, uint8_t uDspLimit200)
 {
     uPatchUIMidiCost = uUIMidiCost;
     uPatchUsbLimit200 = uDspLimit200;
-
-    chprintf((BaseSequentialStream * )&SD2,"Patch Safety: UIMidiCost = %u, DspLimit = %u\r\n", uPatchUIMidiCost, uPatchUsbLimit200);
-
 }
 
 static void SetPatchStatus(patchStatus_t status)
@@ -303,7 +300,6 @@ static int StartPatch1(void) {
 #ifdef DEBUG_PATCH_INT_ON_GPIO
         palSetPad(GPIOA, 2);
 #endif
-        static int logCount = 0;
         /* Codec DSP cycle */
         eventmask_t evt = chEvtWaitOne((eventmask_t)7);
         if (evt == 1) {
@@ -320,14 +316,6 @@ static int StartPatch1(void) {
             watchdog_feed();
 
             if (patchStatus == RUNNING) {
-                logCount++;
-                if(logCount == 1000)
-                {
-                    static int count = 0;
-                    logCount = 0;
-                    LogTextMessage("Log %d", count++);
-                }
-
                 /* Patch running */
 #if FW_USBAUDIO             
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf, inbufUsb, outbufUsb);

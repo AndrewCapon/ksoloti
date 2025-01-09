@@ -338,20 +338,6 @@ bool __attribute__((optimize("O0"))) aduSwitchInterface(USBDriver *usbp, uint8_t
 }
 
 
-/**
- * @brief   Notification of data removed from the input queue.
- */
-static void inotify(GenericQueue *qp) 
-{
-}
-
-/**
- * @brief   Notification of data inserted into the output queue.
- */
-static void onotify(GenericQueue *qp) 
-{
-}
-
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -390,22 +376,18 @@ void __attribute__((optimize("O0"))) aduObjectInit(AudioUSBDriver *adup)
   // frame stuff
   aduResetBuffers();
   
-  // set not muted
-  aduState.mute[0] = 0;
-  aduState.mute[1] = 0;
-  aduState.mute[2] = 0;
+  for(int iC = 0 ; iC < USB_AUDIO_CHANNELS+1; iC++)
+  {
+    // set not muted
+    aduState.mute[iC] = 0;
 
-  // set 0db volume
-  aduState.volume[0] = VOLUME_CTRL_0_DB;
-  aduState.volume[1] = VOLUME_CTRL_0_DB;
-  aduState.volume[2] = VOLUME_CTRL_0_DB;
+    // set 0db volume
+    aduState.volume[iC] = VOLUME_CTRL_0_DB;
+  }
 
   adup->vmt = NULL; // none at the moment
   chEvtInit(&adup->event);
   adup->state = ADU_STOP;
-  
-  chIQInit(&adup->iqueue, adup->ib, AUDIO_USB_BUFFERS_SIZE, inotify, adup);
-  chOQInit(&adup->oqueue, adup->ob, AUDIO_USB_BUFFERS_SIZE, onotify, adup);
 }
 
 /**
@@ -463,8 +445,6 @@ void __attribute__((optimize("O0"))) aduStop(AudioUSBDriver *adup)
 
   /* Queues reset in order to signal the driver stop to the application.*/
   chnAddFlagsI(adup, CHN_DISCONNECTED);
-  chIQResetI(&adup->iqueue);
-  chOQResetI(&adup->oqueue);
   chSchRescheduleS();
 
   chSysUnlock()
@@ -480,10 +460,6 @@ void __attribute__((optimize("O0"))) aduStop(AudioUSBDriver *adup)
  */
 void __attribute__((optimize("O0"))) aduConfigureHookI(AudioUSBDriver *adup) 
 {
-  //USBDriver *usbp = adup->config->usbp;
-
-  chIQResetI(&adup->iqueue);
-  chOQResetI(&adup->oqueue);
   chnAddFlagsI(adup, CHN_CONNECTED);
 }
 
@@ -558,6 +534,10 @@ void __attribute__((optimize("O0"))) aduEnableInput(USBDriver *usbp, bool bEnabl
   if(bEnable != aduState.isInputActive)
   {
     aduState.isInputActive = bEnable;
+
+    if(!aduState.isInputActive)
+      memset(aduTxRingBuffer, 0, sizeof(aduTxRingBuffer));
+
     chSysLockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_INPUT);
     aduEnable(usbp);
@@ -571,6 +551,10 @@ void __attribute__((optimize("O0"))) aduEnableOutput(USBDriver *usbp, bool bEnab
   if(bEnable != aduState.isOutputActive)
   {
     aduState.isOutputActive = bEnable;
+
+    if(!aduState.isOutputActive)
+      memset(aduRxRingBuffer, 0, sizeof(aduRxRingBuffer));
+
     chSysLockFromIsr();
     chEvtBroadcastFlagsI(&ADU1.event, AUDIO_EVENT_OUTPUT);
     aduEnable(usbp);
@@ -724,7 +708,6 @@ void aduDataExchange (int32_t *in, int32_t *out)
 
     uint16_t uLen = 32;
     uint16_t uFeedbackLen = uLen;
-    uint_fast16_t u;
 
     /////////////////////////////////
     // codec -> USB

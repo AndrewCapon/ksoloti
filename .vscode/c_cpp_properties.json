@@ -19,12 +19,13 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "defines": ["HAL_USE_USB=1", "THUMB"],
+            "defines": ["HAL_USE_USB=1", "THUMB", "FW_USBAUDIO=1"],
             "macFrameworkPath": [],
             "cStandard": "c11",
             "cppStandard": "c++11",
             "intelliSenseMode": "macos-gcc-arm",
-            "configurationProvider": "ms-vscode.makefile-tools"        }
+            "configurationProvider": "ms-vscode.makefile-tools"       
+        }
     ],
     "version": 4
 }
