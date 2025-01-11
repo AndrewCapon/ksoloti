@@ -58,18 +58,29 @@ char loadFName[64] = "";
 loadPatchIndex_t loadPatchIndex = UNINITIALIZED;
 static const char* index_fn = "/index.axb";
 
-static int32_t inbuf[32];
+static int32_t  inbuf[32];
 static int32_t* outbuf;
 
 #if FW_USBAUDIO
-static int32_t inbufUsb[32];
-static int32_t outbufUsb[32];
-void usb_clearbuffer(void)
-{
-    uint_fast8_t i; for(i=0; i<32; i++) {
-        outbufUsb[i] = 0;
-    }
-}
+    #if USB_AUDIO_CHANNELS == 2
+        static int32_t inbufUsb[32];
+        static int32_t outbufUsb[32];
+        void usb_clearbuffer(void)
+        {
+            uint_fast8_t i; for(i=0; i<32; i++) {
+                outbufUsb[i] = 0;
+            }
+        }
+    #elif USB_AUDIO_CHANNELS == 4
+        static int32_t inbufUsb[64];
+        static int32_t outbufUsb[64];
+        void usb_clearbuffer(void)
+        {
+            uint_fast8_t i; for(i=0; i<64; i++) {
+                outbufUsb[i] = 0;
+            }
+        }
+    #endif
 #endif
 
 

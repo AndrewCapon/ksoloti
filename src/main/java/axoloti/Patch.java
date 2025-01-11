@@ -1648,6 +1648,10 @@ public class Patch {
         + "#if FW_USBAUDIO\n"
         + I+I+I + "UsbOutputLeft[u] = 0;\n"
         + I+I+I + "UsbOutputRight[u] = 0;\n"
+        + "#if FW_USBAUDIO == 4\n"
+        + I+I+I + "UsbOutput2Left[u] = 0;\n"
+        + I+I+I + "UsbOutput2Right[u] = 0;\n"
+        + "#endif\n"
         + "#endif\n"
         + I+I + "}\n"
         + I + "}\n\n"
@@ -1682,18 +1686,30 @@ public class Patch {
         c += "#endif\n"
            + I + "uint8_t i;\n";
 
+        c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 2\n"
+           + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+           + I+I + "UsbInputLeft[i]  = inbufUsb[i*2]>>4;\n"
+           + I+I + "UsbInputRight[i] = inbufUsb[i*2+1]>>4;\n"
+           + I + "}\n"
+           + "#endif\n\n";
+
+        c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 4\n"
+           + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+           + I+I + "UsbInputLeft[i]   = inbufUsb[i*4]>>4;\n"
+           + I+I + "UsbInputRight[i]  = inbufUsb[i*4+1]>>4;\n"
+           + I+I + "UsbInput2Left[i]  = inbufUsb[i*4+2]>>4;\n"
+           + I+I + "UsbInput2Right[i] = inbufUsb[i*4+3]>>4;\n"
+           + I + "}\n"
+           + "#endif\n\n";
+
         /* audioInputMode and audioOutputMode are modified during
            object init code generation in AxoObjectInstance.java.
            This saves a bit of memory and instructions in the patch. */
         if (audioInputMode == 1) {
-            c += I + "for (i = 0; i < BUFSIZE; i++) {\n"
+        c += I + "for (i = 0; i < BUFSIZE; i++) {\n"
            + I+I + "/* AudioInputMode == A_MONO */\n"
            + I+I + "AudioInputLeft[i] = inbuf[i * 2] >> 4;\n"
            + I+I + "AudioInputRight[i] = AudioInputLeft[i];\n"
-           + "#if FW_USBAUDIO\n"
-           + I+I + "UsbInputLeft[i]  = inbufUsb[i*2]>>4;\n"
-           + I+I + "UsbInputRight[i] = UsbInputLeft[i];\n"
-           + "#endif\n"
            + I + "}\n";
         }
         else if (audioInputMode == 2) {
@@ -1702,10 +1718,6 @@ public class Patch {
            + I+I + "AudioInputLeft[i] = inbuf[i * 2]>>4;\n"
            + I+I + "AudioInputLeft[i] = (AudioInputLeft[i] - (inbuf[i * 2 + 1] >> 4) ) >> 1;\n"
            + I+I + "AudioInputRight[i] = AudioInputLeft[i];\n"
-           + "#if FW_USBAUDIO\n"
-           + I+I + "UsbInputLeft[i] = (UsbInputLeft[i] - (inbufUsb[i*2+1]>>4) ) >> 1;\n"
-           + I+I + "UsbInputRight[i] = UsbInputLeft[i];\n"
-           + "#endif\n"
            + I + "}\n";
         }
         else {
@@ -1713,26 +1725,33 @@ public class Patch {
            + I+I + "/* AudioInputMode == A_STEREO */\n"
            + I+I + "AudioInputLeft[i] = inbuf[i * 2] >> 4;\n"
            + I+I + "AudioInputRight[i] = inbuf[i * 2 + 1] >> 4;\n"
-           + "#if FW_USBAUDIO\n"
-           + I+I + "UsbInputLeft[i] = inbufUsb[i*2]>>4;\n"
-           + I+I + "UsbInputRight[i] = inbufUsb[i*2+1]>>4;\n"
-           + "#endif\n"
            + I + "}\n";
-
         }
 
         c += "\n" + I + "root.dsp();\n\n";
 
         if (settings.getSaturate()) {
+            c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 2\n"
+            + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+            + I+I + "outbufUsb[i*2]   = __SSAT(UsbOutputLeft[i],28)<<4;\n"
+            + I+I + "outbufUsb[i*2+1] = __SSAT(UsbOutputRight[i],28)<<4;\n"
+            + I + "}\n"
+            + "#endif\n\n";
+
+            c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 4\n"
+            + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+            + I+I + "outbufUsb[i*4]   = __SSAT(UsbOutputLeft[i],28)<<4;\n"
+            + I+I + "outbufUsb[i*4+1] = __SSAT(UsbOutputRight[i],28)<<4;\n"
+            + I+I + "outbufUsb[i*4+2] = __SSAT(UsbOutput2Left[i],28)<<4;\n"
+            + I+I + "outbufUsb[i*4+3] = __SSAT(UsbOutput2Right[i],28)<<4;\n"
+            + I + "}\n"
+            + "#endif\n\n";
+
             if (audioOutputMode == 1) {
                 c += I + "for (i = 0; i < BUFSIZE; i++) {\n"
                    + I+I + "/* AudioOutputMode == A_MONO */\n"
                    + I+I + "outbuf[i * 2] = __SSAT(AudioOutputLeft[i], 28) << 4;\n"
                    + I+I + "outbuf[i * 2 + 1] = 0;\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
-                   + I+I + "outbufUsb[i*2+1] = 0;\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
             else if (audioOutputMode == 2) {
@@ -1740,10 +1759,6 @@ public class Patch {
                    + I+I + "/* AudioOutputMode == A_BALANCED */\n"
                    + I+I + "outbuf[i * 2] = __SSAT(AudioOutputLeft[i], 28) << 4;\n"
                    + I+I + "outbuf[i * 2 + 1] = ~outbuf[i * 2];\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
-                   + I+I + "outbufUsb[i*2+1] = ~outbuf[i*2];\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
             else {
@@ -1751,23 +1766,32 @@ public class Patch {
                    + I+I + "/* AudioOutputMode == A_STEREO */\n"
                    + I+I + "outbuf[i * 2] = __SSAT(AudioOutputLeft[i], 28) << 4;\n"
                    + I+I + "outbuf[i * 2 + 1] = __SSAT(AudioOutputRight[i], 28) << 4;\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = __SSAT(UsbOutputLeft[i],28)<<4;\n"
-                   + I+I + "outbufUsb[i*2+1] = __SSAT(UsbOutputRight[i],28)<<4;\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
         }
         else {
+            c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 2\n"
+            + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+            + I+I + "outbufUsb[i*2]   = UsbOutputLeft[i];\n"
+            + I+I + "outbufUsb[i*2+1] = UsbOutputRight[i];\n"
+            + I + "}\n"
+            + "#endif\n\n";
+
+            c += "#if FW_USBAUDIO && USB_AUDIO_CHANNELS == 4\n"
+            + I + "for (i = 0; i < BUFSIZE; i++) {\n"
+            + I+I + "outbufUsb[i*4]   = UsbOutputLeft[i];\n"
+            + I+I + "outbufUsb[i*4+1] = UsbOutputRight[i];\n"
+            + I+I + "outbufUsb[i*4+2] = UsbOutput2Left[i];\n"
+            + I+I + "outbufUsb[i*4+3] = UsbOutput2Right[i];\n"
+            + I + "}\n"
+            + "#endif\n\n";
+
+
             if (audioOutputMode == 1) {
                 c += I + "for (i = 0; i < BUFSIZE; i++) {\n"
                    + I+I + "/* AudioOutputMode == A_MONO, unsaturated */\n"
                    + I+I + "outbuf[i * 2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i * 2 + 1] = 0;\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
-                   + I+I + "outbufUsb[i*2+1] = 0;\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
             else if (audioOutputMode == 2) {
@@ -1775,10 +1799,6 @@ public class Patch {
                    + I+I + "/* AudioOutputMode == A_BALANCED, unsaturated */\n"
                    + I+I + "outbuf[i * 2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i * 2 + 1] = ~outbuf[i * 2];\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
-                   + I+I + "outbufUsb[i*2+1] = ~outbufUsb[i*2];\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
             else {
@@ -1786,10 +1806,6 @@ public class Patch {
                    + I+I + "/* AudioOutputMode == A_STEREO, unsaturated */\n"
                    + I+I + "outbuf[i * 2] = AudioOutputLeft[i];\n"
                    + I+I + "outbuf[i * 2 + 1] = AudioOutputRight[i];\n"
-                   + "#if FW_USBAUDIO\n"
-                   + I+I + "outbufUsb[i*2] = UsbOutputLeft[i];\n"
-                   + I+I + "outbufUsb[i*2+1] = UsbOutputRight[i];\n"
-                   + "#endif\n"
                    + I + "}\n";
             }
         }
@@ -1914,7 +1930,11 @@ public class Patch {
         }
 
         c += "#if FW_USBAUDIO\n";
+        c += "#if USB_AUDIO_CHANNELS==2\n";
         c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight, UsbInputLeft, UsbInputRight, UsbOutputLeft, UsbOutputRight;\n";
+        c += "#elif USB_AUDIO_CHANNELS==4\n";
+        c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight, UsbInputLeft, UsbInputRight, UsbOutputLeft, UsbOutputRight, UsbInput2Left, UsbInput2Right, UsbOutput2Left, UsbOutput2Right;\n";
+        c += "#endif\n";
         c += "#else\n";
         c += "int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight;\n";
         c += "#endif\n\n";

@@ -36,6 +36,8 @@
 
 #define STM32F4xx_MCUCONF
 
+#define DEBUG_SERIAL
+
 #if defined(BOARD_KSOLOTI_CORE)
 /*
  * HAL driver system settings.
@@ -287,19 +289,19 @@
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
-  #define USE_BLOCKED_BULK_TX                 1
+  #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
   // USB_AUDIO_CHANNELS must be 2 or 4
-  #define USB_AUDIO_CHANNELS                  2
+  #define USB_AUDIO_CHANNELS                  4
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
-  #define USE_BLOCKED_BULK_TX                 1
+  #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
@@ -556,19 +558,19 @@
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
-  #define USE_BLOCKED_BULK_TX                 1
+  #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
   // USB_AUDIO_CHANNELS must be 2 or 4
-  #define USB_AUDIO_CHANNELS                  2
+  #define USB_AUDIO_CHANNELS                  4
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
   #define USE_EXTERNAL_USB_FIFO_PUMP          1
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
-  #define USE_BLOCKED_BULK_TX                 1
+  #define USE_BLOCKED_BULK_TX                 0
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
   #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2

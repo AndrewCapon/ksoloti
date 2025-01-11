@@ -633,8 +633,13 @@ static const USBEndpointConfig ep3config = {
   NULL,
   aduDataTransmitted,
   aduDataReceived,
+#if USB_AUDIO_CHANNELS == 2
   192,
   192,
+#elif USB_AUDIO_CHANNELS == 4
+  384,
+  384,
+#endif  
   &ep3instate,
   &ep3outstate,
   1,

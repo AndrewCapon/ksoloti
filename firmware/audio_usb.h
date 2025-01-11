@@ -913,11 +913,19 @@ typedef struct __attribute__ ((packed))
 
 
 
-// samples to try to keep in buffer
-#define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
+#if USB_AUDIO_CHANNELS == 2
+  // samples to try to keep in buffer
+  #define TX_RING_BUFFER_UNDERFLOW_SIZE (96)
 
-// normal ring buffer sample size
-#define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
+  // normal ring buffer sample size
+  #define TX_RING_BUFFER_NORMAL_SIZE    (96*2)
+#elif USB_AUDIO_CHANNELS == 4
+  // samples to try to keep in buffer
+  #define TX_RING_BUFFER_UNDERFLOW_SIZE (192)
+
+  // normal ring buffer sample size
+  #define TX_RING_BUFFER_NORMAL_SIZE    (192*2)
+#endif
 
 // Total allocated size in samples
 #define TX_RING_BUFFER_FULL_SIZE (TX_RING_BUFFER_UNDERFLOW_SIZE + TX_RING_BUFFER_NORMAL_SIZE)
@@ -927,10 +935,10 @@ typedef struct __attribute__ ((packed))
 #define CODEC_METICS_MS (100)
 //#define ADU_TRANSFER_LOG_SIZE 4000
 //#define CHECK_USB_DATA 1
-//#define ADU_OVERRUN_LOG_SIZE 2600
+#define ADU_OVERRUN_LOG_SIZE 2600
 
 #define USE_TRANSFER_SAMPLE_SIZE 2
-#define USE_TRANSFER_CHANNEL_SIZE 2
+#define USE_TRANSFER_CHANNEL_SIZE USB_AUDIO_CHANNELS
 #define USE_TRANSFER_SAMPLES_MS 48
 
 #define USE_TRANSFER_SIZE_SAMPLES (USE_TRANSFER_CHANNEL_SIZE * USE_TRANSFER_SAMPLES_MS)
