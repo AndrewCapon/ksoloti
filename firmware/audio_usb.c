@@ -924,6 +924,10 @@ FORCE_INLINE void aduCodecFrameEnded(void)
 
       // calculate sample adjust counter
       aduState.sampleAdjustEveryFrame = (CODEC_METICS_MS*uUseBlocks) / ((abs(aduState.sampleOffset)>>1));
+#if USB_AUDIO_CHANNELS == 4
+      // If using 4 channels the total adustment will take half the time, so alter.
+      aduState.sampleAdjustEveryFrame *= 2;
+#endif      
       aduState.sampleAdjustFrameCounter = aduState.sampleAdjustEveryFrame;
 
       // reset
