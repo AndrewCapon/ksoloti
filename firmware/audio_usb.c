@@ -722,14 +722,14 @@ void aduDataExchange (int32_t *in, int32_t *out)
     if(aduState.state == asCodecRemove)
     {
       // remove uBufferAdjust samples
-      //Analyse(GPIOB, 3, 1);
+      Analyse(GPIOB, 3, 1);
       uLen -= uBufferAdjust;
-      //Analyse(GPIOB, 3, 0);
+      Analyse(GPIOB, 3, 0);
     } 
     else if(aduState.state == asCodecDuplicate)
     {
       // add uBufferAdjust samples 
-      //Analyse(GPIOC, 7, 1);
+      Analyse(GPIOC, 7, 1);
 
       #if CHECK_USB_DATA
         aduAddedTxSamplesStart = aduState.txRingBufferWriteOffset;
@@ -747,7 +747,7 @@ void aduDataExchange (int32_t *in, int32_t *out)
       }
       aduState.txRingBufferUsedSize+=uBufferAdjust;
 #endif
-      //Analyse(GPIOC, 7, 0);
+      Analyse(GPIOC, 7, 0);
     }
 
 #if NEW_CODE_TX
@@ -980,12 +980,17 @@ FORCE_INLINE void aduCodecFrameStarted(void)
   {
     if(aduState.sampleAdjustFrameCounter == 0)
     {
+#if USB_AUDIO_CHANNELS == 2
+    uint16_t uBufferAdjust = 2;
+#elif  USB_AUDIO_CHANNELS == 4
+    uint16_t uBufferAdjust = 4;
+#endif   
       if(aduState.sampleOffset > 0)
       {
         // adjust overrun
         // chuck samples awway
         //Analyse(GPIOB, 3, 1);
-        aduState.sampleOffset-=2;
+        aduState.sampleOffset-=uBufferAdjust;
         aduState.state = asCodecRemove;
         //Analyse(GPIOB, 3, 0);
       }
@@ -994,7 +999,7 @@ FORCE_INLINE void aduCodecFrameStarted(void)
         // adjust underrun
         // duplicate sample
         //Analyse(GPIOC, 7, 1);
-        aduState.sampleOffset+=2;
+        aduState.sampleOffset+=uBufferAdjust;
         aduState.state = asCodecDuplicate;
         //Analyse(GPIOC, 7, 0);
       }

@@ -1224,9 +1224,7 @@ void PExReceive(void) {
   if (!AckPending) {
     unsigned char received;
     while (chnReadTimeout(&BDU1, &received, 1, TIME_IMMEDIATE)) {
-      Analyse(GPIOB, 3, 1);
       PExReceiveByte(received);
-      Analyse(GPIOB, 3, 0);
     }
   }
 }
