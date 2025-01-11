@@ -1648,7 +1648,7 @@ public class Patch {
         + "#if FW_USBAUDIO\n"
         + I+I+I + "UsbOutputLeft[u] = 0;\n"
         + I+I+I + "UsbOutputRight[u] = 0;\n"
-        + "#if FW_USBAUDIO == 4\n"
+        + "#if USB_AUDIO_CHANNELS == 4\n"
         + I+I+I + "UsbOutput2Left[u] = 0;\n"
         + I+I+I + "UsbOutput2Right[u] = 0;\n"
         + "#endif\n"
