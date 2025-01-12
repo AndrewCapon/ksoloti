@@ -96,6 +96,10 @@ void SetPatchSafety(uint16_t uUIMidiCost, uint8_t uDspLimit200)
 {
     uPatchUIMidiCost = uUIMidiCost;
     uPatchUsbLimit200 = uDspLimit200;
+#if USB_AUDIO_CHANNELS == 4
+    // we have some extra overhead
+    uPatchUIMidiCost += 60;
+#endif
 }
 
 static void SetPatchStatus(patchStatus_t status)
