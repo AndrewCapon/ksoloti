@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-BUILD_AXOLOTI=0
+BUILD_AXOLOTI=1
 BUILD_KSOLOTI=1
-BUILD_NORMAL=0
+BUILD_NORMAL=1
 BUILD_USBAUDIO=1
-BUILD_SPILINK=0
-BUILD_FLASHER=0
-BUILD_MOUNTER=0
+BUILD_SPILINK=1
+BUILD_FLASHER=1
+BUILD_MOUNTER=1
 
 platform='unknown'
 unamestr=`uname`
@@ -37,7 +37,7 @@ esac
 case "$platform" in
     mac)
         rm -f firmware.log
-        
+
         # # compile board mode and firmware options
         if [ $BUILD_AXOLOTI -eq 1 ] 
         then
