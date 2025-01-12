@@ -191,7 +191,7 @@ void PExTransmit(void) {
         }
 
         if (AckPending) {
-            Analyse(GPIOC, 7, 1);
+            //Analyse(GPIOC, 7, 1);
             uint32_t ack[7];
             ack[0] = 0x416F7841; /* "AxoA" */
             ack[1] = connectionFlags.value; // flags for overload, USB audio etc
@@ -222,7 +222,7 @@ void PExTransmit(void) {
             connected = 1;
             exception_checkandreport();
             AckPending = 0;
-            Analyse(GPIOC, 7, 0);
+            //Analyse(GPIOC, 7, 0);
         }
 
         if (!patchStatus) {
@@ -236,9 +236,9 @@ void PExTransmit(void) {
                     msg.patchID = patchMeta.patchID;
                     msg.index = i;
                     msg.value = v;
-                    Analyse(GPIOC, 7, 1);
+                    //Analyse(GPIOC, 7, 1);
                     chSequentialStreamWrite((BaseSequentialStream * )&BDU1, (const unsigned char* )&msg, sizeof(msg));
-                    Analyse(GPIOC, 7, 0);
+                    //Analyse(GPIOC, 7, 0);
                 }
             }
         }

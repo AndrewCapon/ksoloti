@@ -57,8 +57,8 @@
 
 
 
-static int16_t aduTxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
-static int16_t aduRxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram3")));
+static int16_t aduTxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram2")));
+static int16_t aduRxRingBuffer[TX_RING_BUFFER_FULL_SIZE] __attribute__ ((section (".sram2")));
 extern AudioUSBDriver ADU1;
 #define N_SAMPLE_RATES  1
 const uint32_t aduSampleRates[] = {48000};
@@ -823,12 +823,13 @@ void aduDataExchange (int32_t *in, int32_t *out)
 
       #if CHECK_USB_DATA
         // DEBUG test USB Data, requires USBOutputTest.axp running on Ksoloiti
-        volatile int16_t tmpCodecData[46];
         bool bOk = true;
-        uint_fast16_t u; for(u = 0; u < uBufferSize-4; u++)
+        volatile int16_t tmpCodecData[14];
+
+        uint_fast16_t u; for(u = 0; u < 14; u++)
         {
-          int16_t nV1 = in[(u*2)+2] >> 16;
-          int16_t nV2 = in[(u*2)] >> 16;
+          int16_t nV1 = in[(u*USB_AUDIO_CHANNELS)+USB_AUDIO_CHANNELS] >> 16;
+          int16_t nV2 = in[(u*USB_AUDIO_CHANNELS)] >> 16;
           
           uint32_t uDiff = abs(nV1 - nV2);
           tmpCodecData[u] = (nV1 - nV2);
@@ -841,8 +842,8 @@ void aduDataExchange (int32_t *in, int32_t *out)
 
         if(!bOk)
         {
-          Analyse(GPIOG, 10, 1);
-          Analyse(GPIOG, 10, 0);
+          Analyse(GPIOA, 9, 1);
+          Analyse(GPIOA, 9, 0);
         }
       #endif // CHECK_USB_DATA
 
@@ -1109,25 +1110,26 @@ void aduInitiateTransmitI(USBDriver *usbp)
 
 #if CHECK_USB_DATA
   // DEBUG test USB Data, requires USBOutputTest.axp running on Ksoloiti
-  volatile int16_t tmpData[46];
+  volatile int16_t tmpData[46]; 
+
   bool bOk = true;
   uint16_t u; for( u = 0; u < 46; u++)
   {
-    uint32_t uDiff = abs(pTxLocation[(u*2)+2] - pTxLocation[u*2]);
-    tmpData[u] = (pTxLocation[(u*2)+2] - pTxLocation[u*2]);
-    if(uDiff > 300)
+    uint32_t uDiff = abs(pTxLocation[(u*USB_AUDIO_CHANNELS)+USB_AUDIO_CHANNELS] - pTxLocation[u*USB_AUDIO_CHANNELS]);
+    tmpData[u] = (pTxLocation[(u*USB_AUDIO_CHANNELS)+USB_AUDIO_CHANNELS] - pTxLocation[u*USB_AUDIO_CHANNELS]);
+    if(uDiff > 360)
     {
       bOk = false;
       //AnalyseError();
-      Analyse(GPIOG, 10, 1);
-      Analyse(GPIOG, 10, 0);
+      Analyse(GPIOA, 9, 1);
+      Analyse(GPIOA, 9, 0);
     }
   }
 
   if(!bOk)
   {
-    Analyse(GPIOG, 10, 1);
-    Analyse(GPIOG, 10, 0);
+    Analyse(GPIOA, 9, 1);
+    Analyse(GPIOA, 9, 0);
   }
 #endif
 

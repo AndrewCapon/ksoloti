@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "hal.h"
+#include "analyse.h"
 
 #if HAL_USE_USB || defined(__DOXYGEN__)
 
