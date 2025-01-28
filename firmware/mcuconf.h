@@ -80,7 +80,7 @@
 /*
  * ADC driver system settings.
  */
-#define STM32_ADC_ADCPRE                    ADC_CCR_ADCPRE_DIV4
+#define STM32_ADC_ADCPRE                    ADC_CCR_ADCPRE_DIV8
 #define STM32_ADC_USE_ADC1                  TRUE
 #define STM32_ADC_USE_ADC2                  FALSE
 #define STM32_ADC_USE_ADC3                  FALSE
@@ -349,7 +349,7 @@
 /*
  * ADC driver system settings.
  */
-#define STM32_ADC_ADCPRE                    ADC_CCR_ADCPRE_DIV4
+#define STM32_ADC_ADCPRE                    ADC_CCR_ADCPRE_DIV8
 #define STM32_ADC_USE_ADC1                  TRUE
 #define STM32_ADC_USE_ADC2                  FALSE
 #define STM32_ADC_USE_ADC3                  FALSE
@@ -560,7 +560,7 @@
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
-  #define USE_PATCH_DSPTIME_SMOOTHING_MS      0
+  #define USE_PATCH_DSPTIME_SMOOTHING_MS      1
   #define MIDI_USB_PRIO                       HIGHPRIO-2
   #define UI_USB_PRIO                         HIGHPRIO-2
   // USB_AUDIO_CHANNELS must be 2 or 4
