@@ -68,7 +68,17 @@
         "audio_usb.h": "c",
         "mcuconf.h": "c",
         "sdram.h": "c",
-        "memstreams.h": "c"
+        "memstreams.h": "c",
+        "hal_lld.h": "c",
+        "hal_usb.h": "c",
+        "any": "cpp",
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "compare": "cpp",
+        "ranges": "cpp",
+        "scoped_allocator": "cpp",
+        "typeindex": "c",
+        "typeinfo": "c"
     },
     "C_Cpp.default.compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
     "C_Cpp.default.cppStandard": "c++11",

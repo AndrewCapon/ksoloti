@@ -42,8 +42,10 @@
 #include <string.h>
 
 #include "ch.h"
-#include "chprintf.h"
+
+//#include "chprintf.h"
 #include "migration_v3.h"
+
 
 /* Includes ------------------------------------------------------------------*/
 

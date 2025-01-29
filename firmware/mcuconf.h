@@ -287,7 +287,7 @@
 #if FW_USBAUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
-  #define USE_EXTERNAL_USB_FIFO_PUMP          1
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
@@ -299,7 +299,7 @@
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
-  #define USE_EXTERNAL_USB_FIFO_PUMP          1
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
@@ -556,7 +556,7 @@
 #if FW_USBAUDIO
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
-  #define USE_EXTERNAL_USB_FIFO_PUMP          1
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX
@@ -568,7 +568,7 @@
 #else
   #define PATCH_DSP_PRIORITY                  HIGHPRIO-1
   #define PATCH_NORMAL_PRIORITY               NORMALPRIO
-  #define USE_EXTERNAL_USB_FIFO_PUMP          1
+  #define USE_EXTERNAL_USB_FIFO_PUMP          0
   #define STM32_USB_OTG_THREAD_PRIO           HIGHPRIO
   #define USE_BLOCKED_BULK_TX                 1
   #define USB_USE_WAIT                        USE_BLOCKED_BULK_TX

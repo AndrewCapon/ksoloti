@@ -126,7 +126,7 @@ void serial_MidiSend3(uint8_t b0, uint8_t b1, uint8_t b2) {
 }
 
 int serial_MidiGetOutputBufferPending(void) {
-  return chOQGetFullI(&SDMIDI.oqueue);
+  return oqGetFullI(&SDMIDI.oqueue);
 }
 
 // Midi UART...

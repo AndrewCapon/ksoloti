@@ -21,7 +21,7 @@
 #include "axoloti_board.h"
 #include "midi.h"
 #include "serial_midi.h"
-#include "usbh_midi_core.h"
+//#include "usbh_midi_core.h"
 #include "midi_usb.h"
 #include "patch.h"
 

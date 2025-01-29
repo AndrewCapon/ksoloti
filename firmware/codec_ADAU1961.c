@@ -361,7 +361,7 @@ static void codec_ADAU1961_dma_init(void) {
       | STM32_DMA_CR_TEIE | STM32_DMA_CR_TCIE | STM32_DMA_CR_DBM | // double buffer mode
       STM32_DMA_CR_PSIZE_HWORD | STM32_DMA_CR_MSIZE_WORD;
 
-  bool_t b = dmaStreamAllocate(i2sdma_ADAU1961, STM32_SPI_SPI2_IRQ_PRIORITY,
+  bool_t b = dmaStreamAlloc(i2sdma_ADAU1961, STM32_SPI_SPI2_IRQ_PRIORITY,
                                (stm32_dmaisr_t)dma_i2s_interrupt,
                                (void *)&SPID2);
 
@@ -382,7 +382,7 @@ static void codec_ADAU1961_dma_init(void) {
       STM32_DMA_CR_TEIE | STM32_DMA_CR_TCIE | STM32_DMA_CR_DBM | // double buffer mode
       STM32_DMA_CR_PSIZE_HWORD | STM32_DMA_CR_MSIZE_WORD;
 
-  b = dmaStreamAllocate(i2sdma_ADAU1961rx, STM32_SPI_SPI2_IRQ_PRIORITY,
+  b = dmaStreamAlloc(i2sdma_ADAU1961rx, STM32_SPI_SPI2_IRQ_PRIORITY,
                         (stm32_dmaisr_t)dma_i2s_rxinterrupt, (void *)&SPID2);
 
   while (b) {
