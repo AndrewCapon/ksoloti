@@ -21,7 +21,6 @@
 #include "axoloti_defines.h"
 #include "axoloti_board.h"
 
-#define ENABLE_SERIAL_DEBUG 1
 
 #if defined(BOARD_KSOLOTI_CORE)
 uint8_t adc3_ch = 8; /* We start with the conversion of channel 8 (voltage supervisor) */
@@ -81,7 +80,7 @@ void adc_configpads(void) {
 #if defined(BOARD_KSOLOTI_CORE)
     palSetPadMode(GPIOA, 0, PAL_MODE_INPUT_ANALOG);
     palSetPadMode(GPIOA, 1, PAL_MODE_INPUT_ANALOG);
-#ifndef ENABLE_SERIAL_DEBUG
+#if !ENABLE_SERIAL_DEBUG
     palSetPadMode(GPIOA, 2, PAL_MODE_INPUT_ANALOG);
     palSetPadMode(GPIOA, 3, PAL_MODE_INPUT_ANALOG);
 #endif
@@ -108,7 +107,7 @@ void adc_configpads(void) {
 #elif defined(BOARD_AXOLOTI_CORE)
     palSetPadMode(GPIOA, 0, PAL_MODE_INPUT_ANALOG);
     palSetPadMode(GPIOA, 1, PAL_MODE_INPUT_ANALOG);
-#ifndef ENABLE_SERIAL_DEBUG
+#if !ENABLE_SERIAL_DEBUG
     palSetPadMode(GPIOA, 2, PAL_MODE_INPUT_ANALOG);
     palSetPadMode(GPIOA, 3, PAL_MODE_INPUT_ANALOG);
 #endif
@@ -130,7 +129,7 @@ void adc_configpads(void) {
 #elif defined(BOARD_STM32F4_DISCOVERY)
   palSetPadMode(GPIOA, 0, PAL_MODE_INPUT_ANALOG);
   palSetPadMode(GPIOA, 1, PAL_MODE_INPUT_ANALOG);
-#ifdef ENABLE_SERIAL_DEBUG
+#if !ENABLE_SERIAL_DEBUG
   palSetPadMode(GPIOA, 2, PAL_MODE_INPUT_ANALOG);
   palSetPadMode(GPIOA, 3, PAL_MODE_INPUT_ANALOG);
 #endif
@@ -236,4 +235,6 @@ void adc_convert(void) {
 #endif
     adcStartConversion(&ADCD1, &adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
 
+    LogTextMessage("%4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u", 
+                    adcvalues[0], adcvalues[1], adcvalues[2], adcvalues[3], adcvalues[4], adcvalues[5], adcvalues[6], adcvalues[7], adcvalues[8], adcvalues[9], adcvalues[10], adcvalues[11], adcvalues[12], adcvalues[13], adcvalues[14], adcvalues[15], adcvalues[16], adcvalues[17], adcvalues[18]);
 }

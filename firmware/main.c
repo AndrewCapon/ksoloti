@@ -54,8 +54,6 @@
 /* Initialization and main thread.                                           */
 /*===========================================================================*/
 
-#define ENABLE_SERIAL_DEBUG 1
-
 
 extern void MY_USBH_Init(void);
 
