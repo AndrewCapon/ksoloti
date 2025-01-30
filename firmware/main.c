@@ -50,11 +50,12 @@
 #include "stm32f4xx_fmc.c"
 #include "analyse.h"
 
+#include "board.h"
+
 /*===========================================================================*/
 /* Initialization and main thread.                                           */
 /*===========================================================================*/
 
-#define ENABLE_SERIAL_DEBUG 1
 
 
 #define AHB1_EN_MASK    STM32_GPIO_EN_MASK
@@ -133,6 +134,10 @@ typedef struct {
   stm32_gpio_setup_t    PKData;
 #endif
 } PALConfig;
+
+#if TESTME
+//shit
+#endif
 
 const PALConfig pal_default_config = {
     {VAL_GPIOA_MODER, VAL_GPIOA_OTYPER, VAL_GPIOA_OSPEEDR, VAL_GPIOA_PUPDR,
@@ -260,7 +265,6 @@ int main(void) {
     /* 115200 baud */
     static const SerialConfig sd2Cfg = {115200, 0, 0, 0};
     sdStart(&SD2, &sd2Cfg);
-    chprintf((BaseSequentialStream * )&SD2,"Hello world!\r\n");
 #endif
 
 #if ANALYSE_ENABLE
@@ -397,32 +401,8 @@ int main(void) {
         else if(evt & AUDIO_EVENT_FORMAT)
             LogTextMessage("Audio Format type changed = %u\r\n", aduState.currentSampleRate);
 
-        if(evt & AUDIO_EVENT_USB_CONGIGURED)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Configured.\r\n");
-        else if(evt & AUDIO_EVENT_USB_SUSPEND)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Suspend\r\n");
-        else if(evt & AUDIO_EVENT_USB_WAKEUP)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Wakeup.\r\n");
-        else if(evt & AUDIO_EVENT_USB_STALLED)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Stalled.\r\n");
-        else if(evt & AUDIO_EVENT_USB_RESET)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Reset.\r\n");
-        else if(evt & AUDIO_EVENT_USB_ENABLE)
-            chprintf((BaseSequentialStream * )&SD2,"Audio USB Enable.\r\n");
-        else if(evt & AUDIO_EVENT_MUTE)
-            chprintf((BaseSequentialStream * )&SD2,"Audio mute changed.\r\n");
-        else if(evt & AUDIO_EVENT_VOLUME)
-            chprintf((BaseSequentialStream * )&SD2,"Audio volume changed.\r\n");
-        else if(evt & AUDIO_EVENT_INPUT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio input state changed = %u\r\n", aduState.isInputActive);
-        else if(evt & AUDIO_EVENT_OUTPUT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio output state changed = %u\r\n", aduState.isOutputActive);
-        else if(evt & AUDIO_EVENT_FORMAT)
-            chprintf((BaseSequentialStream * )&SD2,"Audio Format type changed = %u\r\n", aduState.currentSampleRate);
-
-
         connectionFlags.usbActive = aduIsUsbInUse();
-        chprintf((BaseSequentialStream * )&SD2,"connectionFlags.usbActive = %u\r\n", connectionFlags.usbActive );
+        LogTextMessage("connectionFlags.usbActive = %u\r\n", connectionFlags.usbActive );
     }
 #else
     while (1) {

@@ -160,7 +160,7 @@ INCDIR = $(CMSIS)/Core/Include \
 # 	     $(CHIBIOS)/os/hal/lib/streams
 
 # Paths
-IINCDIR = $(patsubst %,-I%,$(INCDIR) $(DINCDIR) $(UINCDIR))
+IINCDIR = $(patsubst %,-I%,$(INCDIR) $(DINCDIR) $(UINCDIR) $(CONFDIR) $(ALLINC))
 LLIBDIR = $(patsubst %,-L%,$(DLIBDIR) $(ULIBDIR))
 
 all: ${BUILDDIR}/xpatch.bin

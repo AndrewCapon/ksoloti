@@ -47,7 +47,6 @@
 #include "stdio.h"
 #include "memstreams.h"
  
-//#define DEBUG_SERIAL 1
 
 void BootLoaderInit(void);
 
@@ -211,7 +210,7 @@ void PExTransmit(void) {
             // clear overload flag
             connectionFlags.dspOverload = false;
 
-#ifdef DEBUG_SERIAL
+#if ENABLE_SERIAL_DEBUG
             chprintf((BaseSequentialStream * )&SD2,"ack!\r\n");
 #endif
 
@@ -697,7 +696,7 @@ void PExReceiveByte(unsigned char c) {
       else if (c == 'p') { /* ping */
         state = 0;
         header = 0;
-#ifdef DEBUG_SERIAL
+#if ENABLE_SERIAL_DEBUG
         chprintf((BaseSequentialStream * )&SD2,"ping\r\n");
 #endif
         AckPending = 1;
