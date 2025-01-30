@@ -147,6 +147,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 }
 
 static const struct BulkUSBDriverVMT vmt = {
+  0,
   write, read, put, get,
   putt, gett, writet, readt
 };

@@ -127,7 +127,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
   return iqReadTimeout(&((MidiUSBDriver *)ip)->iqueue, bp, n, time);
 }
 
-static const struct MidiUSBDriverVMT vmt = {write, read, put, get, putt, gett,
+static const struct MidiUSBDriverVMT vmt = {0, write, read, put, get, putt, gett,
                                             writet, readt};
 
 
