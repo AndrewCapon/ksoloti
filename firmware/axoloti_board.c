@@ -234,7 +234,3 @@ void adc_convert(void) {
     adc3_convert();
 #endif
     adcStartConversion(&ADCD1, &adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
-
-    LogTextMessage("%4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u, %4u", 
-                    adcvalues[0], adcvalues[1], adcvalues[2], adcvalues[3], adcvalues[4], adcvalues[5], adcvalues[6], adcvalues[7], adcvalues[8], adcvalues[9], adcvalues[10], adcvalues[11], adcvalues[12], adcvalues[13], adcvalues[14], adcvalues[15], adcvalues[16], adcvalues[17], adcvalues[18]);
-}
