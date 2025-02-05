@@ -7,7 +7,29 @@ FWOPTIONDEF=
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 -D$(BOARDDEF)
+  # USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 -D$(BOARDDEF)
+
+  USE_OPT = \
+    -D$(BOARDDEF) \
+    --specs=nosys.specs \
+    --specs=nano.specs \
+    -Wno-implicit-fallthrough \
+    -Wno-return-type \
+    -Wno-unused-function \
+    -Wno-unused-parameter \
+    -O2 \
+    -falign-functions=16 \
+    -fno-math-errno \
+    -fomit-frame-pointer \
+    -ggdb3 \
+    -mcpu=cortex-m7 \
+    -mfloat-abi=hard \
+    -mfpu=fpv5-sp-d16 \
+    -mthumb \
+    -mtune=cortex-m7 \
+    -mword-relocations \
+    -pipe 
+
   # USE_OPT = \
   #   -D$(BOARDDEF) \
   #   --specs=nosys.specs \
@@ -398,7 +420,7 @@ endif
 
 ifneq (,$(findstring ELEMENTS,$(AXO_OPT_MODULES)))
 #$(info including ELEMENTS)
-ELEMENTS_SRC = 
+ELEMENTS_SRC = \
        ${FIRMWARE}/axoloti_mi.cpp \
        ${MUTABLE_INSTRUMENTS}/elements/elements_resources.cpp \
        ${MUTABLE_INSTRUMENTS}/elements/dsp/multistage_envelope.cpp \
@@ -413,7 +435,7 @@ endif
 
 ifneq (,$(findstring CLOUDS,$(AXO_OPT_MODULES)))
 #$(info including CLOUDS)
-CLOUDS_SRC = 
+CLOUDS_SRC = \
        ${MUTABLE_INSTRUMENTS}/clouds/clouds_resources.cpp \
        ${MUTABLE_INSTRUMENTS}/clouds/dsp/correlator.cpp \
        ${MUTABLE_INSTRUMENTS}/clouds/dsp/mu_law.cpp \

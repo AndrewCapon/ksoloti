@@ -6,7 +6,43 @@ FWOPTIONDEF =
 # SRAM usage and DSP load low with newer GCC versions.
 # "--param max-completely-peeled-insns=100" makes a big difference to get SRAM down. Newer GCC versions use 200 here, original axoloti (GCC 4.9) used 100.
 # below the single backslash line are options which are unknown to make any difference so far
-CCFLAGS =  -mcpu=cortex-m7 -O3 -ggdb -fomit-frame-pointer -falign-functions=16 -DBOARD_KSOLOTI_CORE -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-rtti -Wall -Wextra -Wa,-alms=build/ksoloti/normal/lst/modulator.lst  -DCORTEX_USE_FPU=TRUE -DCORE_CM7 
+# CCFLAGS =  -mcpu=cortex-m7 -O3 -ggdb -fomit-frame-pointer -falign-functions=16 -DBOARD_KSOLOTI_CORE -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-rtti -Wall -Wextra -Wa,-alms=build/ksoloti/normal/lst/modulator.lst  -DCORTEX_USE_FPU=TRUE -DCORE_CM7 \
+#     -Wno-implicit-fallthrough \
+#     -Wno-unused-parameter \
+#     -Wno-unused-function \
+#     -Wno-return-type \
+           
+CCFLAGS = \
+    -DCORTEX_USE_FPU=TRUE -DCORE_CM7 \
+    -Wno-implicit-fallthrough \
+    -Wno-unused-parameter \
+    -Wno-return-type \
+    -ggdb3 \
+    -mcpu=cortex-m7 \
+    -mfloat-abi=hard \
+    -mfpu=fpv5-sp-d16 \
+    -mthumb \
+    -mtune=cortex-m7 \
+    -mword-relocations \
+    -nostartfiles \
+    -nostdlib \
+    -std=c++11 \
+    -O3 \
+    --param max-completely-peeled-insns=100 \
+    -fcode-hoisting \
+    -fno-threadsafe-statics \
+    -ffunction-sections \
+    -fdata-sections \
+    -fno-common \
+    -fno-math-errno \
+    -fno-reorder-blocks \
+    -fno-rtti \
+    -mno-thumb-interwork \
+    -fno-use-cxa-atexit \
+    -fpermissive \
+    -ffast-math \
+    
+
 # CCFLAGS = \
 #     -Wno-implicit-fallthrough \
 #     -Wno-unused-parameter \
@@ -38,7 +74,7 @@ DEFS = \
     -D$(BOARDDEF) \
     -DARM_MATH_CM5 \
     -DCORTEX_USE_FPU=TRUE \
-    -DSTM32F427xx \
+    -DSTM32F455xx \
     -D__FPU_PRESENT \
     -DCORE_CM7 
 
