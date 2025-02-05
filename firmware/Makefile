@@ -7,7 +7,7 @@ FWOPTIONDEF=
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16 -D$(BOARDDEF)
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 -D$(BOARDDEF)
   # USE_OPT = \
   #   -D$(BOARDDEF) \
   #   --specs=nosys.specs \
@@ -399,28 +399,28 @@ endif
 ifneq (,$(findstring ELEMENTS,$(AXO_OPT_MODULES)))
 #$(info including ELEMENTS)
 ELEMENTS_SRC = 
-      #  ${FIRMWARE}/axoloti_mi.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/elements_resources.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/multistage_envelope.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/ominous_voice.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/resonator.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/string.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/tube.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/exciter.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/part.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/elements/dsp/voice.cpp
+       ${FIRMWARE}/axoloti_mi.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/elements_resources.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/multistage_envelope.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/ominous_voice.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/resonator.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/string.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/tube.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/exciter.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/part.cpp \
+       ${MUTABLE_INSTRUMENTS}/elements/dsp/voice.cpp
 endif
 
 ifneq (,$(findstring CLOUDS,$(AXO_OPT_MODULES)))
 #$(info including CLOUDS)
 CLOUDS_SRC = 
-      #  ${MUTABLE_INSTRUMENTS}/clouds/clouds_resources.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/correlator.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/mu_law.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/granular_processor.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/frame_transformation.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/phase_vocoder.cpp \
-      #  ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/stft.cpp 
+       ${MUTABLE_INSTRUMENTS}/clouds/clouds_resources.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/correlator.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/mu_law.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/granular_processor.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/frame_transformation.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/phase_vocoder.cpp \
+       ${MUTABLE_INSTRUMENTS}/clouds/dsp/pvoc/stft.cpp 
 endif
 
 ifneq (,$(findstring RINGS,$(AXO_OPT_MODULES)))

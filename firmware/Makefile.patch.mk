@@ -6,7 +6,7 @@ FWOPTIONDEF =
 # SRAM usage and DSP load low with newer GCC versions.
 # "--param max-completely-peeled-insns=100" makes a big difference to get SRAM down. Newer GCC versions use 200 here, original axoloti (GCC 4.9) used 100.
 # below the single backslash line are options which are unknown to make any difference so far
-CCFLAGS =  -mcpu=cortex-m7 -O0 -ggdb -fomit-frame-pointer -falign-functions=16 -DBOARD_KSOLOTI_CORE -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-rtti -Wall -Wextra -Wa,-alms=build/ksoloti/normal/lst/modulator.lst  -DCORTEX_USE_FPU=TRUE -DCORE_CM7 
+CCFLAGS =  -mcpu=cortex-m7 -O3 -ggdb -fomit-frame-pointer -falign-functions=16 -DBOARD_KSOLOTI_CORE -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-rtti -Wall -Wextra -Wa,-alms=build/ksoloti/normal/lst/modulator.lst  -DCORTEX_USE_FPU=TRUE -DCORE_CM7 
 # CCFLAGS = \
 #     -Wno-implicit-fallthrough \
 #     -Wno-unused-parameter \
