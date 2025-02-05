@@ -100,7 +100,12 @@ void StopPatch(void);
 void start_dsp_thread(void);
 
 //#define PATCHMAINLOC 0x20011000
-#define PATCHMAINLOC 0x30000000
+//#define PATCHMAINLOC 0x30000000
+#if PATCH_ITCM
+  #define PATCHMAINLOC 0x00000000
+#else
+  #define PATCHMAINLOC 0x24040000
+#endif
 
 // patch is located in sector 11
 #define PATCHFLASHLOC 0x080E0000

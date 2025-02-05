@@ -40,12 +40,12 @@ MEMORY
     flash5 (rx) : org = 0x00000000, len = 0
     flash6 (rx) : org = 0x00000000, len = 0
     flash7 (rx) : org = 0x00000000, len = 0
-    ram0   (wx) : org = 0x24000000, len = 512k      /* AXI SRAM */
+    ram0   (wx) : org = 0x24000000, len = 256k      /* AXI SRAM leave 256 for patcher, was 512*/
     ram1   (wx) : org = 0x30000000, len = 256k      /* AHB SRAM1+SRAM2 */
     ram2   (wx) : org = 0x30000000, len = 288k      /* AHB SRAM1+SRAM2+SRAM3 */
     ram3   (wx) : org = 0x30040000, len = 32k       /* AHB SRAM3 */
     ram4   (wx) : org = 0x38000000, len = 64k       /* AHB SRAM4 */
-    ram5   (wx) : org = 0x20000000, len = 128k      /* DTCM-RAM */
+    ram5   (wx) : org = 0x20000000, len = 64k       /* DTCM-RAM, leave 64k for patcher, was 128k */
     ram6   (wx) : org = 0x00000000, len = 64k       /* ITCM-RAM */
     ram7   (wx) : org = 0x38800000, len = 4k        /* BCKP SRAM */
 }

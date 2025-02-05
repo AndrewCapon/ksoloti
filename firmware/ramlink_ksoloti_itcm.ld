@@ -20,8 +20,8 @@ MEMORY
 
     /* for 755 bodge it all into AHB SRAM, 0x30000000 for the moment, we need to look at what isn't and is cached for DMA  */
 
-    CODE (wx) : org = 0x24040000, len = 256k      /* AXI SRAM leave 256 for patcher, was 512*/
-    ITCM (rwx): ORIGIN = 0x00000000, LENGTH = 0x00010000 /* 64kB   */
+    CODE  (rwx): ORIGIN = 0x00000000, LENGTH = 0x00010000 /* 64kB   */
+    SRAM1 (wx) : org = 0x24040000, len = 256k      /* AXI SRAM leave 256 for patcher, was 512*/
     SRAM2 (wx) : org = 0x30000000, len = 288k      /* AHB SRAM1+SRAM2+SRAM3 */
     SRAM3 (wx) : org = 0x38000000, len = 64k       /* AHB SRAM4 */
     DATA (rw)  : ORIGIN = 0x20010000, LENGTH = 0x00010000 /* CCM - ccmramend */
@@ -71,11 +71,11 @@ SECTIONS
         edata = .;
     } > CODE
 
-    .itcm (NOLOAD): ALIGN(4) SUBALIGN(4) 
+    .sram1 (NOLOAD): ALIGN(4) SUBALIGN(4) 
     {
-        * (.itcm);
-        * (.itcm.*);
-    } > ITCM
+        * (.sram1);
+        * (.sram1.*);
+    } > SRAM1
 
     .sram2 (NOLOAD): ALIGN(4) SUBALIGN(4) 
     {

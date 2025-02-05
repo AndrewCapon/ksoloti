@@ -1,6 +1,6 @@
 BOARDDEF =
 FWOPTIONDEF =
-
+PATCH_ITCM = 1
 
 # Some new options are important to keep
 # SRAM usage and DSP load low with newer GCC versions.
@@ -85,7 +85,13 @@ endif
 
 ELFNAME=
 ifeq ($(BOARDDEF),BOARD_KSOLOTI_CORE)
-  RAMLINKOPT = -Tramlink_ksoloti.ld
+  ifeq ($(PATCH_ITCM),1)
+    $(info Building for itcm)
+    RAMLINKOPT = -Tramlink_ksoloti_itcm.ld
+  else
+    $(info Building for sram)
+    RAMLINKOPT = -Tramlink_ksoloti.ld
+  endif
   ELFNAME = ksoloti
 else ifeq ($(BOARDDEF),BOARD_AXOLOTI_CORE)
   RAMLINKOPT = -Tramlink_axoloti.ld

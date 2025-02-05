@@ -11,6 +11,7 @@ ifeq ($(USE_OPT),)
 
   USE_OPT = \
     -D$(BOARDDEF) \
+    -DPATCH_ITCM=1 \
     --specs=nosys.specs \
     --specs=nano.specs \
     -Wno-implicit-fallthrough \

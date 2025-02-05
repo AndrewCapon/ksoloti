@@ -39,6 +39,8 @@ public class ksoloti_core {
         STM32F42xxx
     };
 
+    boolean bItcm = true;
+
     cputype_e cputype;
 
     public ByteBuffer CreateOTPInfo() {
@@ -88,7 +90,12 @@ public class ksoloti_core {
     public int getPatchAddr() {
         // SRAM1 - must match with patch.ld
         //return 0x20011000;
-        return 0x30000000;
+        //return 0x30000000;
+
+        if(bItcm)
+            return 0x00000000;
+        else
+            return 0x24040000;
     }
 
     public int getSDRAMAddr() {
