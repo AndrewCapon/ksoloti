@@ -20,6 +20,7 @@
 #define __SDCARD_H
 
 #include "ch.h"
+#include "migration_v3.h"
 
 void sdcard_init(void);
 int sdcard_loadPatch1(char *fname);

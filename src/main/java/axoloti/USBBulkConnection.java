@@ -365,27 +365,27 @@ public class USBBulkConnection extends Connection {
             }
             qcmdp.WaitQueueFinished();
 
-            QCmdMemRead1Word q1 = new QCmdMemRead1Word(targetProfile.getCPUIDCodeAddr());
-            qcmdp.AppendToQueue(q1);
-            targetProfile.setCPUIDCode(q1.getResult());
+            // QCmdMemRead1Word q1 = new QCmdMemRead1Word(targetProfile.getCPUIDCodeAddr());
+            // qcmdp.AppendToQueue(q1);
+            // targetProfile.setCPUIDCode(q1.getResult());
 
             QCmdMemRead q;
 
-            q = new QCmdMemRead(targetProfile.getCPUSerialAddr(), targetProfile.getCPUSerialLength());
-            qcmdp.AppendToQueue(q);
-            targetProfile.setCPUSerial(q.getResult());
+            // q = new QCmdMemRead(targetProfile.getCPUSerialAddr(), targetProfile.getCPUSerialLength());
+            // qcmdp.AppendToQueue(q);
+            // targetProfile.setCPUSerial(q.getResult());
 
-            q = new QCmdMemRead(targetProfile.getOTPAddr(), 32);
-            qcmdp.AppendToQueue(q);
+            // q = new QCmdMemRead(targetProfile.getOTPAddr(), 32);
+            // qcmdp.AppendToQueue(q);
             // ByteBuffer otpInfo = q.getResult();
 
-            q = new QCmdMemRead(targetProfile.getOTPAddr() + 32, 256);
-            qcmdp.AppendToQueue(q);
-            ByteBuffer signature = q.getResult();
-            boolean signaturevalid = false;
-            if (signature == null) {
-                LOGGER.log(Level.INFO, "Cannot obtain signature, upgrade firmware?");
-            }
+            // q = new QCmdMemRead(targetProfile.getOTPAddr() + 32, 256);
+            // qcmdp.AppendToQueue(q);
+            // ByteBuffer signature = q.getResult();
+            boolean signaturevalid = true;
+            // if (signature == null) {
+            //     LOGGER.log(Level.INFO, "Cannot obtain signature, upgrade firmware?");
+            // }
             // else if ((signature.getInt(0) == 0xFFFFFFFF) && (signature.getInt(1) == 0xFFFFFFFF)) {
             //     LOGGER.log(Level.INFO, "Cannot validate authenticity, no signature present.");
             // }
@@ -1211,7 +1211,7 @@ public class USBBulkConnection extends Connection {
                        Integer.toHexString(i2)});
         }
         else {
-            // LOGGER.info("OK! " + Integer.toHexString(i1) + " / " + Integer.toHexString(i2));
+            //LOGGER.info("OK! " + Integer.toHexString(i1) + " / " + Integer.toHexString(i2));
         }
 
         if (i2 > 0) {
@@ -1227,7 +1227,7 @@ public class USBBulkConnection extends Connection {
     }
 
     void DistributeToDisplays(final ByteBuffer dispData) {
-        // LOGGER.info("Distr1");
+        //LOGGER.info("Distr1");
         try {
             if (patch == null) {
                 return;

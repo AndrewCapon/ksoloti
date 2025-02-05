@@ -79,7 +79,9 @@
         "scoped_allocator": "cpp",
         "typeindex": "c",
         "typeinfo": "c",
-        "chprintf.h": "c"
+        "chprintf.h": "c",
+        "codec_adau1961.h": "c",
+        "*.inc": "c"
     },
     "C_Cpp.default.compilerPath": "/Applications/ARM/bin/arm-none-eabi-gcc",
     "C_Cpp.default.cppStandard": "c++11",

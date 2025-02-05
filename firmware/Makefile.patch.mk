@@ -6,46 +6,41 @@ FWOPTIONDEF =
 # SRAM usage and DSP load low with newer GCC versions.
 # "--param max-completely-peeled-insns=100" makes a big difference to get SRAM down. Newer GCC versions use 200 here, original axoloti (GCC 4.9) used 100.
 # below the single backslash line are options which are unknown to make any difference so far
-CCFLAGS = \
-    -Wno-implicit-fallthrough \
-    -Wno-unused-parameter \
-    -Wno-return-type \
-    -ggdb3 \
-    -mcpu=cortex-m4 \
-    -mfloat-abi=hard \
-    -mfpu=fpv4-sp-d16 \
-    -mthumb \
-    -mtune=cortex-m4 \
-    -mword-relocations \
-    -nostartfiles \
-    -nostdlib \
-    -std=c++11 \
-    -O3 \
-    --param max-completely-peeled-insns=100 \
-    -fcode-hoisting \
-    -fno-threadsafe-statics \
-    -ffunction-sections \
-    -fdata-sections \
-    -fno-common \
-    -fno-math-errno \
-    -fno-reorder-blocks \
-    -fno-rtti \
-    -mno-thumb-interwork \
-    -fno-use-cxa-atexit \
-    -fpermissive \
-    -ffast-math \
-    \
-
+CCFLAGS =  -mcpu=cortex-m7 -O0 -ggdb -fomit-frame-pointer -falign-functions=16 -DBOARD_KSOLOTI_CORE -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-rtti -Wall -Wextra -Wa,-alms=build/ksoloti/normal/lst/modulator.lst  -DCORTEX_USE_FPU=TRUE -DCORE_CM7 
+# CCFLAGS = \
+#     -Wno-implicit-fallthrough \
+#     -Wno-unused-parameter \
+#     -Wno-return-type \
+#     -ggdb3 \
+#     -mcpu=cortex-m7 \
+#     -mfloat-abi=hard \
+#     -mtune=cortex-m7 \
+#     -mword-relocations \
+#     -nostartfiles \
+#     -nostdlib \
+#     -std=c++11 \
+#     -O0 \
+#     --param max-completely-peeled-insns=100 \
+#     -fcode-hoisting \
+#     -fno-threadsafe-statics \
+#     -ffunction-sections \
+#     -fdata-sections \
+#     -fno-common \
+#     -fno-math-errno \
+#     -fno-reorder-blocks \
+#     -fno-rtti \
+#     -fno-use-cxa-atexit \
+#     -fpermissive \
+#     -ffast-math \
+#     \
 
 DEFS = \
     -D$(BOARDDEF) \
-    -DARM_MATH_CM4 \
+    -DARM_MATH_CM5 \
     -DCORTEX_USE_FPU=TRUE \
     -DSTM32F427xx \
-    -DTHUMB \
-    -DTHUMB_NO_INTERWORKING \
-    -DTHUMB_PRESENT \
-    -D__FPU_PRESENT 
+    -D__FPU_PRESENT \
+    -DCORE_CM7 
 
 ifneq ($(FWOPTIONDEF),)
   DEFS := $(DEFS) -D$(FWOPTIONDEF)
@@ -69,6 +64,11 @@ ifeq ($(FWOPTIONDEF),FW_USBAUDIO)
   ELFNAME := $(ELFNAME)_usbaudio
 endif
 
+# If enabled, this option allows to compile the application in THUMB mode.
+ifeq ($(USE_THUMB),)
+  USE_THUMB = no
+endif
+
 LDFLAGS = \
     $(RAMLINKOPT) \
     -Bsymbolic \
@@ -78,8 +78,6 @@ LDFLAGS = \
     -mcpu=cortex-m4 \
     -mfloat-abi=hard \
     -mfpu=fpv4-sp-d16 \
-    -mno-thumb-interwork \
-    -mthumb \
     -mtune=cortex-m4 \
     -nostartfiles
 
@@ -105,24 +103,26 @@ SPACE := $(EMPTY) $(EMPTY)
 BUILDDIR=$(subst $(SPACE),\ ,${axoloti_libraries}/build)
 FIRMWARE=$(subst $(SPACE),\ ,${axoloti_firmware})
 
+$(info    BUILDDIR is $(BUILDDIR))
+$(info    FIRMWARE is $(FIRMWARE))
+$(info    ELFNAME is $(ELFNAME))
 
 # Licensing files.
 include $(CHIBIOS)/os/license/license.mk
 # Startup files.
-#include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
-include $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
+include $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32h7xx.mk
 # HAL-OSAL files (optional).
 include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
-#include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+include $(CHIBIOS)/os/hal/ports/STM32/STM32H7xx/platform.mk
+include $(CHIBIOS)/os/hal/boards/ST_NUCLEO144_H755ZI/board.mk
 include $(CHIBIOS)/os/hal/osal/rt-nil/osal.mk
 # RTOS files (optional).
 include $(CHIBIOS)/os/rt/rt.mk
-# include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 # FAT stuff
 include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 
+MCU  = cortex-m7
 
 INCDIR = $(CMSIS)/Core/Include \
 	 $(CMSIS)/DSP/Include \

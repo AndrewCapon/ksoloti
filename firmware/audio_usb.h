@@ -4,7 +4,7 @@
 #define _AUDIO_USB_H_
 
 #include <stdint.h>
-
+#include "migration_v3.h"
 /*============================================================================*/
 /* Defines and macros taken from TinyUSB : https://github.com/hathach/tinyusb */
 /* Thanks to Ha Thach :                                                       */
@@ -935,7 +935,8 @@ typedef struct __attribute__ ((packed))
 #define CODEC_METICS_MS (100)
 //#define ADU_TRANSFER_LOG_SIZE 4000
 #define CHECK_USB_DATA 1
-#define ADU_OVERRUN_LOG_SIZE 2600
+//#define ADU_OVERRUN_LOG_SIZE 2600
+#define ADU_OVERRUN_LOG_SIZE 10000
 
 #define USE_TRANSFER_SAMPLE_SIZE 2
 #define USE_TRANSFER_CHANNEL_SIZE USB_AUDIO_CHANNELS

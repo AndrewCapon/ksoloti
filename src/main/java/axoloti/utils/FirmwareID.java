@@ -70,6 +70,7 @@ public class FirmwareID {
             CRC32 zcrc = new CRC32();
             zcrc.update(bb);
             int zcrcv = (int) zcrc.getValue();
+            zcrcv=1234;
             return String.format("%08X", zcrcv);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);

@@ -25,6 +25,7 @@
 #include "exceptions.h"
 #include "ff.h"
 #include <string.h>
+#include "migration_v3.h"
 
 /*===========================================================================*/
 /* SDCard                                                                    */
@@ -213,7 +214,7 @@ int sdcard_loadPatch1(char *fname) {
 //    LogTextMessage("chdir %s",fname);
     err = f_chdir(fname);
     if (err != FR_OK) {
-      report_fatfs_error(err,fname);
+      //report_fatfs_error(err,fname);
       return -1;
     }
     fname = &fname[i+1];
@@ -224,7 +225,7 @@ int sdcard_loadPatch1(char *fname) {
   err = f_open(&FileObject, fname, FA_READ | FA_OPEN_EXISTING);
   chThdSleepMilliseconds(10);
   if (err != FR_OK) {
-	  report_fatfs_error(err,fname);
+	  //report_fatfs_error(err,fname);
     return -1;
   }
 
@@ -234,18 +235,18 @@ int sdcard_loadPatch1(char *fname) {
    */
   uint32_t size = f_size(&FileObject);
   if (size < 128) { /* arbitrary size, just needs to be smaller than the smallest possible bin size */
-	  report_fatfs_error(FR_INVALID_OBJECT,fname);
+	  //report_fatfs_error(FR_INVALID_OBJECT,fname);
     return -1;
   }
 
   err = f_read(&FileObject, (uint8_t *)PATCHMAINLOC, 0xE000, (void *)&bytes_read);
   if (err != FR_OK) {
-    report_fatfs_error(err,fname);
+    //report_fatfs_error(err,fname);
     return -1;
   }
   err = f_close(&FileObject);
   if (err != FR_OK) {
-    report_fatfs_error(err,fname);
+    //report_fatfs_error(err,fname);
     return -1;
   }
   chThdSleepMilliseconds(10);

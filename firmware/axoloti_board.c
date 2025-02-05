@@ -28,51 +28,52 @@ uint8_t adc3_ch = 8; /* We start with the conversion of channel 8 (voltage super
 
 void axoloti_board_init(void) {
     /* initialize DMA2D engine */
-    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN;
-    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
-    RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2DRST;
+    // TODO what is this used for?
+    // RCC->AHB1ENR |= RCC_AHB1ENR_DMA2DEN;
+    // RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2DRST;
+    // RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2DRST;
 }
 
 #if defined(BOARD_KSOLOTI_CORE)
 void adc3_init(void) {
-    /* initialize ADC3 */
-    rccEnableADC3(FALSE);
+    // /* initialize ADC3 */
+    // rccEnableADC3(FALSE);
 
-    ADC3->CR2 = ADC_CR2_ADON;
-    ADC3->SMPR1 = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_28)
-    | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_28)
-    | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_28)
-    | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_28)
-    | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_28)
-    | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_28);
+    // ADC3->CR2 = ADC_CR2_ADON;
+    // ADC3->SMPR1 = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_28)
+    // | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_28)
+    // | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_28)
+    // | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_28)
+    // | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_28)
+    // | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_28);
 
-    ADC3->SMPR2 = ADC_SMPR2_SMP_AN0(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_28)
-    | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_28);
+    // ADC3->SMPR2 = ADC_SMPR2_SMP_AN0(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_28)
+    // | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_28);
 
-    ADC3->SQR1 = 0;
-    ADC3->SQR2 = 0;
-    ADC3->SQR3 = adc3_ch; /* No DMA available! Incrementing the channel manually. Starting with ADC3_IN_8 (the 5V supervisor). */
-    ADC3->CR2 |= ADC_CR2_SWSTART;
+    // ADC3->SQR1 = 0;
+    // ADC3->SQR2 = 0;
+    // ADC3->SQR3 = adc3_ch; /* No DMA available! Incrementing the channel manually. Starting with ADC3_IN_8 (the 5V supervisor). */
+    // ADC3->CR2 |= ADC_CR2_SWSTART;
 }
 #endif
 
 void adc_init(void) {
-    adc_configpads();
-#if defined(BOARD_KSOLOTI_CORE)
-    adc3_init();
-#endif
+//     adc_configpads();
+// #if defined(BOARD_KSOLOTI_CORE)
+//     adc3_init();
+// #endif
 
-    adcStart(&ADCD1, NULL);
+//     adcStart(&ADCD1, NULL);
 
-    adcSTM32EnableTSVREFE();
+//     adcSTM32EnableTSVREFE();
 }
 
 void adc_configpads(void) {
@@ -158,103 +159,103 @@ unsigned short adcvalues[ADC_GRP1_NUM_CHANNELS + ADC_GRP2_NUM_CHANNELS] __attrib
  * Channels:    IN11.
  */
 
-static const ADCConversionGroup adcgrpcfg1 = {
-    FALSE,                        /* Circular buffer mode */
-    ADC_GRP1_NUM_CHANNELS,        /* Number of the analog channels */
-    NULL,                         /* Callback function (not needed here) */
-    0,                            /* Error callback */
-    0,                            /* CR1 */
-    ADC_CR2_SWSTART,              /* CR2 */
+// static const ADCConversionGroup adcgrpcfg1 = {
+//     FALSE,                        /* Circular buffer mode */
+//     ADC_GRP1_NUM_CHANNELS,        /* Number of the analog channels */
+//     NULL,                         /* Callback function (not needed here) */
+//     0,                            /* Error callback */
+//     0,                            /* CR1 */
+//     ADC_CR2_SWSTART,              /* CR2 */
 
-#if defined(BOARD_KSOLOTI_CORE)
-    // SMPR1
-    ADC_SMPR1_SMP_AN10(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_84) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_84), /* sample times ch10-18 */
+// #if defined(BOARD_KSOLOTI_CORE)
+//     // SMPR1
+//     ADC_SMPR1_SMP_AN10(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_84) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_84), /* sample times ch10-18 */
 
-    // SMPR2
-    ADC_SMPR2_SMP_AN0(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_84), /* sample times ch0-9 */
+//     // SMPR2
+//     ADC_SMPR2_SMP_AN0(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_84), /* sample times ch0-9 */
 
-    // HTR
-    0,
+//     // HTR
+//     0,
 
-    // LTR,
-    0,
+//     // LTR,
+//     0,
 
-    // SQR1
-    ADC_SQR1_SQ13_N(ADC_CHANNEL_IN15) | ADC_SQR1_SQ14_N(ADC_CHANNEL_VREFINT)
-        | ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS), /* SQR1: Conversion group sequence 13...16 + sequence length */
+//     // SQR1
+//     ADC_SQR1_SQ13_N(ADC_CHANNEL_IN15) | ADC_SQR1_SQ14_N(ADC_CHANNEL_VREFINT)
+//         | ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS), /* SQR1: Conversion group sequence 13...16 + sequence length */
 
-    // SQR2
-    ADC_SQR2_SQ7_N(ADC_CHANNEL_IN6) | ADC_SQR2_SQ8_N(ADC_CHANNEL_IN7)
-        | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) | ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9)
-        | ADC_SQR2_SQ11_N(ADC_CHANNEL_IN11) | ADC_SQR2_SQ12_N(ADC_CHANNEL_IN14), /* SQR2: Conversion group sequence 7...12, skip IN10 (PC0), IN12 (PC2), IN13 (PC3) */
+//     // SQR2
+//     ADC_SQR2_SQ7_N(ADC_CHANNEL_IN6) | ADC_SQR2_SQ8_N(ADC_CHANNEL_IN7)
+//         | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) | ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9)
+//         | ADC_SQR2_SQ11_N(ADC_CHANNEL_IN11) | ADC_SQR2_SQ12_N(ADC_CHANNEL_IN14), /* SQR2: Conversion group sequence 7...12, skip IN10 (PC0), IN12 (PC2), IN13 (PC3) */
 
-    // SQR3
-    ADC_SQR3_SQ1_N(ADC_CHANNEL_IN0) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN1)
-        | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) | ADC_SQR3_SQ4_N(ADC_CHANNEL_IN3)
-        | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN4) | ADC_SQR3_SQ6_N(ADC_CHANNEL_IN5) /* SQR3: Conversion group sequence 1...6 */
+//     // SQR3
+//     ADC_SQR3_SQ1_N(ADC_CHANNEL_IN0) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN1)
+//         | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) | ADC_SQR3_SQ4_N(ADC_CHANNEL_IN3)
+//         | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN4) | ADC_SQR3_SQ6_N(ADC_CHANNEL_IN5) /* SQR3: Conversion group sequence 1...6 */
 
-#elif defined(BOARD_AXOLOTI_CORE) || defined(BOARD_STM32F4_DISCOVERY)
-    // SMPR1
-    ADC_SMPR1_SMP_AN10(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_84)
-        | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_144) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_144), //sample times ch10-18
+// #elif defined(BOARD_AXOLOTI_CORE) || defined(BOARD_STM32F4_DISCOVERY)
+//     // SMPR1
+//     ADC_SMPR1_SMP_AN10(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_84) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_84)
+//         | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_144) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_144), //sample times ch10-18
 
-    // SMPR2
-    ADC_SMPR2_SMP_AN0(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_84)
-        | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_84), //sample times ch0-9
+//     // SMPR2
+//     ADC_SMPR2_SMP_AN0(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN2(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN4(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN6(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_84)
+//         | ADC_SMPR2_SMP_AN8(ADC_SAMPLE_84) | ADC_SMPR2_SMP_AN9(ADC_SAMPLE_84), //sample times ch0-9
 
-    // HTR
-    0,
+//     // HTR
+//     0,
 
-    // LTR,
-    0,
+//     // LTR,
+//     0,
 
-    // SQR1
-    ADC_SQR1_SQ13_N(ADC_CHANNEL_IN12) | ADC_SQR1_SQ14_N(ADC_CHANNEL_IN13)
-        | ADC_SQR1_SQ15_N(ADC_CHANNEL_IN14) | ADC_SQR1_SQ16_N(ADC_CHANNEL_VREFINT)
-        | ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS), //SQR1: Conversion group sequence 13...16 + sequence length
+//     // SQR1
+//     ADC_SQR1_SQ13_N(ADC_CHANNEL_IN12) | ADC_SQR1_SQ14_N(ADC_CHANNEL_IN13)
+//         | ADC_SQR1_SQ15_N(ADC_CHANNEL_IN14) | ADC_SQR1_SQ16_N(ADC_CHANNEL_VREFINT)
+//         | ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS), //SQR1: Conversion group sequence 13...16 + sequence length
 
-    // SQR2
-    ADC_SQR2_SQ7_N(ADC_CHANNEL_IN6) | ADC_SQR2_SQ8_N(ADC_CHANNEL_IN7)
-        | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) | ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9)
-        | ADC_SQR2_SQ11_N(ADC_CHANNEL_IN10) | ADC_SQR2_SQ12_N(ADC_CHANNEL_IN11), //SQR2: Conversion group sequence 7...12
+//     // SQR2
+//     ADC_SQR2_SQ7_N(ADC_CHANNEL_IN6) | ADC_SQR2_SQ8_N(ADC_CHANNEL_IN7)
+//         | ADC_SQR2_SQ9_N(ADC_CHANNEL_IN8) | ADC_SQR2_SQ10_N(ADC_CHANNEL_IN9)
+//         | ADC_SQR2_SQ11_N(ADC_CHANNEL_IN10) | ADC_SQR2_SQ12_N(ADC_CHANNEL_IN11), //SQR2: Conversion group sequence 7...12
 
-    // SQR3
-    ADC_SQR3_SQ1_N(ADC_CHANNEL_IN0) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN1)
-        | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) | ADC_SQR3_SQ4_N(ADC_CHANNEL_IN3)
-        | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN4) | ADC_SQR3_SQ6_N(ADC_CHANNEL_IN5) //SQR3: Conversion group sequence 1...6
+//     // SQR3
+//     ADC_SQR3_SQ1_N(ADC_CHANNEL_IN0) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN1)
+//         | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN2) | ADC_SQR3_SQ4_N(ADC_CHANNEL_IN3)
+//         | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN4) | ADC_SQR3_SQ6_N(ADC_CHANNEL_IN5) //SQR3: Conversion group sequence 1...6
 
-#endif
-};
+// #endif
+// };
 
 #if defined(BOARD_KSOLOTI_CORE)
 void adc3_convert(void) {
-    /* Retrieve sample from ADC3 (slower than ADC1 and no DMA available, but still adequate) */
-    adcvalues[10 + adc3_ch] = (ADC3->DR); /* Store ADC3 results in adcvalues[14...18] */
+    // /* Retrieve sample from ADC3 (slower than ADC1 and no DMA available, but still adequate) */
+    // adcvalues[10 + adc3_ch] = (ADC3->DR); /* Store ADC3 results in adcvalues[14...18] */
 
-    if (++adc3_ch > 8) adc3_ch = 4; /* Wrap ADC3 channel from 4 to 8 */
+    // if (++adc3_ch > 8) adc3_ch = 4; /* Wrap ADC3 channel from 4 to 8 */
 
-    ADC3->SQR3 = adc3_ch; /* Set next channel for conversion */
-    ADC3->CR2 |= ADC_CR2_SWSTART; /* Start next conversion */
+    // ADC3->SQR3 = adc3_ch; /* Set next channel for conversion */
+    // ADC3->CR2 |= ADC_CR2_SWSTART; /* Start next conversion */
 }
 #endif
 
 void adc_convert(void) {
 
-    adcStopConversion(&ADCD1); /* restart ADC1 sampling sequence */
-#if defined(BOARD_KSOLOTI_CORE)
-    adc3_convert();
-#endif
-    adcStartConversion(&ADCD1, &adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
+//     adcStopConversion(&ADCD1); /* restart ADC1 sampling sequence */
+// #if defined(BOARD_KSOLOTI_CORE)
+//     adc3_convert();
+// #endif
+//     adcStartConversion(&ADCD1, &adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
 }

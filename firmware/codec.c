@@ -36,7 +36,7 @@ int32_t rbuf[BUFSIZE*2]  __attribute__ ((section (".sram2")));
 int32_t rbuf2[BUFSIZE*2] __attribute__ ((section (".sram2")));
 
 void codec_init(bool_t isMaster) {
-    codec_ADAU1961_SAI_init(SAMPLERATE, isMaster);
+//    codec_ADAU1961_SAI_init(SAMPLERATE, isMaster);
 }
 
 
@@ -52,4 +52,4 @@ void codec_clearbuffer(void) {
 
 }
 
-#include "codec_ADAU1961_SAI.c"
+//#include "codec_ADAU1961_SAI.c"

@@ -268,18 +268,22 @@ static int StartPatch1(void) {
     /* Reinit pin configuration for ADC */
     adc_configpads();
 
-    uint32_t* ccm; /* Clear CCMRAM area declared in ramlink_*.ld */
-    for (ccm = (uint32_t*) 0x10000000; ccm < (uint32_t*) 0x1000C000; ccm++) {
-        *ccm = 0;
-    }
+    // uint32_t* ccm; /* Clear CCMRAM area declared in ramlink_*.ld */
+    // for (ccm = (uint32_t*) 0x10000000; ccm < (uint32_t*) 0x1000C000; ccm++) {
+    //     *ccm = 0;
+    // }
+    // __clear_cache (PATCHMAINLOC, PATCHMAINLOC+(64*1024));
+    SCB_CleanInvalidateDCache();
+    SCB_InvalidateICache();
 
     patchMeta.fptr_dsp_process = 0;
     nThreadsBeforePatch = GetNumberOfThreads();
-    patchMeta.fptr_patch_init = (fptr_patch_init_t)(PATCHMAINLOC + 1);
+//    patchMeta.fptr_patch_init = (fptr_patch_init_t)(PATCHMAINLOC + 1);
+    patchMeta.fptr_patch_init = (fptr_patch_init_t)(PATCHMAINLOC+1);
     (patchMeta.fptr_patch_init)(GetFirmwareID());
 
     if (patchMeta.fptr_dsp_process == 0) {
-        report_patchLoadFail((const char*) &loadFName[0]);
+        //report_patchLoadFail((const char*) &loadFName[0]);
         SetPatchStatus(STARTFAILED);
         return -1;
     }
@@ -289,7 +293,7 @@ static int StartPatch1(void) {
         StopPatch1();
         SetPatchStatus(STARTFAILED);
         patchMeta.patchID = 0;
-        report_patchLoadSDRamOverflow((const char*) &loadFName[0], -sdrem);
+        // report_patchLoadSDRamOverflow((const char*) &loadFName[0], -sdrem);
         return -1;
     }
 
@@ -423,18 +427,18 @@ static int StartPatch1(void) {
 
                 err = f_open(&f, index_fn, FA_READ | FA_OPEN_EXISTING);
                 if (err) {
-                    report_fatfs_error(err, index_fn);
+                    //report_fatfs_error(err, index_fn);
                 }
 
                 err = f_read(&f, (uint8_t*) PATCHMAINLOC, 0xE000, (void*) &bytes_read);
                 if (err != FR_OK) {
-                    report_fatfs_error(err, index_fn);
+                    //report_fatfs_error(err, index_fn);
                     continue;
                 }
 
                 err = f_close(&f);
                 if (err != FR_OK) {
-                    report_fatfs_error(err, index_fn);
+                    //report_fatfs_error(err, index_fn);
                     continue;
                 }
 

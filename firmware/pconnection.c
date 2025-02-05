@@ -94,7 +94,9 @@ __attribute__((noreturn)) static msg_t ThreadUSBDMidi(void *arg) {
 void InitPConnection(void) {
 
     extern int32_t _flash_end;
-    fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), (uint32_t)(&_flash_end) & 0x07FFFFF);
+    uint32_t size = 128*1024;
+    //fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), (uint32_t)(&_flash_end) & 0x07FFFFF);
+    fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), size & 0x07FFFFF);
 
     /* Initializes a serial-over-USB CDC driver. */
     mduObjectInit(&MDU1);
@@ -219,7 +221,7 @@ void PExTransmit(void) {
             }
 
             connected = 1;
-            exception_checkandreport();
+            //exception_checkandreport();
             AckPending = 0;
             //Analyse(GPIOC, 7, 0);
         }
@@ -317,7 +319,7 @@ void ReadDirectoryListing(void) {
 
   err = f_getfree("/", &clusters, &fsp);
   if (err != FR_OK) {
-	report_fatfs_error(err,0);
+	//report_fatfs_error(err,0);
     return;
   }
   /*
@@ -383,15 +385,15 @@ static void ManipulateFile(void) {
     FRESULT err;
     err = f_open(&pFile, &FileName[0], FA_WRITE | FA_CREATE_ALWAYS);
     if (err != FR_OK) {
-      report_fatfs_error(err,&FileName[0]);
+      //report_fatfs_error(err,&FileName[0]);
     }
     err = f_lseek(&pFile, pFileSize);
     if (err != FR_OK) {
-      report_fatfs_error(err,&FileName[0]);
+      //report_fatfs_error(err,&FileName[0]);
     }
     err = f_lseek(&pFile, 0);
     if (err != FR_OK) {
-      report_fatfs_error(err,&FileName[0]);
+      //report_fatfs_error(err,&FileName[0]);
     }
   } else {
     /* filename[0] == 0 */
@@ -400,7 +402,7 @@ static void ManipulateFile(void) {
       FRESULT err;
       err = f_mkdir(&FileName[6]);
       if ((err != FR_OK) && (err != FR_EXIST)) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
       /* and set timestamp */
       FILINFO fno;
@@ -408,36 +410,36 @@ static void ManipulateFile(void) {
       fno.ftime = FileName[4] + (FileName[5]<<8);
       err = f_utime(&FileName[6],&fno);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
     } else if (FileName[1]=='f') {
       /* create file */
       FRESULT err;
       err = f_open(&pFile, &FileName[6], FA_WRITE | FA_CREATE_ALWAYS);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
       err = f_lseek(&pFile, pFileSize);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
       err = f_lseek(&pFile, 0);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
     } else if (FileName[1]=='D') {
       /* delete */
       FRESULT err;
       err = f_unlink(&FileName[6]);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
     } else if (FileName[1]=='C') {
       /* change working directory */
       FRESULT err;
       err = f_chdir(&FileName[6]);
       if (err != FR_OK) {
-        report_fatfs_error(err,&FileName[6]);
+        //report_fatfs_error(err,&FileName[6]);
       }
     } else if (FileName[1]=='I') 
     {
@@ -468,7 +470,7 @@ static void CloseFile(void) {
   FRESULT err;
   err = f_close(&pFile);
   if (err != FR_OK) {
-    report_fatfs_error(err,&FileName[0]);
+    //report_fatfs_error(err,&FileName[0]);
   }
   if (!FileName[0]) {
     /* and set timestamp */
@@ -477,7 +479,7 @@ static void CloseFile(void) {
     fno.ftime = FileName[4] + (FileName[5]<<8);
     err = f_utime(&FileName[6],&fno);
     if (err != FR_OK) {
-      report_fatfs_error(err,&FileName[6]);
+      //report_fatfs_error(err,&FileName[6]);
     }
   }
 }
@@ -660,7 +662,7 @@ void PExReceiveByte(unsigned char c) {
         state = 0;
         header = 0;
         StopPatch();
-        exception_initiate_dfu();
+        //exception_initiate_dfu();
       }
       else if (c == 'F') { /* copy to flash */
         state = 0;
@@ -1028,7 +1030,7 @@ void PExReceiveByte(unsigned char c) {
           err = f_write(&pFile, (char *)PATCHMAINLOC, length,
                         (void *)&bytes_written);
           if (err != FR_OK) {
-            report_fatfs_error(err,0);
+            //report_fatfs_error(err,0);
           }
           AckPending = 1;
         }

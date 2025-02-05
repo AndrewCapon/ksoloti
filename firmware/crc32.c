@@ -30,11 +30,53 @@ static uint32_t revbit(uint32_t data) {
   return result;
 }
 
+
+
+// uint32_t Crc32(uint32_t Crc, const uint32_t Data)
+// {
+//   int i;
+ 
+//   Crc = Crc ^ Data;
+ 
+//   for(i=0; i<32; i++)
+//     if (Crc & 0x80000000)
+//       Crc = (Crc << 1) ^ 0x04C11DB7; // Polynomial used in STM32
+//     else
+//       Crc = (Crc << 1);
+ 
+//   return(Crc);
+// }
+
+// uint32_t Crc32Block(uint32_t Crc, uint32_t WordCount, const uint32_t *Data)
+// {
+//   while(WordCount--)
+//     Crc = Crc32(Crc, *Data++);
+ 
+//   return(Crc);
+// }
+
+// uint32_t CalcCRC32(uint8_t *buffer, uint32_t size) {
+//   return Crc32Block(0xFFFFFFFF, size >> 2, buffer);
+// }
+
+// typedef struct
+// {
+//   __IO uint32_t DR;          /*!< CRC Data register,                           Address offset: 0x00 */
+//   __IO uint32_t IDR;         /*!< CRC Independent data register,               Address offset: 0x04 */
+//   __IO uint32_t CR;          /*!< CRC Control register,                        Address offset: 0x08 */
+//   uint32_t      RESERVED2;   /*!< Reserved,                                                    0x0C */
+//   __IO uint32_t INIT;        /*!< Initial CRC value register,                  Address offset: 0x10 */
+//   __IO uint32_t POL;         /*!< CRC polynomial register,                     Address offset: 0x14 */
+// } CRC_TypeDef;
+
 uint32_t CalcCRC32(uint8_t *buffer, uint32_t size) {
+  return 1234;
+  
   uint32_t i, j;
   uint32_t ui32x;
 
-  RCC->AHB1ENR |= RCC_AHB1ENR_CRCEN;
+  RCC->AHB4ENR |= RCC_AHB4ENR_CRCEN;
+  
   CRC->CR = 1;
   asm("NOP");
   asm("NOP");

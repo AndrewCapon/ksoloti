@@ -29,6 +29,7 @@
 #ifndef _MIDI_USB_H_
 #define _MIDI_USB_H_
 
+#include "migration_v3.h"
 #include "midi.h"
 
 #if 1 //HAL_USE_MIDI_USB || defined(__DOXYGEN__)

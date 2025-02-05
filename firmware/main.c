@@ -19,8 +19,8 @@
 
 #include "axoloti_defines.h"
 
-#include "sdram.h"
-#include "stm32f4xx_fmc.h"
+// #include "sdram.h"
+// #include "stm32f4xx_fmc.h"
 
 #include "ch.h"
 #include "hal.h"
@@ -46,8 +46,8 @@
 #include "spilink.h"
 #endif
 
-#include "sdram.c"
-#include "stm32f4xx_fmc.c"
+//#include "sdram.c"
+//#include "stm32f4xx_fmc.c"
 #include "analyse.h"
 
 #include "board.h"
@@ -235,19 +235,80 @@ int32buffer AudioInputLeft, AudioInputRight, AudioOutputLeft, AudioOutputRight,
             UsbInputLeft, UsbInputRight, UsbOutputLeft, UsbOutputRight,
             UsbInput2Left, UsbInput2Right, UsbOutput2Left, UsbOutput2Right;
 
+/*
+ * GPT4 callback.
+ */
+static void gpt4cb(GPTDriver *gptp)
+{
+  (void)gptp;
+  Analyse(GPIOB, 8, 1); 
+  static bool b = 0;
+
+  if (b)
+  {
+    computebufI(rbuf2, buf);
+  }
+  else
+  {
+    computebufI(rbuf, buf2);
+  }
+  b = !b;
+  Analyse(GPIOB, 8, 0); 
+
+  // chSysLockFromISR();
+  // computebufI(rbuf, buf2);
+  // chSysUnlockFromISR();
+}
+
+// 120Mhz timer clock
+#define GPT4_FREQ 120000000
+// need 3.33 khz clock
+#define GPT4_TICKS 40000
+/*
+ * GPT4 configuration.
+ */
+static const GPTConfig gpt4cfg = 
+{
+  GPT4_FREQ, 
+  gpt4cb, /* Timer callback.*/
+  0,
+  0
+};
+
+
 int main(void) {
     /* copy vector table to SRAM1! */
+    // vectors are at 0x0000000008000000 and size 0x2a0
+    // why does this code remap SRAM1 to 0?
+    // itcmram is at 0 on h7
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnonnull"
-    memcpy((char *)0x20000000, (const char)0x00000000, 0x200);
+//    memcpy((char *)0x20000000, (const char)0x00000000, 0x200);
 #pragma GCC diagnostic pop
 
     /* remap SRAM1 to 0x00000000 */
-    SYSCFG->MEMRMP |= 0x03;
+//TODO??    SYSCFG->MEMRMP |= 0x03;
 
     halInit();
     myPalInit(&pal_default_config);
     chSysInit();
+
+    gptStart(&GPTD4, &gpt4cfg);
+    gptPolledDelay(&GPTD4, 10); /* Small delay.*/
+
+      // test code at 0x30000000/1
+    // patchMeta.fptr_patch_init = (fptr_patch_init_t)(PATCHMAINLOC);
+    // (patchMeta.fptr_patch_init)(1234);
+
+    // load /Users/andrewcapon/ksoloti/build/xpatch.elf 0
+    // load /Users/andrewcapon/ksoloti/build/xpatch.bin 0x30000000
+//     typedef void func(uint32_t);
+//     func* f1 = shit;
+//     func* f = (func*)0x30000001; // add 1 for thumb
+// chSysLock();    
+//     f1(1234);
+//     f(1234);
+// chSysUnlock();
 
 #ifdef FW_SPILINK
     pThreadSpilink = 0;
@@ -268,43 +329,48 @@ int main(void) {
 #endif
 
 #if ANALYSE_ENABLE
-    palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
-
-    palSetPadMode(GPIOD,  3, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOD,  4, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOD,  5, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOD,  6, PAL_MODE_OUTPUT_PUSHPULL); 
-
-    palSetPadMode(GPIOA,  9, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOB,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    // 755 values
     palSetPadMode(GPIOB,  8, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOB,  7, PAL_MODE_OUTPUT_PUSHPULL); 
-
-    palSetPadMode(GPIOB,  6, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOB,  4, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOB,  3, PAL_MODE_OUTPUT_PUSHPULL); 
-    palSetPadMode(GPIOC,  7, PAL_MODE_OUTPUT_PUSHPULL); 
-
-    Analyse(GPIOG, 11, 0);
-    Analyse(GPIOG, 10, 0);
-
-    Analyse(GPIOD, 3, 0);
-    Analyse(GPIOD, 4, 0);
-    Analyse(GPIOD, 5, 0);
-    Analyse(GPIOD, 6, 0);
-
-    Analyse(GPIOA, 9, 0); 
-    Analyse(GPIOB, 9, 0); 
+    Analyse(GPIOB, 8, 1); 
     Analyse(GPIOB, 8, 0); 
-    Analyse(GPIOB, 7, 0); 
 
-    Analyse(GPIOB, 6, 0); 
-    Analyse(GPIOB, 4, 0); 
-    Analyse(GPIOB, 3, 0); 
-    Analyse(GPIOC, 7, 0); 
+    // palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    // palSetPadMode(GPIOD,  3, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOD,  4, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOD,  5, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOD,  6, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    // palSetPadMode(GPIOA,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOB,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOB,  8, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOB,  7, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    // palSetPadMode(GPIOB,  6, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOB,  4, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOB,  3, PAL_MODE_OUTPUT_PUSHPULL); 
+    // palSetPadMode(GPIOC,  7, PAL_MODE_OUTPUT_PUSHPULL); 
+
+    // Analyse(GPIOG, 11, 0);
+    // Analyse(GPIOG, 10, 0);
+
+    // Analyse(GPIOD, 3, 0);
+    // Analyse(GPIOD, 4, 0);
+    // Analyse(GPIOD, 5, 0);
+    // Analyse(GPIOD, 6, 0);
+
+    // Analyse(GPIOA, 9, 0); 
+    // Analyse(GPIOB, 9, 0); 
+    // Analyse(GPIOB, 8, 0); 
+    // Analyse(GPIOB, 7, 0); 
+
+    // Analyse(GPIOB, 6, 0); 
+    // Analyse(GPIOB, 4, 0); 
+    // Analyse(GPIOB, 3, 0); 
+    // Analyse(GPIOC, 7, 0); 
 #endif
-    exception_init();
+    //exception_init();
 
     InitPatch0();
 
@@ -327,12 +393,16 @@ int main(void) {
     midi_init();
     start_dsp_thread();
     ui_init();
-    configSDRAM();
+    // configSDRAM();
     // memTest();
 
     bool_t is_master = palReadPad(SPILINK_JUMPER_PORT, SPILINK_JUMPER_PIN);
 
     codec_init(is_master);
+    gptStartContinuous(&GPTD4, GPT4_TICKS);
+    chThdSleepMilliseconds(10);
+    uint32_t uCount = gptGetCounterX(&GPTD4);
+
 #ifdef FW_SPILINK
     spilink_init(is_master);
 #endif
@@ -343,29 +413,29 @@ int main(void) {
         chThdSleepMilliseconds(1);
     }
 
-    MY_USBH_Init(); 
+    //MY_USBH_Init(); 
 
 
-    if (!exception_check()) {
-        /* Only try mounting SD and booting a patch when no exception is reported */
+    // if (!exception_check()) {
+    //     /* Only try mounting SD and booting a patch when no exception is reported */
 
-        sdcard_attemptMountIfUnmounted();
+    //     sdcard_attemptMountIfUnmounted();
 
-        /* Patch start can be skipped by holding S2 during boot */
-        if (!palReadPad(SW2_PORT, SW2_PIN)) {
+    //     /* Patch start can be skipped by holding S2 during boot */
+    //     if (!palReadPad(SW2_PORT, SW2_PIN)) {
 
-            if (fs_ready) {
-                LoadPatchStartSD();
-                chThdSleepMilliseconds(100);
-            }
+    //         if (fs_ready) {
+    //             LoadPatchStartSD();
+    //             chThdSleepMilliseconds(100);
+    //         }
 
-            /* If no patch booting or running yet try loading from flash */
-            // if (patchStatus == STOPPED) {
-            if (patchStatus != RUNNING) {
-                LoadPatchStartFlash();
-            }
-        }
-    }
+    //         /* If no patch booting or running yet try loading from flash */
+    //         // if (patchStatus == STOPPED) {
+    //         if (patchStatus != RUNNING) {
+    //             LoadPatchStartFlash();
+    //         }
+    //     }
+    // }
 
     //TestMemset();
 

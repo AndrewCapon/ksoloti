@@ -230,7 +230,8 @@ int  usbh_MidiGetOutputBufferPending(void) {
 }
 
 int  usbh_MidiGetOutputBufferAvailable(void) {
-    return RING_BUFFER_SIZE - usbh_MidiGetOutputBufferPending() - 1;
+    return 0;
+//    return RING_BUFFER_SIZE - usbh_MidiGetOutputBufferPending() - 1;
 }
 
 /** @defgroup USBH_MIDI_CORE_Private_Variables

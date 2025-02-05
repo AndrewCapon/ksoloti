@@ -44,7 +44,8 @@ typedef enum _LogType
   ltErrorAfter_____,
   ltStartReceive___,
   ltStartTransmit__,
-  ltUSBReset_______
+  ltUSBReset_______,
+  ltDataExchange___,
 } LogType; 
 
 typedef struct _OverrunDebug
@@ -66,7 +67,7 @@ typedef struct _OverrunDebug
 //  uint16_t txCurrentRingBufferSize;
 } __attribute__((packed)) OverrunDebug;
 
-OverrunDebug overrunDebug[ADU_OVERRUN_LOG_SIZE]   __attribute__ ((section (".sram3")));
+OverrunDebug overrunDebug[ADU_OVERRUN_LOG_SIZE];//   __attribute__ ((section (".sram3")));
 uint16_t uLogIndex = 0;
 
 void AddOverunLog(LogType type)

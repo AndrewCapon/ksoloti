@@ -22,8 +22,8 @@
 #include "hal.h"
 
 #include "codec.h"
-#include "stm32f4xx.h"
-#include "stm32f4xx_hal_i2c.h"
+// #include "stm32f4xx.h"
+// #include "stm32f4xx_hal_i2c.h"
 #include "axoloti_board.h"
 #include "sysmon.h"
 #ifdef FW_SPILINK

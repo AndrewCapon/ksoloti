@@ -14,7 +14,7 @@
 #include "analyse.h"
 
 
-// do not set higher than -O1
+// do not set higher than -O2
 #pragma GCC optimize ("O2")
 #define FORCE_INLINE __attribute__((always_inline)) inline 
 //#define FORCE_INLINE
@@ -853,6 +853,7 @@ void aduDataExchange (int32_t *in, int32_t *out)
       AddOverunLog(ltCodecCopyEnd___);
     }
     Analyse(GPIOB, 7, 0);
+    AddOverunLog(ltDataExchange___);
   }
 }
 

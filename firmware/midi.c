@@ -33,7 +33,7 @@ void MidiSend1(midi_device_t dev, uint8_t   port, uint8_t b0) {
             break;
         }
         case MIDI_DEVICE_USB_HOST: {
-            usbh_MidiSend1(port, b0);
+            //usbh_MidiSend1(port, b0);
             break;
         }
         case MIDI_DEVICE_INTERNAL: {
@@ -57,7 +57,7 @@ void MidiSend2(midi_device_t dev, uint8_t port, uint8_t b0, uint8_t b1) {
             break;
         }
         case MIDI_DEVICE_USB_HOST: {
-            usbh_MidiSend2(port, b0,b1);
+            //usbh_MidiSend2(port, b0,b1);
             break;
         }
         case MIDI_DEVICE_INTERNAL: {
@@ -81,7 +81,7 @@ void MidiSend3(midi_device_t dev, uint8_t port, uint8_t b0, uint8_t b1, uint8_t 
             break;
         }
         case MIDI_DEVICE_USB_HOST: {
-            usbh_MidiSend3(port,b0,b1,b2);
+            //usbh_MidiSend3(port,b0,b1,b2);
             break;
         }
         case MIDI_DEVICE_INTERNAL: {
@@ -101,7 +101,7 @@ void MidiSend3(midi_device_t dev, uint8_t port, uint8_t b0, uint8_t b1, uint8_t 
 void MidiSendSysEx(midi_device_t dev, uint8_t port, uint8_t bytes[], uint8_t len) {
     switch (dev) {
         case MIDI_DEVICE_USB_HOST: {
-            usbh_MidiSendSysEx(port,bytes,len);
+            //usbh_MidiSendSysEx(port,bytes,len);
             break;
         }
         default: {
@@ -112,7 +112,7 @@ void MidiSendSysEx(midi_device_t dev, uint8_t port, uint8_t bytes[], uint8_t len
 
 void midi_init(void) {
     serial_midi_init();
-    usbh_midi_init();
+    //usbh_midi_init();
 }
 
 
@@ -123,7 +123,7 @@ int  MidiGetOutputBufferPending(midi_device_t dev)
             return serial_MidiGetOutputBufferPending();
         }
         case MIDI_DEVICE_USB_HOST: {
-            return usbh_MidiGetOutputBufferPending();
+            //return usbh_MidiGetOutputBufferPending();
         }
         default: {
             // not implemented 
@@ -136,7 +136,8 @@ int  MidiGetOutputBufferAvailable(midi_device_t dev)
 {
     switch (dev) {
         case MIDI_DEVICE_USB_HOST: {
-            return usbh_MidiGetOutputBufferAvailable();
+            return 0;
+            // return usbh_MidiGetOutputBufferAvailable();
         }
         default: {
             // not implemented 

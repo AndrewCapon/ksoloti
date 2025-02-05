@@ -99,7 +99,8 @@ void StopPatch(void);
 
 void start_dsp_thread(void);
 
-#define PATCHMAINLOC 0x20011000
+//#define PATCHMAINLOC 0x20011000
+#define PATCHMAINLOC 0x30000000
 
 // patch is located in sector 11
 #define PATCHFLASHLOC 0x080E0000

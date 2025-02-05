@@ -22,6 +22,7 @@
 #include "midi.h"
 #include "serial_midi.h"
 #include "patch.h"
+#include "migration_v3.h"
 
 static unsigned char StatusLengthLookup[16] = {0, 0, 0, 0, 0, 0, 0, 0, 3, // 0x80=note off, 3 bytes
                                                3, // 0x90=note on, 3 bytes

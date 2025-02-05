@@ -13,10 +13,13 @@ MEMORY
         44+8+16 = 68 kB for program?? (sram3?)
     */
 
-    SRAM (rwx)   : ORIGIN = 0x00011000, LENGTH = 0x0000B000 /* 44kB in RAM1 */
-    SRAM2 (rwx)  : ORIGIN = 0x2001C000, LENGTH = 0x00002000 /* first 8kB in SRAM2 */
-    SRAM3 (rwx)  : ORIGIN = 0x20020000, LENGTH = 0x00010000 /* 64kB */
-    CCMSRAM (rw) : ORIGIN = 0x10000000, LENGTH = 0x0000C000 /* CCM - ccmramend */
+    /* for 755 bodge it all into AHB SRAM, 0x30000000 for the moment, we need to look at what isn't and is cached for DMA  */
+
+    SRAM (rwx)   : ORIGIN = 0x30000000, LENGTH = 0x0000B000 /* 44kB   */
+    SRAM2 (rwx)  : ORIGIN = 0x3000B000, LENGTH = 0x00002000 /* AXI SRAM */
+    SRAM3 (rwx)  : ORIGIN = 0x3000D000, LENGTH = 0x00010000 /* 64kB AXI SRAM*/
+    CCMSRAM (rw) : ORIGIN = 0x3001D000, LENGTH = 0x0000C000 /* CCM - AXI SRAM */
+
     SDRAM        : ORIGIN = 0xC0000000, LENGTH = 0x02000000 /* 32 MB */
 }
 

@@ -29,6 +29,7 @@
  * ITCM-RAM     - None.
  * BCKP SRAM    - None.
  */
+ 
 MEMORY
 {
     flash0 (rx) : org = 0x08000000, len = 2M        /* Flash bank1+bank2 */

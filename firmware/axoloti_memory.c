@@ -34,7 +34,7 @@ void *sdram_malloc(size_t size) {
     sdram_total_remaining -= size;
 
     if (sdram_current_addr + size > sdram_end_addr) {
-        report_patchLoadSDRamOverflow("m", sdram_total_remaining);
+        //report_patchLoadSDRamOverflow("m", sdram_total_remaining);
         chThdSleepMilliseconds(200); /* Get the report out */
         return sdram_base_addr;      /* Not available, but return valid area to avoid a memory fault */
     }

@@ -1838,10 +1838,10 @@ public class Patch {
            + "}\n\n";
 
         c += "void xpatch_init2(uint32_t fwid) {\n"
-           + I + "if (fwid != 0x" + MainFrame.mainframe.LinkFirmwareID + ") {\n"
-           + I+I + "// LogTextMessage(\"Patch firmware mismatch\");\n"
-           + I+I + "return;\n"
-           + I + "}\n\n"
+        //    + I + "if (fwid != 0x" + MainFrame.mainframe.LinkFirmwareID + ") {\n"
+        //    + I+I + "// LogTextMessage(\"Patch firmware mismatch\");\n"
+        //    + I+I + "return;\n"
+        //    + I + "}\n\n"
            + I + "extern uint32_t _pbss_start;\n"
            + I + "extern uint32_t _pbss_end;\n"
            + I + "volatile uint32_t* p;\n"
@@ -1864,10 +1864,10 @@ public class Patch {
            + I + "patchMeta.pDisplayVector = &root.displayVector[0];\n"
            + I + "patchMeta.numPEx = " + ParameterInstances.size() + ";\n"
            + I + "patchMeta.patchID = " + GetIID() + ";\n\n"
-           + I + "extern char _sdram_dyn_start;\n"
-           + I + "extern char _sdram_dyn_end;\n"
-           + I + "sdram_init(&_sdram_dyn_start, &_sdram_dyn_end);\n\n"
-           + I + "root.Init();\n\n";
+        //    + I + "extern char _sdram_dyn_start;\n"
+        //    + I + "extern char _sdram_dyn_end;\n"
+        //    + I + "sdram_init(&_sdram_dyn_start, &_sdram_dyn_end);\n\n"
+            + I + "root.Init();\n\n";
 
         c += I + "patchMeta.fptr_applyPreset = ApplyPreset;\n";
 
@@ -1944,7 +1944,8 @@ public class Patch {
 
         c += "void xpatch_init2(uint32_t fwid);\n\n"
                 + "extern \"C\" __attribute__ ((section(\".boot\"))) void xpatch_init(uint32_t fwid) {\n"
-           + I + "xpatch_init2(fwid);\n"
+                + I + "xpatch_init2(fwid);\n"
+//                + I + "volatile uint32_t b = fwid;\n"
                 + "}\n\n";
 
         c += "void PatchMidiInHandler(midi_device_t dev, uint8_t port, uint8_t status, uint8_t data1, uint8_t data2);\n\n";

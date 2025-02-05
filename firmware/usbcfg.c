@@ -548,12 +548,12 @@ static const USBDescriptor *get_descriptor(USBDriver *usbp,
   case USB_DESCRIPTOR_CONFIGURATION:
     return &vcom_configuration_descriptor;
   case USB_DESCRIPTOR_STRING:
-    if (dindex == 3) {
-      inttohex(*((uint32_t*)0x1FFF7A10),&descriptor_serial_string[2]);
-      inttohex(*((uint32_t*)0x1FFF7A14),&descriptor_serial_string[2+16]);
-      inttohex(*((uint32_t*)0x1FFF7A18),&descriptor_serial_string[2+32]);
-      return &descriptor_serial;
-    }
+    // if (dindex == 3) {
+    //   inttohex(*((uint32_t*)0x1FFF7A10),&descriptor_serial_string[2]);
+    //   inttohex(*((uint32_t*)0x1FFF7A14),&descriptor_serial_string[2+16]);
+    //   inttohex(*((uint32_t*)0x1FFF7A18),&descriptor_serial_string[2+32]);
+    //   return &descriptor_serial;
+    // }
     if (dindex < 9)
       return &vcom_strings[dindex];
   case 0xEE:
