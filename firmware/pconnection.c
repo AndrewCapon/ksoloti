@@ -94,9 +94,12 @@ __attribute__((noreturn)) static msg_t ThreadUSBDMidi(void *arg) {
 void InitPConnection(void) {
 
     extern int32_t _flash_end;
-    uint32_t size = 128*1024;
-    //fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), (uint32_t)(&_flash_end) & 0x07FFFFF);
-    fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), size & 0x07FFFFF);
+
+    volatile int32_t a = _flash_end;
+
+    fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), (uint32_t)(&_flash_end) & 0x07FFFFF);
+    // uint32_t size = 1024;
+    // fwid = CalcCRC32((uint8_t *)(FLASH_BASE_ADDR), size & 0x07FFFFF);
 
     /* Initializes a serial-over-USB CDC driver. */
     mduObjectInit(&MDU1);

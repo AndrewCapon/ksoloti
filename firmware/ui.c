@@ -40,8 +40,7 @@
 
 // struct KeyValuePair KvpsHead;
 // struct KeyValuePair *KvpsDisplay;
-struct KeyValuePair ObjectKvpRootStorage;
-struct KeyValuePair *ObjectKvpRoot = &ObjectKvpRootStorage;
+struct KeyValuePair *ObjectKvpRoot = NULL;
 
 #define MAXOBJECTS 256
 struct KeyValuePair *ObjectKvps[MAXOBJECTS];
@@ -304,6 +303,9 @@ static WORKING_AREA(waThreadUI, 1172);
 // }
 
 void ui_init(void) {
+    KeyValuePair_s *p = chCoreAlloc(sizeof(KeyValuePair_s) * 6);
+    ObjectKvpRoot = &p[0];
+
 #if 0
     Btn_Nav_Or.word = 0;
     Btn_Nav_And.word = ~0;
@@ -358,9 +360,12 @@ void KVP_ClearObjects(void) {
 }
 
 void KVP_RegisterObject(KeyValuePair_s *kvp) {
-    ObjectKvps[ObjectKvpRoot->apvp.length] = kvp;
-    // kvp->parent = ObjectKvpRoot;
-    ObjectKvpRoot->apvp.length++;
+    if(ObjectKvpRoot->apvp.length < (MAXOBJECTS) )
+    {
+        ObjectKvps[ObjectKvpRoot->apvp.length] = kvp;
+        // kvp->parent = ObjectKvpRoot;
+        ObjectKvpRoot->apvp.length++;
+    }
 }
 
 // #define LCD_COL_INDENT 5

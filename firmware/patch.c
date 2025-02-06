@@ -288,14 +288,14 @@ static int StartPatch1(void) {
         return -1;
     }
 
-    int32_t sdrem = sdram_get_free();
-    if (sdrem < 0) {
-        StopPatch1();
-        SetPatchStatus(STARTFAILED);
-        patchMeta.patchID = 0;
-        // report_patchLoadSDRamOverflow((const char*) &loadFName[0], -sdrem);
-        return -1;
-    }
+    // int32_t sdrem = sdram_get_free();
+    // if (sdrem < 0) {
+    //     StopPatch1();
+    //     SetPatchStatus(STARTFAILED);
+    //     patchMeta.patchID = 0;
+    //     // report_patchLoadSDRamOverflow((const char*) &loadFName[0], -sdrem);
+    //     return -1;
+    // }
 
     SetPatchStatus(RUNNING);
     return 0;
@@ -336,11 +336,14 @@ static int StartPatch1(void) {
 
             if (patchStatus == RUNNING) {
                 /* Patch running */
+                Analyse(GPIOB, 9, 1); 
 #if FW_USBAUDIO             
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf, inbufUsb, outbufUsb);
 #else
                 (patchMeta.fptr_dsp_process)(inbuf, outbuf);
 #endif
+                Analyse(GPIOB, 9, 0); 
+
             }
             else if (patchStatus == STOPPING) {
                 codec_clearbuffer();
@@ -374,8 +377,9 @@ static int StartPatch1(void) {
             dspLoad200 = (2000 * DspTime) / uDspTimeslice;
 #endif
 
-
             Analyse(GPIOB, 9, 0); 
+
+
             if (dspLoad200 > uPatchUsbLimit200) {
                 /* Overload: clear output buffers and give other processes a chance */
                 codec_clearbuffer();

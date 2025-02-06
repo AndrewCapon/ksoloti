@@ -70,8 +70,6 @@ static uint32_t revbit(uint32_t data) {
 // } CRC_TypeDef;
 
 uint32_t CalcCRC32(uint8_t *buffer, uint32_t size) {
-  return 1234;
-  
   uint32_t i, j;
   uint32_t ui32x;
 

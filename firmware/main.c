@@ -295,12 +295,12 @@ int main(void) {
 
     gptStart(&GPTD4, &gpt4cfg);
     gptPolledDelay(&GPTD4, 10); /* Small delay.*/
-
+   
       // test code at 0x30000000/1
     // patchMeta.fptr_patch_init = (fptr_patch_init_t)(PATCHMAINLOC);
     // (patchMeta.fptr_patch_init)(1234);
 
-    // load /Users/andrewcapon/ksoloti/build/xpatch.elf 0
+    // load  /Users/andrewcapon/ksoloti/build/xpatch.elf 0
     // load /Users/andrewcapon/ksoloti/build/xpatch.bin 0x30000000
 //     typedef void func(uint32_t);
 //     func* f1 = shit;
@@ -331,8 +331,11 @@ int main(void) {
 #if ANALYSE_ENABLE
     // 755 values
     palSetPadMode(GPIOB,  8, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  9, PAL_MODE_OUTPUT_PUSHPULL); 
     Analyse(GPIOB, 8, 1); 
+    Analyse(GPIOB, 9, 1); 
     Analyse(GPIOB, 8, 0); 
+    Analyse(GPIOB, 9, 1); 
 
     // palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
     // palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 

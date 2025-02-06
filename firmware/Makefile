@@ -18,7 +18,7 @@ ifeq ($(USE_OPT),)
     -Wno-return-type \
     -Wno-unused-function \
     -Wno-unused-parameter \
-    -O2 \
+    -Og \
     -falign-functions=16 \
     -fno-math-errno \
     -fomit-frame-pointer \

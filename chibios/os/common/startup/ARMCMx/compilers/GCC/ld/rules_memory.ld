@@ -258,6 +258,13 @@ SECTIONS
         __flash1_free__ = .;
     } > flash1
 
+    .flashend :
+    {
+        . = ALIGN(4);
+        LONG(0x12345678)
+        PROVIDE(_flash_end = .);
+    } > VARIOUS_FLASH AT > VARIOUS_FLASH_LMA
+
     .flash2 : ALIGN(4)
     {
         __flash2_init__ = .;
