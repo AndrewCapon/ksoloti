@@ -1,4 +1,4 @@
-# Ksoloti
+# Ksoloti edit
 
 ![Ksoloti Core front and back](/doc/ksoloti_core_front_and_back.jpg)
 
