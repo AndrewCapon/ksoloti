@@ -29,6 +29,12 @@
 #include "string.h"
 #include <stdio.h>
 
+#define TEST_FLASH 0
+
+#if TEST_FLASH
+#include "stm32h7xx_hal.h"
+#endif
+
 #include "codec.h"
 #include "ui.h"
 #include "midi.h"
@@ -55,8 +61,86 @@
 /*===========================================================================*/
 /* Initialization and main thread.                                           */
 /*===========================================================================*/
+#if TEST_FLASH
 
+  #define FLASH_BASE_ADDR      (uint32_t)(FLASH_BASE)
+  #define FLASH_END_ADDR       (uint32_t)(0x081FFFFF)
 
+  /* Base address of the Flash sectors Bank 1 */
+  #define ADDR_FLASH_SECTOR_0_BANK1     ((uint32_t)0x08000000) /* Base @ of Sector 0, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_1_BANK1     ((uint32_t)0x08020000) /* Base @ of Sector 1, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_2_BANK1     ((uint32_t)0x08040000) /* Base @ of Sector 2, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_3_BANK1     ((uint32_t)0x08060000) /* Base @ of Sector 3, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_4_BANK1     ((uint32_t)0x08080000) /* Base @ of Sector 4, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_5_BANK1     ((uint32_t)0x080A0000) /* Base @ of Sector 5, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_6_BANK1     ((uint32_t)0x080C0000) /* Base @ of Sector 6, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_7_BANK1     ((uint32_t)0x080E0000) /* Base @ of Sector 7, 128 Kbytes */
+
+  /* Base address of the Flash sectors Bank 2 */
+  #define ADDR_FLASH_SECTOR_0_BANK2     ((uint32_t)0x08100000) /* Base @ of Sector 0, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_1_BANK2     ((uint32_t)0x08120000) /* Base @ of Sector 1, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_2_BANK2     ((uint32_t)0x08140000) /* Base @ of Sector 2, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_3_BANK2     ((uint32_t)0x08160000) /* Base @ of Sector 3, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_4_BANK2     ((uint32_t)0x08180000) /* Base @ of Sector 4, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_5_BANK2     ((uint32_t)0x081A0000) /* Base @ of Sector 5, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_6_BANK2     ((uint32_t)0x081C0000) /* Base @ of Sector 6, 128 Kbytes */
+  #define ADDR_FLASH_SECTOR_7_BANK2     ((uint32_t)0x081E0000) /* Base @ of Sector 7, 128 Kbytes */
+
+  #define FLASH_BANK2_START_ADDR   ADDR_FLASH_SECTOR_0_BANK2        /* Start @ of user Flash area Bank2 */
+  #define FLASH_BANK2_END_ADDR     (ADDR_FLASH_SECTOR_1_BANK2 - 1)  /* End @ of user Flash area Bank2*/
+
+  uint32_t GetSector(uint32_t Address)
+  {
+    uint32_t sector = 0;
+    
+    if(((Address < ADDR_FLASH_SECTOR_1_BANK1) && (Address >= ADDR_FLASH_SECTOR_0_BANK1)) || \
+      ((Address < ADDR_FLASH_SECTOR_1_BANK2) && (Address >= ADDR_FLASH_SECTOR_0_BANK2)))    
+    {
+      sector = FLASH_SECTOR_0;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_2_BANK1) && (Address >= ADDR_FLASH_SECTOR_1_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_2_BANK2) && (Address >= ADDR_FLASH_SECTOR_1_BANK2)))    
+    {
+      sector = FLASH_SECTOR_1;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_3_BANK1) && (Address >= ADDR_FLASH_SECTOR_2_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_3_BANK2) && (Address >= ADDR_FLASH_SECTOR_2_BANK2)))    
+    {
+      sector = FLASH_SECTOR_2;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_4_BANK1) && (Address >= ADDR_FLASH_SECTOR_3_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_4_BANK2) && (Address >= ADDR_FLASH_SECTOR_3_BANK2)))    
+    {
+      sector = FLASH_SECTOR_3;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_5_BANK1) && (Address >= ADDR_FLASH_SECTOR_4_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_5_BANK2) && (Address >= ADDR_FLASH_SECTOR_4_BANK2)))    
+    {
+      sector = FLASH_SECTOR_4;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_6_BANK1) && (Address >= ADDR_FLASH_SECTOR_5_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_6_BANK2) && (Address >= ADDR_FLASH_SECTOR_5_BANK2)))    
+    {
+      sector = FLASH_SECTOR_5;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_7_BANK1) && (Address >= ADDR_FLASH_SECTOR_6_BANK1)) || \
+            ((Address < ADDR_FLASH_SECTOR_7_BANK2) && (Address >= ADDR_FLASH_SECTOR_6_BANK2)))    
+    {
+      sector = FLASH_SECTOR_6;  
+    }
+    else if(((Address < ADDR_FLASH_SECTOR_0_BANK2) && (Address >= ADDR_FLASH_SECTOR_7_BANK1)) || \
+            ((Address < FLASH_END_ADDR) && (Address >= ADDR_FLASH_SECTOR_7_BANK2)))
+    {
+      sector = FLASH_SECTOR_7;  
+    }
+    else
+    {
+      sector = FLASH_SECTOR_7;
+    }
+
+    return sector;
+  }
+#endif
 
 #define AHB1_EN_MASK    STM32_GPIO_EN_MASK
 #define AHB1_LPEN_MASK  AHB1_EN_MASK
@@ -276,6 +360,83 @@ static const GPTConfig gpt4cfg =
 };
 
 
+uint32_t HAL_GetTick(void) {
+    return RTT2MS(hal_lld_get_counter_value());
+}
+
+
+uint32_t TestFlash(void)
+{
+  volatile uint32_t uResult = 0;
+
+  #if TEST_FLASH
+    volatile bool bTestFlash = false;
+
+    if(bTestFlash)
+    {
+      // test flash
+      HAL_FLASH_Unlock();
+      SCB_DisableICache();
+
+      /* Get the 1st sector to erase */
+      uint32_t uFirstSector = GetSector(FLASH_BANK2_START_ADDR);
+      /* Get the number of sector to erase from 1st sector*/
+      uint32_t uNbOfSectors = GetSector(FLASH_BANK2_END_ADDR) - uFirstSector + 1;
+
+      FLASH_EraseInitTypeDef EraseInitStruct;
+
+      /* Fill EraseInit structure*/
+      EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
+      EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
+      EraseInitStruct.Banks         = FLASH_BANK_2;
+      EraseInitStruct.Sector        = uFirstSector;
+      EraseInitStruct.NbSectors     = uNbOfSectors;
+      
+      uint32_t uSectorError;
+      volatile bool bErased = false;
+      volatile bool bError = false;
+
+      if (HAL_FLASHEx_Erase(&EraseInitStruct, &uSectorError) == HAL_OK)
+      {
+        bErased = true;
+
+        uint64_t FlashWord[4] = { 0x0102030405060708,
+                            0x1112131415161718,
+                            0x2122232425262728,    
+                            0x3132333435363738
+                          };
+
+        uint32_t uAddress = FLASH_BANK2_START_ADDR;
+
+        while (!bError && (uAddress < FLASH_BANK2_END_ADDR))
+        {
+          if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, uAddress, ((uint32_t)FlashWord)) == HAL_OK)
+          {
+            uAddress = uAddress + 32; /* increment for the next Flash word*/
+          }
+          else
+          {
+            bError = true;
+          }
+        }
+      }
+
+      HAL_FLASH_Lock();
+      SCB_EnableICache();
+      uResult = !bError;
+    }
+    else
+    {
+      // Test HAL_tick
+      volatile uint32_t uTickStart = HAL_GetTick();
+      chThdSleepMilliseconds(1000);
+      volatile uint32_t uTickEnd = HAL_GetTick();
+      uResult =  uTickEnd - uTickStart;
+    }
+#endif
+    return uResult;
+}
+
 int main(void) {
     /* copy vector table to SRAM1! */
     // vectors are at 0x0000000008000000 and size 0x2a0
@@ -292,6 +453,8 @@ int main(void) {
     halInit();
     myPalInit(&pal_default_config);
     chSysInit();
+
+    volatile uint32_t uResult = TestFlash();
 
     gptStart(&GPTD4, &gpt4cfg);
     gptPolledDelay(&GPTD4, 10); /* Small delay.*/
@@ -332,10 +495,13 @@ int main(void) {
     // 755 values
     palSetPadMode(GPIOB,  8, PAL_MODE_OUTPUT_PUSHPULL); 
     palSetPadMode(GPIOB,  9, PAL_MODE_OUTPUT_PUSHPULL); 
+    palSetPadMode(GPIOB,  7, PAL_MODE_OUTPUT_PUSHPULL); 
     Analyse(GPIOB, 8, 1); 
     Analyse(GPIOB, 9, 1); 
+    Analyse(GPIOB, 7, 1); 
     Analyse(GPIOB, 8, 0); 
-    Analyse(GPIOB, 9, 1); 
+    Analyse(GPIOB, 9, 0); 
+    Analyse(GPIOB, 7, 0); 
 
     // palSetPadMode(GPIOG, 11, PAL_MODE_OUTPUT_PUSHPULL); 
     // palSetPadMode(GPIOG, 10, PAL_MODE_OUTPUT_PUSHPULL); 
@@ -416,6 +582,10 @@ int main(void) {
         chThdSleepMilliseconds(1);
     }
 
+    // Test patch load from flash
+    if (patchStatus != RUNNING) 
+      LoadPatchStartFlash();
+  
     //MY_USBH_Init(); 
 
 
@@ -441,6 +611,7 @@ int main(void) {
     // }
 
     //TestMemset();
+
 
 #if FW_USBAUDIO
     EventListener audioEventListener;
@@ -485,7 +656,7 @@ int main(void) {
 }
 
 
-void HAL_Delay(unsigned int n) {
+void HAL_Delay(uint32_t n) {
     chThdSleepMilliseconds(n);
 }
 

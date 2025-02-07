@@ -21,6 +21,7 @@
 #define hal_lld_get_counter_value port_rt_get_counter_value
 
 #define RTT2US(ticks) ((ticks) / (480000000 / 1000000UL))
+#define RTT2MS(ticks) ((ticks) / (480000000 / 1000));
 
 
 // V16 here down

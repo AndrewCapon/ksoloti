@@ -486,9 +486,12 @@ static void CloseFile(void) {
     }
   }
 }
-
-
+ 
+ 
 static void CopyPatchToFlash(void) {
+#if KSOLOTI_H7
+  FlashPatch(0);
+#else  
     flash_unlock();
     flash_Erase_sector(11);
 
@@ -521,6 +524,7 @@ static void CopyPatchToFlash(void) {
     if (err) {
         while (1); /* Flash verify failed */
     }
+#endif
 
     AckPending = 1;
 }

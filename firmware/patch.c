@@ -407,7 +407,7 @@ static int StartPatch1(void) {
 
             StopPatch1();
             SetPatchStatus(STOPPED);
-
+ 
             if (loadFName[0]) {
                 int res = sdcard_loadPatch1(loadFName);
                 if (!res) StartPatch1();

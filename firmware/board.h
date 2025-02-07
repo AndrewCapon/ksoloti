@@ -60,7 +60,7 @@
 /*
  * MCU type as defined in the ST header.
  */
-#define STM32H755xx
+//#define STM32H755xx
 
 /*
  * IO pins assignments.

@@ -12,6 +12,8 @@ ifeq ($(USE_OPT),)
   USE_OPT = \
     -D$(BOARDDEF) \
     -DPATCH_ITCM=1 \
+    -DSTM32H755xx \
+    -DKSOLOTI_H7 \
     --specs=nosys.specs \
     --specs=nano.specs \
     -Wno-implicit-fallthrough \
@@ -397,7 +399,9 @@ CSRC = $(ALLCSRC) \
        ${FIRMWARE}/crc32.c \
        ${FIRMWARE}/watchdog.c \
        ${FIRMWARE}/sysmon.c \
-       ${FIRMWARE}/axoloti_memory.c
+       ${FIRMWARE}/axoloti_memory.c \
+       ${FIRMWARE}/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c \
+       ${FIRMWARE}/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ex.c
 
 #optional modules
 ifneq (,$(findstring BRAIDS,$(AXO_OPT_MODULES)))
@@ -524,7 +528,6 @@ INCDIR = ${CMSIS}/Core/Include \
          $(CHIBIOS)/os/various \
          ${FIRMWARE}/STM32_USB_Host_Library/Core/Inc \
          ${FIRMWARE}/STM32_USB_Host_Library/Class/HID/Inc \
-         ${FIRMWARE}/STM32F4xx_HAL_Driver/Inc \
          ${MUTABLE_INSTRUMENTS} \
          ${MUTABLE_INSTRUMENTS}/warps \
          ${MUTABLE_INSTRUMENTS}/braids \
@@ -532,7 +535,8 @@ INCDIR = ${CMSIS}/Core/Include \
          ${MUTABLE_INSTRUMENTS}/elements \
          ${MUTABLE_INSTRUMENTS}/stmlib \
          $(CONFDIR) $(ALLINC) \
-	       $(CHIBIOS)/os/hal/lib/streams
+	       $(CHIBIOS)/os/hal/lib/streams \
+         ${FIRMWARE}/STM32H7xx_HAL_Driver/Inc 
 
 #
 # Project, sources and paths
