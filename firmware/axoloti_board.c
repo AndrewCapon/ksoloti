@@ -234,3 +234,4 @@ void adc_convert(void) {
     adc3_convert();
 #endif
     adcStartConversion(&ADCD1, &adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
+}
